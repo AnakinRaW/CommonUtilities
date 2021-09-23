@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net48;</TargetFrameworks>
+    <TargetFrameworks>net5-windows;net48</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <RootNamespace>Sklavenwalker.CommonUtilities</RootNamespace>
-    <AssemblyName>Sklavenwalker.CommonUtilities</AssemblyName>
+    <LangVersion>10.0</LangVersion>
+
+    <RootNamespace>Sklavenwalker.CommonUtilities.FileSystem.Windows</RootNamespace>
+    <AssemblyName>Sklavenwalker.CommonUtilities.FileSystem.Windows</AssemblyName>
     <SignAssembly>True</SignAssembly>
     <Authors>Anakin Sklavenwalker</Authors>
-    <Description>Shared set of common classes and utilities for all of my software.</Description>
+    <Description>Helper classes and methods targeting the Windows Filesystem and Paths.</Description>
     <Copyright>Anakin Sklavenwalker</Copyright>
     <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
