@@ -19,4 +19,12 @@
     <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
+  </ItemGroup>
+
 </Project>

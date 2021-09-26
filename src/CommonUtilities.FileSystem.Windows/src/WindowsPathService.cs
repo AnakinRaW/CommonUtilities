@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 using Sklavenwalker.CommonUtilities.FileSystem.Windows.NativeMethods;
 
@@ -94,6 +96,32 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows
             return IsValidPath(path, false);
         }
 
+        // Based on: https://stackoverflow.com/questions/1410127/c-sharp-test-if-user-has-write-access-to-a-folder
+        /// <summary>
+        /// Checks whether the current executing user that the requested rights on a given location.
+        /// </summary>
+        /// <param name="path">The directory to check rights on.</param>
+        /// <param name="accessRights">The requested rights.</param>
+        /// <returns></returns>
+        /// <exception cref="DirectoryNotFoundException">If <paramref name="path"/> does not exists.</exception>
+        public bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
+        {
+            bool isInRoleWithAccess;
+            var di = new DirectoryInfo(path);
+            try
+            {
+                if (!di.Exists)
+                    throw new DirectoryNotFoundException($"Unable to find {di.FullName}");
+                isInRoleWithAccess = TestAccessRightsOnWindows(di, accessRights);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+
+            return isInRoleWithAccess;
+        }
+        
         private static bool IsValidPath(string path, bool forceAbsolute)
         {
             if (!IsPathValidAndNotEmpty(path, forceAbsolute))
@@ -124,6 +152,39 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows
             if (checkAbsolute && !RegexSimplePath.IsMatch(path))
                 return false;
             return path.IndexOfAny(InvalidPathChars) < 0;
+        }
+
+        private static bool TestAccessRightsOnWindows(DirectoryInfo directoryInfo, FileSystemRights accessRights)
+        {
+            var acl = directoryInfo.GetAccessControl();
+            var rules = acl.GetAccessRules(true, true,
+                // If Windows 7
+                Environment.OSVersion.VersionString.StartsWith("6.1")
+                    ? typeof(SecurityIdentifier)
+                    : typeof(NTAccount));
+
+            var currentUser = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(currentUser);
+            foreach (AuthorizationRule rule in rules)
+            {
+                var fsAccessRule = rule as FileSystemAccessRule;
+                if (fsAccessRule == null)
+                    continue;
+
+                if ((fsAccessRule.FileSystemRights & accessRights) > 0)
+                {
+                    var ntAccount = rule.IdentityReference as NTAccount;
+                    if (ntAccount == null)
+                        continue;
+
+                    if (principal.IsInRole(ntAccount.Value))
+                    {
+                        return fsAccessRule.AccessControlType != AccessControlType.Deny;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

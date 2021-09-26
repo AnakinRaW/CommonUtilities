@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Security.AccessControl;
 using Sklavenwalker.CommonUtilities.FileSystem.Windows;
 using Xunit;
 
@@ -123,6 +124,14 @@ namespace Commonutilities.FileSystem.Windows.Test
         public void TestDriveTypeThrows(string input)
         {
             Assert.Throws<InvalidOperationException>(() => _service.GetDriveType(input));
+        }
+
+        [Theory]
+        [InlineData("C:\\", true)]
+        [InlineData("C:\\System Volume Information", false)]
+        public void TestAccessRights(string input, bool expected)
+        {
+            Assert.Equal(expected, _service.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
         }
     }
 }

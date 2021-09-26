@@ -26,8 +26,17 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// </summary>
         ResolveFullPath = 8,
         /// <summary>
+        /// Removes adjacent directory separators.
+        /// <remarks>This options is not necessary when <see cref="ResolveFullPath"/> is applied.</remarks>
+        /// </summary>
+        RemoveAdjacentSlashes = 16,
+        /// <summary>
         /// Applies all available options.
         /// </summary>
-        Full = UnifySlashes | TrimTrailingSeparator | ToLowerCase | ResolveFullPath
+        Full = UnifySlashes | TrimTrailingSeparator | ToLowerCase | ResolveFullPath,
+        /// <summary>
+        /// Applies all available options excluding <see cref="ResolveFullPath"/>.
+        /// </summary>
+        FullNoResolve = UnifySlashes | TrimTrailingSeparator | ToLowerCase | RemoveAdjacentSlashes
     }
 }

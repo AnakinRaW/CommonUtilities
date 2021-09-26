@@ -1,16 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Sklavenwalker.CommonUtilities.FileSystem
 {
     // Based on https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/FileSystem/PathUtilities.cs
     // and https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Common/PathUtil/PathUtility.cs
-    /// <summary>
-    /// Path Utility service providing methods to work with IO paths.
-    /// </summary>
-    public class PathHelperService
+    /// <inheritdoc cref="IPathHelperService"/>
+    public class PathHelperService : IPathHelperService
     {
         private static readonly bool IsUnixLikePlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         private static readonly char DirectorySeparatorChar = IsUnixLikePlatform ? '/' : '\\';
@@ -37,19 +37,20 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             _fileSystem = fileSystem;
         }
 
-        /// <summary>
-        /// Normalizes a given path according to given normalization rules.
-        /// </summary>
-        /// <param name="path">The input path.</param>
-        /// <param name="options">The options how to normalize.</param>
-        /// <returns>The normalized path.</returns>
-        /// <exception cref="IOException">if the normalization failed. See the inner exception for details.</exception>
+        /// <inheritdoc/>
         public string NormalizePath(string path, PathNormalizeOptions options)
         {
             if (path is null) throw new ArgumentNullException(nameof(path));
 
             if (options.HasFlag(PathNormalizeOptions.ResolveFullPath))
                 path = _fileSystem.Path.GetFullPath(path);
+
+            if (options.HasFlag(PathNormalizeOptions.RemoveAdjacentSlashes))
+            {
+                // No need to do this again.
+                if (!options.HasFlag(PathNormalizeOptions.ResolveFullPath))
+                    path = RemoveAdjacentChars(path, 1);
+            }
 
             if (options.HasFlag(PathNormalizeOptions.UnifySlashes))
                 path = GetPathWithDirectorySeparator(path);
@@ -61,6 +62,26 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 path = path.ToLower();
 
             return path;
+        }
+
+        private static string RemoveAdjacentChars(string value, int startIndex)
+        {
+            if (startIndex >= value.Length)
+                return value;
+            StringBuilder stringBuilder = new(value);
+            var lastChar = char.MinValue;
+            for (var index = startIndex; index < stringBuilder.Length; ++index)
+            {
+                var currentChar = stringBuilder[index];
+                var currentIsAdjacent = currentChar == lastChar && Slashes.Contains(currentChar);
+                lastChar = currentChar;
+                if (currentIsAdjacent)
+                {
+                    stringBuilder.Remove(index, 1);
+                    --index;
+                }
+            }
+            return stringBuilder.ToString();
         }
 
         private static string TrimTrailingSeparators(string s)
@@ -88,9 +109,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             return path.Replace('\\', '/');
         }
 
-        /// <summary>
-        /// Returns <paramref name="pathToRelativize"/> relative to <paramref name="relativePathBase"/>, with default System Directory Separator character as separator.
-        /// </summary>
+        /// <inheritdoc/>
         public string GetRelativePath(string relativePathBase, string pathToRelativize)
         {
             if (relativePathBase is null) throw new ArgumentNullException(nameof(relativePathBase));
@@ -153,9 +172,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             return path;
         }
 
-        /// <summary>
-        /// Ensures a trailing directory separator character.
-        /// </summary>
+        /// <inheritdoc/>
         public string EnsureTrailingSeparator(string path)
         {
             if (path is null) throw new ArgumentNullException(nameof(path));
@@ -173,14 +190,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             };
         }
 
-        /// <summary>
-        /// Checks whether a candidate path is a child of a given base path.
-        /// <remarks>No normalization and path resolving is performed beforehand.</remarks>
-        /// </summary>
-        /// <param name="basePath">The base path.</param>
-        /// <param name="candidate">The sub path candidate.</param>
-        /// <returns><see langword="true"/> if <paramref name="candidate"/> is a child of <paramref name="basePath"/>; <see langword="false"/> otherwise.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <inheritdoc/>
         public bool IsChildOf(string basePath, string candidate)
         {
             if (basePath is null) 
@@ -193,11 +203,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             return candidate.StartsWith(basePath, comparison);
         }
 
-        /// <summary>
-        /// Checks whether a path is absolute.
-        /// </summary>
-        /// <param name="path">The path to check.</param>
-        /// <returns><see langword="true"/> if the input path is absolute; <see langword="false"/> otherwise.</returns>
+        /// <inheritdoc/>
         public bool IsAbsolute(string path)
         {
             if (string.IsNullOrEmpty(path))

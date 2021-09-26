@@ -64,6 +64,7 @@ namespace Commonutilities.FileSystem.Test
         [InlineData("C:\\a\\../A\\", PathNormalizeOptions.ResolveFullPath, "C:\\A\\")]
         [InlineData("C:\\a\\../A\\", PathNormalizeOptions.ToLowerCase, "c:\\a\\../a\\")]
         [InlineData("C:\\a\\../A\\", PathNormalizeOptions.UnifySlashes, "C:\\a\\..\\A\\")]
+        [InlineData("C:\\a\\\\a", PathNormalizeOptions.RemoveAdjacentSlashes, "C:\\a\\a")]
         public void NormalizeTest(string path, PathNormalizeOptions options, string expected)
         {
             Assert.Equal(expected, _service.NormalizePath(path, options));
