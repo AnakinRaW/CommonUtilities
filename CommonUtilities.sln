@@ -13,13 +13,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.FileSystem"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commonutilities.FileSystem", "src\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj", "{629247FB-648B-4F7D-9039-15D74102B4C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commonutilities.FileSystem.Test", "src\CommonUtilities.FileSystem\test\Commonutilities.FileSystem.Test.csproj", "{C6AB748E-AEC2-4793-A8D6-F91F46CE098C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.FileSystem.Test", "src\CommonUtilities.FileSystem\test\CommonUtilities.FileSystem.Test.csproj", "{C6AB748E-AEC2-4793-A8D6-F91F46CE098C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.FileSystem.Windows", "CommonUtilities.FileSystem.Windows", "{CDAA5843-26C4-4A5F-A828-6FCF74BD4DF1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commonutilities.FileSystem.Windows", "src\CommonUtilities.FileSystem.Windows\src\Commonutilities.FileSystem.Windows.csproj", "{2FCE23D6-D326-4614-9415-E339E107579A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.FileSystem.Windows", "src\CommonUtilities.FileSystem.Windows\src\CommonUtilities.FileSystem.Windows.csproj", "{2FCE23D6-D326-4614-9415-E339E107579A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commonutilities.FileSystem.Windows.Test", "src\CommonUtilities.FileSystem.Windows\test\Commonutilities.FileSystem.Windows.Test.csproj", "{FD1136F8-6D41-4398-941A-CC7640840C81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.FileSystem.Windows.Test", "src\CommonUtilities.FileSystem.Windows\test\CommonUtilities.FileSystem.Windows.Test.csproj", "{FD1136F8-6D41-4398-941A-CC7640840C81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

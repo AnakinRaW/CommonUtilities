@@ -53,7 +53,8 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="destination">The new location.</param>
         /// <param name="replace">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
         /// <returns><see langowrd="true"/>if the operation was successful; <see langowrd="false"/> otherwise.</returns>
-        /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="replace"/> is <see langword="false"/>.</exception>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="replace"/>
+        /// is <see langword="false"/>.</exception>
         /// <exception cref="FileNotFoundException">if the source was not found.</exception>
         bool MoveFile(IFileInfo source, string destination, bool replace = false);
 
@@ -67,7 +68,8 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
         /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
         /// <returns><see langowrd="true"/>if the operation was successful; <see langowrd="false"/> otherwise.</returns>
-        /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="replace"/> is <see langword="false"/>.</exception>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="replace"/> is <see langword="false"/>.</exception>
         /// <exception cref="FileNotFoundException">if the source was not found.</exception>
         void MoveFileWithRetry(IFileInfo source, string destination, bool replace = false, int retryCount = 2, int retryDelay = 500);
 
@@ -77,26 +79,87 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <remarks>The overwrite functionality may cause data losses of the destination if the operation fails. </remarks>
         /// <param name="source">The file or directory.</param>
         /// <param name="destination">The new location.</param>
-        /// <param name="replace">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
-        /// <returns><see langowrd="true"/> if the operation was successful; <see langowrd="false"/> otherwise.</returns>
-        /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="replace"/> is <see langword="false"/>.</exception>
+        /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
+        /// <returns><see langowrd="true"/> if the deletion of the source was successful;
+        /// <see langowrd="false"/> if source was not deleted.</returns>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-        bool MoveDirectory(IDirectoryInfo source, string destination, bool replace = false);
+        public bool MoveDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress,
+            bool overwrite);
 
         /// <summary>
         /// Tries to moves a directory to a new location. This also works across drives.
         /// </summary>
         /// <remarks>The overwrite functionality may cause data losses of the destination if the operation fails. </remarks>
-        /// <param name="source">The file or directory.</param>
+        /// <param name="source">The source directory.</param>
         /// <param name="destination">The new location.</param>
-        /// <param name="replace">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
         /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
         /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
-        /// <returns><see langowrd="true"/> if the operation was successful; <see langowrd="false"/> otherwise.</returns>
-        /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="replace"/> is <see langword="false"/>.</exception>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-        void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false, int retryCount = 2,
+        void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool overwrite = false, int retryCount = 2,
             int retryDelay = 500);
+
+        /// <summary>
+        /// Movies a directory asynchronously. This also works across drives.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="destination">The new location.</param>
+        /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
+        /// <param name="workerCount">Number of parallel workers copying the directory.
+        /// If worker count shall be 1 consider using <see cref="MoveDirectory"/>.</param>
+        /// <param name="cancellationToken">Token to cancel the operation.</param>
+        /// <returns><see langowrd="true"/> if the deletion of the source was successful;
+        /// <see langowrd="false"/> if source was not deleted.</returns>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+        Task<bool> MoveDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
+            bool overwrite, int workerCount = 2, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Copies a directory to a different location.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="destination">The new location.</param>
+        /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
+        /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+        void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, bool overwrite);
+
+        /// <summary>
+        ///  Tries to copy a directory to a new location.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="destination">The new location.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
+        /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
+        /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        void CopyDirectoryWithRetry(IDirectoryInfo source, string destination, bool overwrite = false, int retryCount = 2,
+            int retryDelay = 500);
+
+        /// <summary>
+        /// Copies a directory asynchronously.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="destination">The new location.</param>
+        /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
+        /// <param name="workerCount">Number of parallel workers copying the directory.
+        /// If worker count shall be 1 consider using <see cref="CopyDirectory"/>.</param>
+        /// <param name="cancellationToken">Token to cancel the operation.</param>
+        /// <returns>The task of the operation.</returns>
+        Task CopyDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
+            int workerCount = 2, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a file if it's somewhere in the user's temporary directory.
@@ -125,7 +188,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
         /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
         /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-        /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
+        /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
         bool DeleteFileWithRetry(IFileInfo file, int retryCount = 2, int retryDelay = 500,
             Func<Exception, int, bool>? errorAction = null);
 

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using System.Runtime.Serialization.Formatters;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Validation;
@@ -27,7 +27,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// Creates a new instance with a given <see cref="IFileSystem"/>.
         /// </summary>
         /// <param name="fileSystem"></param>
-        public FileSystemService(IFileSystem fileSystem) : this (fileSystem, new PathHelperService(fileSystem))
+        public FileSystemService(IFileSystem fileSystem) : this(fileSystem, new PathHelperService(fileSystem))
         {
             Requires.NotNull(fileSystem, nameof(fileSystem));
             FileSystem = fileSystem;
@@ -61,7 +61,8 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             Requires.NotNullOrEmpty(path, nameof(path));
             Stream? stream = null;
             ExecuteFileActionWithRetry(retryCount, retryDelay,
-                () => stream = FileSystem.FileStream.Create(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None));
+                () => stream =
+                    FileSystem.FileStream.Create(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None));
             return stream;
         }
 
@@ -74,11 +75,14 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 createdFolderFullPath = FileSystem.Path.GetRandomFileName();
                 FileSystem.Directory.CreateDirectory(createdFolderFullPath);
             });
-            return createdFolderFullPath is null ? null : FileSystem.DirectoryInfo.FromDirectoryName(createdFolderFullPath);
+            return createdFolderFullPath is null
+                ? null
+                : FileSystem.DirectoryInfo.FromDirectoryName(createdFolderFullPath);
         }
 
         /// <inheritdoc/>
-        public virtual void CopyFileWithRetry(IFileInfo source, string destination, int retryCount = 2, int retryDelay = 500)
+        public virtual void CopyFileWithRetry(IFileInfo source, string destination, int retryCount = 2,
+            int retryDelay = 500)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -107,9 +111,10 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             Requires.NotNullOrEmpty(destination, nameof(destination));
             ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveFile(source, destination, replace));
         }
-
+        
         /// <inheritdoc/>
-        public bool MoveDirectory(IDirectoryInfo source, string destination, bool overwrite)
+        public bool MoveDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress,
+            bool overwrite)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -118,61 +123,89 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             if (FileSystem.Directory.Exists(destination))
             {
                 if (!overwrite)
-                    throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
+                    throw new IOException(
+                        $"Cannot create {destination} because directory with the same name already exists.");
                 FileSystem.Directory.Delete(destination, true);
             }
-            CopyDirectoryRecursive(source, destination);
-            source.Delete(true);
-            return true;
-        }
 
-        private void CopyDirectoryRecursive(IDirectoryInfo source, string destination)
-        {
-            FileSystem.Directory.CreateDirectory(destination);
-            foreach (var file in source.GetFiles())
-                file.CopyTo(FileSystem.Path.Combine(destination, file.Name), true);
-            foreach (var subDir in source.GetDirectories())
-            {
-                var newSubDirPath = FileSystem.Path.Combine(destination, subDir.Name);
-                CopyDirectoryRecursive(subDir, newSubDirPath);
-            }
+            progress?.Report(0.0);
+            new DirectoryCopier(this, progress).CopyDirectory(source, destination, true);
+            var deleteSuccess = DeleteDirectoryWithRetry(source);
+            progress?.Report(1.0);
+            return deleteSuccess;
         }
 
         /// <inheritdoc/>
-        public void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false, int retryCount = 2,
+        public void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false,
+            int retryCount = 2,
             int retryDelay = 500)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
-            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveDirectory(source, destination, replace));
+            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveDirectory(source, destination, null, replace));
         }
 
-
+        /// <inheritdoc/>
         public async Task<bool> MoveDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            CancellationToken cancellationToken = default)
+            bool overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
             cancellationToken.ThrowIfCancellationRequested();
             if (!source.Exists)
                 throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
+            if (FileSystem.Directory.Exists(destination))
+            {
+                if (!overwrite)
+                    throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
+                FileSystem.Directory.Delete(destination, true);
+            }
             progress?.Report(0.0);
-            await Task.Delay(0);
+            await new DirectoryCopier(this, progress, workerCount).CopyDirectoryAsync(source, destination, true, cancellationToken);
             var deleteSuccess = DeleteDirectoryWithRetry(source);
             progress?.Report(1.0);
             return deleteSuccess;
         }
 
+        /// <inheritdoc/>
+        public void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, bool overwrite)
+        {
+            Requires.NotNull(source, nameof(source));
+            Requires.NotNullOrEmpty(destination, nameof(destination));
+            if (!source.Exists)
+                throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
+            if (FileSystem.Directory.Exists(destination))
+            {
+                if (!overwrite)
+                    throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
+                FileSystem.Directory.Delete(destination, true);
+            }
+            progress?.Report(0.0);
+            new DirectoryCopier(this, progress).CopyDirectory(source, destination, false);
+            progress?.Report(1.0);
+        }
+
+        /// <inheritdoc/>
+        public void CopyDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false, int retryCount = 2,
+            int retryDelay = 500)
+        {
+            Requires.NotNull(source, nameof(source));
+            Requires.NotNullOrEmpty(destination, nameof(destination));
+            ExecuteFileActionWithRetry(retryCount, retryDelay, () => CopyDirectory(source, destination, null, replace));
+        }
 
         /// <summary>
         /// Copies a directory asynchronously.
         /// </summary>
         /// <param name="source">The source directory.</param>
         /// <param name="destination">The target location.</param>
+        /// <param name="workerCount"></param>
         /// <param name="cancellationToken">Token to cancel the operation.</param>
+        /// <param name="progress"></param>
         /// <returns>A task which movies the directory.</returns>
+        /// <inheritdoc/>
         public async Task CopyDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            CancellationToken cancellationToken = default)
+            int workerCount = 2, CancellationToken cancellationToken = default)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -180,11 +213,12 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             if (!source.Exists)
                 throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
             progress?.Report(0.0);
-            await Task.Delay(0);
+            await new DirectoryCopier(this, progress, workerCount).CopyDirectoryAsync(source, destination, false,
+                cancellationToken);
             progress?.Report(1.0);
         }
 
-        
+
 
         /// <inheritdoc/>
         public void DeleteFileIfInTemp(IFileInfo file)
@@ -295,28 +329,45 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
 
         private class DirectoryCopier
         {
-            private readonly IFileSystem _fileSystem;
+            private readonly FileSystemService _service;
+            private readonly IProgress<double>? _progress;
             private int MaximumConcurrency { get; }
 
-            public DirectoryCopier(IFileSystem fileSystem, int maximumConcurrency)
+            public DirectoryCopier(FileSystemService service, IProgress<double>? progress, int maximumConcurrency = 1)
             {
-                _fileSystem = fileSystem;
+                _service = service;
+                _progress = progress;
                 MaximumConcurrency = maximumConcurrency;
+                if (MaximumConcurrency <= 0)
+                    throw new InvalidOperationException("MaximumConcurrency must be greater than zero");
+            }
+
+            public void CopyDirectory(IDirectoryInfo source, string destination, bool isMove)
+            {
+                var filesToCopy = source.GetFiles("*", SearchOption.AllDirectories)
+                    .Select(f => new CopyInformation { File = f, IsMove = isMove })
+                    .ToList();
+                var totalFileCount = filesToCopy.Count;
+                var queue = new Queue<CopyInformation>(filesToCopy);
+                while (queue.Count > 0)
+                {
+                    var copyInformation = queue.Dequeue();
+                    CopyFile(source, copyInformation, destination, queue.Count, totalFileCount);
+                }
             }
 
             public async Task CopyDirectoryAsync(IDirectoryInfo source, string destination, bool isMove, CancellationToken cancellationToken)
             {
-                _fileSystem.Directory.CreateDirectory(destination);
+                _service.FileSystem.Directory.CreateDirectory(destination);
                 var fileCount = 0;
                 using BlockingCollection<CopyInformation> queue = new();
                 List<Task> taskList = new(MaximumConcurrency)
                 {
-                    Task.Run(
-                        () => EnumerateFiles(source, destination, queue, isMove, ref fileCount), cancellationToken)
+                    Task.Run(() => EnumerateFiles(source, destination, queue, isMove, ref fileCount), cancellationToken)
                 };
                 for (var index = 1; index < MaximumConcurrency; ++index)
                 {
-                    Task task = Task.Run(() => RunCopyTask(source, destination, queue, ref fileCount), cancellationToken);
+                    var task = Task.Run(() => RunCopyTask(source, destination, queue, ref fileCount), cancellationToken);
                     taskList.Add(task);
                 }
                 await Task.WhenAll(taskList);
@@ -342,32 +393,75 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             }
 
 
-            private void RunCopyTask(IDirectoryInfo source, string destination, BlockingCollection<CopyInformation> queue, ref int fileCount)
+            private void RunCopyTask(IDirectoryInfo source, string destination,
+                BlockingCollection<CopyInformation> queue, ref int fileCount)
             {
                 foreach (var copyInfo in queue.GetConsumingEnumerable())
+                    CopyFile(source, copyInfo, destination, queue.Count, fileCount);
+            }
+
+            private void CopyFile(IDirectoryInfo source, CopyInformation copyInfo, string destination,
+                int remainingFileCount, int totalFileCount)
+            {
+                var fileToCopy = copyInfo.File;
+                var localFilePath = fileToCopy.FullName.Substring(source.FullName.Length + 1);
+                var newFilePath = _service.FileSystem.Path.Combine(destination, localFilePath);
+                CreateDirectoryOfFile(newFilePath);
+                var currentProgress = (totalFileCount - remainingFileCount) / totalFileCount;
+                if (copyInfo.IsMove && InvokeMoveOperation(fileToCopy, newFilePath))
                 {
-                    var fileToCopy = copyInfo.File;
-                    string path2 = fileToCopy.FullName.Substring(source.FullName.Length + 1);
-                    string newFilePath = _fileSystem.Path.Combine(destination, path2);
-                    CreateDirectoryOfFile(newFilePath);
-                    var progress = (fileCount - queue.Count) / fileCount;
-                    if (copyInfo.IsMove && InvokeMoveOperation(fileToCopy, newFilePath))
-                    {
-                        OnProgress(progress);
-                    }
-                    else
-                    {
-                        if (InvokeCopyOperation(fileToCopy, newFilePath) && copyInfo.IsMove)
-                            InvokeDeleteOperation(fileToCopy);
-                        OnProgress(progress);
-                    }
+                    _progress?.Report(currentProgress);
+                }
+                else
+                {
+                    if (InvokeCopyOperation(fileToCopy, newFilePath) && copyInfo.IsMove)
+                        InvokeDeleteOperation(fileToCopy);
+                    _progress?.Report(currentProgress);
+                }
+            }
+
+            private bool InvokeCopyOperation(IFileInfo sourcePath, string destinationPath)
+            {
+                try
+                {
+                    _service.CopyFileWithRetry(sourcePath, destinationPath);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            private void InvokeDeleteOperation(IFileInfo sourcePath)
+            {
+                try
+                {
+                    _service.DeleteFileWithRetry(sourcePath);
+                }
+                catch
+                {
+                    // Ignore
+                }
+            }
+
+            private bool InvokeMoveOperation(IFileInfo sourcePath, string destinationPath)
+            {
+                try
+                {
+                    _service.MoveFileWithRetry(sourcePath, destinationPath);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
                 }
             }
 
             private void CreateDirectoryOfFile(string filePath)
             {
-                var directoryPath = _fileSystem.Path.GetDirectoryName(filePath);
-                _fileSystem.Directory.CreateDirectory(directoryPath);
+                var directoryPath = _service.FileSystem.Path.GetDirectoryName(filePath);
+                _service.FileSystem.Directory.CreateDirectory(directoryPath);
             }
 
             private struct CopyInformation

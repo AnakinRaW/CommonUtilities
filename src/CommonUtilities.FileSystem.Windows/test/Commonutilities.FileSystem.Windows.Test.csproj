@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Commonutilities.FileSystem.Windows.csproj" />
+    <ProjectReference Include="..\src\CommonUtilities.FileSystem.Windows.csproj" />
   </ItemGroup>
 
 </Project>

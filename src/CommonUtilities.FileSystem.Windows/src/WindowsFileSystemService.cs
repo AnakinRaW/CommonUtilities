@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
+using System.Text;
+using Microsoft.Win32;
 using Sklavenwalker.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Validation;
 
@@ -35,7 +39,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows
                 return true;
             return fsInfo switch
             {
-                IDirectoryInfo directoryInfo => this.RecursivelyDeleteDirectoryOnReboot(directoryInfo),
+                IDirectoryInfo directoryInfo => RecursivelyDeleteDirectoryOnReboot(directoryInfo),
                 IFileInfo fileInfo => ScheduleDeletionAfterReboot(fileInfo.FullName),
                 _ => false
             };
@@ -52,16 +56,37 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows
         }
 
 
-        private bool ScheduleDeletionAfterReboot(string source)
+        private static bool ScheduleDeletionAfterReboot(string source)
         {
             const MoveFileFlags flags = MoveFileFlags.MoveFileDelayUntilReboot | MoveFileFlags.MoveFileWriteThrough;
             var flag = Kernel32.MoveFileEx(source, null, flags);
             return flag || AddPendingFileRename(source, null);
         }
 
-        private bool AddPendingFileRename(string source, string? destination)
+        private static bool AddPendingFileRename(string source, string? destination)
         {
-            throw new NotImplementedException();
+            const string sessionManagerKeyPath = "SYSTEM\\CurrentControlSet\\Control\\Session Manager";
+            const string pendingRenameKey = "PendingFileRenameOperations";
+            try
+            {
+                using var registryKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+                using var subKey = registryKey.CreateSubKey(sessionManagerKeyPath);
+                var stringBuilder = new StringBuilder("\\??\\" + source + "\0");
+                if (!string.IsNullOrEmpty(destination))
+                    stringBuilder.Append("\\??\\" + destination);
+                var stringList =
+                    new List<string>(subKey.GetValue(pendingRenameKey) as string[] ?? Enumerable.Empty<string>())
+                    {
+                        stringBuilder.ToString()
+                    };
+                subKey.SetValue(pendingRenameKey, stringList.ToArray());
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -84,7 +109,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows
                 rebootRequired = false;
                 return true;
             }
-            bool success = ExecuteFileActionWithRetry(retryCount, retryDelay, file.Delete, !rebootOk, (ex, attempt) =>
+            var success = ExecuteFileActionWithRetry(retryCount, retryDelay, file.Delete, !rebootOk, (ex, attempt) =>
             {
                 if (ex is UnauthorizedAccessException)
                 {
