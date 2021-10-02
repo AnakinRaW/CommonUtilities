@@ -69,15 +69,15 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <inheritdoc/>
         public IDirectoryInfo? CreateTemporaryFolderInTempWithRetry(int retryCount = 2, int retryDelay = 500)
         {
-            string? createdFolderFullPath = null;
+            IDirectoryInfo? newTempFolder = null;
             ExecuteFileActionWithRetry(retryCount, retryDelay, () =>
             {
-                createdFolderFullPath = FileSystem.Path.GetRandomFileName();
-                FileSystem.Directory.CreateDirectory(createdFolderFullPath);
+                var tempFolder = FileSystem.Path.GetTempPath();
+                var folderName = FileSystem.Path.GetRandomFileName();
+                var fullFolderPath = FileSystem.Path.Combine(tempFolder, folderName);
+                newTempFolder = FileSystem.Directory.CreateDirectory(fullFolderPath);
             });
-            return createdFolderFullPath is null
-                ? null
-                : FileSystem.DirectoryInfo.FromDirectoryName(createdFolderFullPath);
+            return newTempFolder;
         }
 
         /// <inheritdoc/>
@@ -90,31 +90,31 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         }
 
         /// <inheritdoc/>
-        public bool MoveFile(IFileInfo source, string destination, bool replace)
+        public bool MoveFile(IFileInfo source, string destination, bool overwrite)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
 #if NET
-            source.MoveTo(destination, replace);
+            source.MoveTo(destination, overwrite);
 #else
-            source.CopyTo(destination, replace);
+            source.CopyTo(destination, overwrite);
             source.Delete();
 #endif
             return true;
         }
 
         /// <inheritdoc/>
-        public void MoveFileWithRetry(IFileInfo source, string destination, bool replace = false, int retryCount = 2,
+        public void MoveFileWithRetry(IFileInfo source, string destination, bool overwrite = false, int retryCount = 2,
             int retryDelay = 500)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
-            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveFile(source, destination, replace));
+            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveFile(source, destination, overwrite));
         }
         
         /// <inheritdoc/>
         public bool MoveDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            bool overwrite)
+            DirectoryOverwriteOption overwrite)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -122,12 +122,14 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 throw new DirectoryNotFoundException();
             if (FileSystem.Directory.Exists(destination))
             {
-                if (!overwrite)
-                    throw new IOException(
-                        $"Cannot create {destination} because directory with the same name already exists.");
-                FileSystem.Directory.Delete(destination, true);
+                if (overwrite == DirectoryOverwriteOption.NoOverwrite)
+                    throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
+                if (overwrite == DirectoryOverwriteOption.CleanOverwrite)
+                    FileSystem.Directory.Delete(destination, true);
             }
-
+            var destinationFullPath = FileSystem.Path.GetFullPath(destination);
+            if (source.FullName.Equals(destinationFullPath))
+                return false;
             progress?.Report(0.0);
             new DirectoryCopier(this, progress).CopyDirectory(source, destination, true);
             var deleteSuccess = DeleteDirectoryWithRetry(source);
@@ -136,18 +138,18 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         }
 
         /// <inheritdoc/>
-        public void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false,
-            int retryCount = 2,
-            int retryDelay = 500)
+        public void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, 
+            DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite,
+            int retryCount = 2, int retryDelay = 500)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
-            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveDirectory(source, destination, null, replace));
+            ExecuteFileActionWithRetry(retryCount, retryDelay, () => MoveDirectory(source, destination, null, overwrite));
         }
 
         /// <inheritdoc/>
         public async Task<bool> MoveDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            bool overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
+            DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -156,10 +158,15 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
             if (FileSystem.Directory.Exists(destination))
             {
-                if (!overwrite)
+                if (overwrite == DirectoryOverwriteOption.NoOverwrite)
                     throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
-                FileSystem.Directory.Delete(destination, true);
+                if (overwrite == DirectoryOverwriteOption.CleanOverwrite)
+                    await Task.Run(() => FileSystem.Directory.Delete(destination, true), cancellationToken);
             }
+
+            var destinationFullPath = FileSystem.Path.GetFullPath(destination);
+            if (source.FullName.Equals(destinationFullPath))
+                return false;
             progress?.Report(0.0);
             await new DirectoryCopier(this, progress, workerCount).CopyDirectoryAsync(source, destination, true, cancellationToken);
             var deleteSuccess = DeleteDirectoryWithRetry(source);
@@ -168,7 +175,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         }
 
         /// <inheritdoc/>
-        public void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, bool overwrite)
+        public void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
@@ -176,42 +183,49 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
             if (FileSystem.Directory.Exists(destination))
             {
-                if (!overwrite)
+                if (overwrite == DirectoryOverwriteOption.NoOverwrite)
                     throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
-                FileSystem.Directory.Delete(destination, true);
+                if (overwrite == DirectoryOverwriteOption.CleanOverwrite)
+                    FileSystem.Directory.Delete(destination, true);
             }
+            var destinationFullPath = FileSystem.Path.GetFullPath(destination);
+            if (source.FullName.Equals(destinationFullPath))
+                return;
             progress?.Report(0.0);
             new DirectoryCopier(this, progress).CopyDirectory(source, destination, false);
             progress?.Report(1.0);
         }
 
         /// <inheritdoc/>
-        public void CopyDirectoryWithRetry(IDirectoryInfo source, string destination, bool replace = false, int retryCount = 2,
-            int retryDelay = 500)
+        public void CopyDirectoryWithRetry(IDirectoryInfo source, string destination,
+            DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite, 
+            int retryCount = 2, int retryDelay = 500)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
-            ExecuteFileActionWithRetry(retryCount, retryDelay, () => CopyDirectory(source, destination, null, replace));
+            ExecuteFileActionWithRetry(retryCount, retryDelay,
+                () => CopyDirectory(source, destination, null, overwrite));
         }
 
-        /// <summary>
-        /// Copies a directory asynchronously.
-        /// </summary>
-        /// <param name="source">The source directory.</param>
-        /// <param name="destination">The target location.</param>
-        /// <param name="workerCount"></param>
-        /// <param name="cancellationToken">Token to cancel the operation.</param>
-        /// <param name="progress"></param>
-        /// <returns>A task which movies the directory.</returns>
         /// <inheritdoc/>
         public async Task CopyDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            int workerCount = 2, CancellationToken cancellationToken = default)
+            DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
         {
             Requires.NotNull(source, nameof(source));
             Requires.NotNullOrEmpty(destination, nameof(destination));
             cancellationToken.ThrowIfCancellationRequested();
             if (!source.Exists)
                 throw new DirectoryNotFoundException($"Directory '{source.FullName}' not found");
+            if (FileSystem.Directory.Exists(destination))
+            {
+                if (overwrite == DirectoryOverwriteOption.NoOverwrite)
+                    throw new IOException($"Cannot create {destination} because directory with the same name already exists.");
+                if (overwrite == DirectoryOverwriteOption.CleanOverwrite)
+                    await Task.Run(() => FileSystem.Directory.Delete(destination, true), cancellationToken);
+            }
+            var destinationFullPath = FileSystem.Path.GetFullPath(destination);
+            if (source.FullName.Equals(destinationFullPath))
+                return;
             progress?.Report(0.0);
             await new DirectoryCopier(this, progress, workerCount).CopyDirectoryAsync(source, destination, false,
                 cancellationToken);
@@ -470,5 +484,12 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 public bool IsMove;
             }
         }
+    }
+
+    public enum DirectoryOverwriteOption
+    {
+        NoOverwrite,
+        MergeOverwrite,
+        CleanOverwrite
     }
 }

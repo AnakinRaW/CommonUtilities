@@ -84,10 +84,10 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <returns><see langowrd="true"/> if the deletion of the source was successful;
         /// <see langowrd="false"/> if source was not deleted.</returns>
         /// <exception cref="IOException">If <paramref name="destination"/> already exists
-        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
         public bool MoveDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            bool overwrite);
+            DirectoryOverwriteOption overwrite);
 
         /// <summary>
         /// Tries to moves a directory to a new location. This also works across drives.
@@ -99,10 +99,11 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
         /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
         /// <exception cref="IOException">If <paramref name="destination"/> already exists
-        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-        void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, bool overwrite = false, int retryCount = 2,
-            int retryDelay = 500);
+        void MoveDirectoryWithRetry(IDirectoryInfo source, string destination, 
+            DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite,
+            int retryCount = 2, int retryDelay = 500);
 
         /// <summary>
         /// Movies a directory asynchronously. This also works across drives.
@@ -117,10 +118,10 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <returns><see langowrd="true"/> if the deletion of the source was successful;
         /// <see langowrd="false"/> if source was not deleted.</returns>
         /// <exception cref="IOException">If <paramref name="destination"/> already exists
-        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
+        /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
         Task<bool> MoveDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            bool overwrite, int workerCount = 2, CancellationToken cancellationToken = default);
+            DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Copies a directory to a different location.
@@ -130,7 +131,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
         /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-        void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, bool overwrite);
+        void CopyDirectory(IDirectoryInfo source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite);
 
         /// <summary>
         ///  Tries to copy a directory to a new location.
@@ -144,9 +145,10 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
         /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
         /// <exception cref="IOException">If <paramref name="destination"/> already exists
-        /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
-        void CopyDirectoryWithRetry(IDirectoryInfo source, string destination, bool overwrite = false, int retryCount = 2,
-            int retryDelay = 500);
+        /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
+        void CopyDirectoryWithRetry(IDirectoryInfo source, string destination, 
+            DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite, 
+            int retryCount = 2, int retryDelay = 500);
 
         /// <summary>
         /// Copies a directory asynchronously.
@@ -154,12 +156,16 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         /// <param name="source">The source directory.</param>
         /// <param name="destination">The new location.</param>
         /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
+        /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
         /// <param name="workerCount">Number of parallel workers copying the directory.
         /// If worker count shall be 1 consider using <see cref="CopyDirectory"/>.</param>
         /// <param name="cancellationToken">Token to cancel the operation.</param>
         /// <returns>The task of the operation.</returns>
+        /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+        /// <exception cref="IOException">If <paramref name="destination"/> already exists
+        /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
         Task CopyDirectoryAsync(IDirectoryInfo source, string destination, IProgress<double>? progress,
-            int workerCount = 2, CancellationToken cancellationToken = default);
+            DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a file if it's somewhere in the user's temporary directory.

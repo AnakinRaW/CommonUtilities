@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System;
+using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
@@ -8,7 +9,7 @@ namespace Commonutilities.FileSystem.Test
     public class FileSystemServiceTest
     {
         private readonly FileSystemService _service;
-        private readonly IFileSystem _fileSystem;
+        private readonly MockFileSystem _fileSystem;
 
         public FileSystemServiceTest()
         {
@@ -26,6 +27,225 @@ namespace Commonutilities.FileSystem.Test
             var fsi = _fileSystem.FileInfo.FromFileName(path);
             var size = _service.GetDriveFreeSpace(fsi);
             Assert.True(size == 0);
+        }
+
+        [Fact]
+        public void TestCreateTempFolder()
+        {
+            var dir = _service.CreateTemporaryFolderInTempWithRetry();
+            Assert.NotNull(dir);
+            Assert.StartsWith("C:\\temp\\", dir.FullName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        [Fact]
+        public void TestCreateFile()
+        {
+            _fileSystem.AddFile("C:\\test.txt", new MockFileData("test"));
+            _service.CreateFileWithRetry("C:\\test.txt");
+            Assert.NotEmpty(_fileSystem.File.ReadAllText("C:\\test.txt"));
+            _service.CreateFileWithRetry("C:\\test2.txt");
+            Assert.True(_fileSystem.FileExists("C:\\test2.txt"));
+        }
+
+        [Fact]
+        public void TestCopyFile()
+        {
+            var fileToCopy = _fileSystem.FileInfo.FromFileName("C:\\test.txt");
+            Assert.Throws<FileNotFoundException>(() => _service.CopyFileWithRetry(fileToCopy, "D:\\test.txt"));
+            _fileSystem.AddFile("C:\\test.txt", new MockFileData("test"));
+            _fileSystem.AddFile("C:\\test1.txt", MockFileData.NullObject);
+            _service.CopyFileWithRetry(fileToCopy, "C:\\test1.txt");
+            Assert.Equal("test", _fileSystem.File.ReadAllText("C:\\test1.txt"));
+            Assert.True(_fileSystem.FileExists("C:\\test.txt"));
+        }
+
+        [Fact]
+        public void TestMoveFile()
+        {
+            var fileToMove = _fileSystem.FileInfo.FromFileName("C:\\test.txt");
+            Assert.Throws<FileNotFoundException>(() => _service.MoveFile(fileToMove, "D:\\test.txt", false));
+            _fileSystem.AddFile("C:\\test.txt", new MockFileData("test"));
+            _fileSystem.AddFile("C:\\test1.txt", MockFileData.NullObject);
+            Assert.Throws<IOException>(() => _service.MoveFile(fileToMove, "C:\\test1.txt", false));
+            _service.MoveFile(fileToMove, "C:\\test1.txt", true);
+            Assert.Equal("test", _fileSystem.File.ReadAllText("C:\\test1.txt"));
+            Assert.False(_fileSystem.FileExists("C:\\test.txt"));
+            _fileSystem.AddDirectory("D:\\");
+            _service.MoveFile(fileToMove, "D:\\test.txt", false);
+            Assert.True(_fileSystem.FileExists("D:\\test.txt"));
+        }
+
+        [Fact]
+        public void TestMoveDir()
+        {
+            var dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test");
+            Assert.Throws<DirectoryNotFoundException>(() => _service.MoveDirectory(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+            _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
+            _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
+            _fileSystem.AddDirectory("C:\\test1");
+            Assert.Throws<IOException>(() => _service.MoveDirectory(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+
+            var value = 0.0;
+            var progress = new Progress<double>(d => value = d);
+            var delSuc = _service.MoveDirectory(dirToMove, "C:\\test1", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(delSuc);
+            Assert.False(_fileSystem.Directory.Exists("C:\\test"));
+            Assert.True(_fileSystem.Directory.Exists("C:\\test1"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1").GetFiles("*").Length);
+            Assert.Equal(1, value);
+
+            dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1");
+            _service.MoveDirectory(dirToMove, "D:\\test", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("D:\\test"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test").GetFiles("*").Length);
+
+            dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test");
+            _fileSystem.AddFile("D:\\test1\\3.txt", new MockFileData("3"));
+            _service.MoveDirectory(dirToMove, "D:\\test1", progress, DirectoryOverwriteOption.MergeOverwrite);
+            Assert.Equal(3, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test1").GetFiles("*").Length);
+        }
+
+        [Fact]
+        public async void TestMoveDirAsync()
+        {
+            var dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test");
+            await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+                await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+            _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
+            _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
+            _fileSystem.AddDirectory("C:\\test1");
+            await Assert.ThrowsAsync<IOException>(async () => await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+
+            var value = 0.0;
+            var progress = new Progress<double>(d => value = d);
+            var delSuc = await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(delSuc);
+            Assert.False(_fileSystem.Directory.Exists("C:\\test"));
+            Assert.True(_fileSystem.Directory.Exists("C:\\test1"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1").GetFiles("*").Length);
+            Assert.Equal(1, value);
+
+            dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1");
+            await _service.MoveDirectoryAsync(dirToMove, "D:\\test", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("D:\\test"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test").GetFiles("*").Length);
+
+            dirToMove = _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test");
+            _fileSystem.AddFile("D:\\test1\\3.txt", new MockFileData("3"));
+            await _service.MoveDirectoryAsync(dirToMove, "D:\\test1", progress, DirectoryOverwriteOption.MergeOverwrite);
+            Assert.Equal(3, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test1").GetFiles("*").Length);
+        }
+
+        [Fact]
+        public void TestCopyDir()
+        {
+            var dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test");
+            Assert.Throws<DirectoryNotFoundException>(() => _service.CopyDirectory(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+            _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
+            _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
+            _fileSystem.AddDirectory("C:\\test1");
+            Assert.Throws<IOException>(() => _service.CopyDirectory(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+
+            var value = 0.0;
+            var progress = new Progress<double>(d => value = d);
+            _service.CopyDirectory(dirToCopy, "C:\\test1", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("C:\\test"));
+            Assert.True(_fileSystem.Directory.Exists("C:\\test1"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1").GetFiles("*").Length);
+            Assert.Equal(1, value);
+
+            dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1");
+            _service.CopyDirectory(dirToCopy, "D:\\test", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("D:\\test"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test").GetFiles("*").Length);
+
+            dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test");
+            _fileSystem.AddFile("D:\\test1\\3.txt", new MockFileData("3"));
+            _service.CopyDirectory(dirToCopy, "D:\\test1", progress, DirectoryOverwriteOption.MergeOverwrite);
+            Assert.Equal(3, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test1").GetFiles("*").Length);
+        }
+
+        [Fact]
+        public async void TestCopyDirAsync()
+        {
+            var dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test");
+            await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+                await _service.CopyDirectoryAsync(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
+            _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
+            _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
+            _fileSystem.AddDirectory("C:\\test1");
+
+            var value = 0.0;
+            var progress = new Progress<double>(d => value = d);
+            await _service.CopyDirectoryAsync(dirToCopy, "C:\\test1", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("C:\\test"));
+            Assert.True(_fileSystem.Directory.Exists("C:\\test1"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1").GetFiles("*").Length);
+            Assert.Equal(1, value);
+
+            dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1");
+            await _service.CopyDirectoryAsync(dirToCopy, "D:\\test", progress, DirectoryOverwriteOption.CleanOverwrite);
+            Assert.True(_fileSystem.Directory.Exists("D:\\test"));
+            Assert.Equal(2, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test").GetFiles("*").Length);
+
+            dirToCopy = _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test");
+            _fileSystem.AddFile("D:\\test1\\3.txt", new MockFileData("3"));
+            await _service.CopyDirectoryAsync(dirToCopy, "D:\\test1", progress, DirectoryOverwriteOption.MergeOverwrite);
+            Assert.Equal(3, _fileSystem.DirectoryInfo.FromDirectoryName("D:\\test1").GetFiles("*").Length);
+        }
+
+        [Fact]
+        public void TestDeleteFileTemp()
+        {
+            _fileSystem.AddFile("C:\\text.txt", MockFileData.NullObject);
+            _fileSystem.AddFile("C:\\temp\\text.txt", MockFileData.NullObject);
+            _fileSystem.AddFile("C:\\temp\\test\\text.txt", MockFileData.NullObject);
+
+            var file1 = _fileSystem.FileInfo.FromFileName("C:\\text.txt");
+            var file2 = _fileSystem.FileInfo.FromFileName("C:\\temp\\text.txt");
+            var file3 = _fileSystem.FileInfo.FromFileName("C:\\temp\\test\\text.txt");
+
+            _service.DeleteFileIfInTemp(file1);
+            _service.DeleteFileIfInTemp(file2);
+            _service.DeleteFileIfInTemp(file3);
+
+            Assert.True(file1.Exists);
+            Assert.False(file2.Exists);
+            Assert.False(file3.Exists);
+        }
+
+        [Fact]
+        public void TestDeleteFile()
+        {
+            _fileSystem.AddFile("C:\\text1.txt", MockFileData.NullObject);
+            _fileSystem.AddFile("C:\\text2.txt", MockFileData.NullObject);
+
+            var file1 = _fileSystem.FileInfo.FromFileName("C:\\text1.txt");
+            var file2 = _fileSystem.FileInfo.FromFileName("C:\\text2.txt");
+            file2.Attributes |= FileAttributes.ReadOnly;
+
+            _service.DeleteFileWithRetry(file1);
+            _service.DeleteFileWithRetry(file2);
+
+            Assert.False(file1.Exists);
+            Assert.False(file2.Exists);
+        }
+
+        [Fact]
+        public void TestDeleteDir()
+        {
+            _fileSystem.AddFile("C:\\test\\text1.txt", MockFileData.NullObject);
+            _fileSystem.AddDirectory("C:\\test1");
+
+            var dir1 = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test");
+            var dir2 = _fileSystem.DirectoryInfo.FromDirectoryName("C:\\test1");
+
+            Assert.Throws<IOException>(() => _service.DeleteDirectoryWithRetry(dir1, false));
+            _service.DeleteDirectoryWithRetry(dir1);
+            _service.DeleteDirectoryWithRetry(dir2);
+
+            Assert.False(dir1.Exists);
+            Assert.False(dir2.Exists);
         }
     }
 }
