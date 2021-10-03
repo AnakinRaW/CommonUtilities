@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>netstandard2.0;netstandard2.1;net48;net5</TargetFrameworks>
+	  <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
+	  <RootNamespace>Sklavenwalker.CommonUtilities.Registry</RootNamespace>
+	  <AssemblyName>Sklavenwalker.CommonUtilities.Registry</AssemblyName>
+	  <SignAssembly>True</SignAssembly>
+	  <Authors>Anakin Sklavenwalker</Authors>
+	  <Description>Platform independent abstraction layer for a Registry service.</Description>
+	  <Copyright>Anakin Sklavenwalker</Copyright>
+	  <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <EnableNETAnalyzers>True</EnableNETAnalyzers>
+	  <AnalysisLevel>latest</AnalysisLevel>
+	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	  <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+</Project>
