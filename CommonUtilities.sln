@@ -35,6 +35,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.Xml", "Comm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.Xml", "src\CommonUtilities.Xml\src\CommonUtilities.Xml.csproj", "{97CFF539-4FDF-4822-B20F-C8A47615CD89}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.DownloadManager", "CommonUtilities.DownloadManager", "{F306B877-4E2C-4D6F-BF68-96D2BD23FB69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.DownloadManager", "src\CommonUtilities.DownloadManager\src\CommonUtilities.DownloadManager.csproj", "{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +85,10 @@ Global
 		{97CFF539-4FDF-4822-B20F-C8A47615CD89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97CFF539-4FDF-4822-B20F-C8A47615CD89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97CFF539-4FDF-4822-B20F-C8A47615CD89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,6 +104,7 @@ Global
 		{A4EA417B-59FE-46FA-8726-62FDC8C522A0} = {37EB86FE-A548-40C3-9D23-B0236203ECF8}
 		{375178FD-0D91-43B7-A731-1419808718E5} = {EDF446DD-BE04-4FE2-93A5-6171A0EC8C82}
 		{97CFF539-4FDF-4822-B20F-C8A47615CD89} = {66BF9E7D-0EFE-4E04-B49C-0ED40AB64054}
+		{9F9E1DA3-E4DC-4590-A3BF-09AA9286271E} = {F306B877-4E2C-4D6F-BF68-96D2BD23FB69}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FAF1C2A9-02FC-459D-BE1E-BDB46E72F077}
