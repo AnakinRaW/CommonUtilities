@@ -9,7 +9,10 @@ namespace Sklavenwalker.CommonUtilities.Registry.Windows;
 /// </summary>
 public class WindowsRegistryKey : RegistryKeyBase
 {
-    private RegistryKey _registryKey;
+    /// <summary>
+    /// Returns the underlaying <see cref="RegistryKey"/> of this instance.
+    /// </summary>
+    public RegistryKey WindowsKey { get; }
 
     /// <summary>
     /// Indicates whether this instance is disposed or not.
@@ -17,10 +20,10 @@ public class WindowsRegistryKey : RegistryKeyBase
     public bool IsDisposed { get; private set; }
 
     /// <inheritdoc/>
-    public override string Name => _registryKey.Name;
+    public override string Name => WindowsKey.Name;
 
     /// <inheritdoc/>
-    public override RegistryView View => ConvertView(_registryKey.View);
+    public override RegistryView View => ConvertView(WindowsKey.View);
 
     /// <summary>
     /// Creates a new <inheritdoc cref="WindowsRegistryKey"/> from a given <see cref="RegistryKey"/>.
@@ -29,7 +32,7 @@ public class WindowsRegistryKey : RegistryKeyBase
     public WindowsRegistryKey(RegistryKey registryKey)
     {
         Requires.NotNull(registryKey, nameof(registryKey));
-        _registryKey = registryKey;
+        WindowsKey = registryKey;
     }
 
     /// <summary>
@@ -40,33 +43,33 @@ public class WindowsRegistryKey : RegistryKeyBase
     /// <inheritdoc/>
     public override object? GetValue(string? name, object? defaultValue)
     {
-        return _registryKey.GetValue(name, defaultValue);
+        return WindowsKey.GetValue(name, defaultValue);
     }
 
     /// <inheritdoc/>
     protected override IRegistryKey? GetKeyCore(string subPath, bool writable)
     {
-        var key = _registryKey.OpenSubKey(subPath!, writable);
+        var key = WindowsKey.OpenSubKey(subPath!, writable);
         return key is null ? null : new WindowsRegistryKey(key);
     }
 
     /// <inheritdoc/>
     public override void SetValue(string? name, object value)
     {
-        _registryKey.SetValue(name, value);
+        WindowsKey.SetValue(name, value);
     }
 
     /// <inheritdoc/>
     public override IRegistryKey? CreateSubKey(string subKey)
     {
-        var winKey = _registryKey.CreateSubKey(subKey);
+        var winKey = WindowsKey.CreateSubKey(subKey);
         return winKey is null ? null : new WindowsRegistryKey(winKey);
     }
 
     /// <inheritdoc/>
     public override string[] GetSubKeyNames()
     {
-        return _registryKey.GetSubKeyNames();
+        return WindowsKey.GetSubKeyNames();
     }
 
     /// <inheritdoc cref="IDisposable"/>
@@ -80,11 +83,8 @@ public class WindowsRegistryKey : RegistryKeyBase
     {
         if (IsDisposed)
             return;
-        if (disposing)
-        {
-            _registryKey?.Dispose();
-            _registryKey = null!;
-        }
+        if (disposing) 
+            WindowsKey.Dispose();
         IsDisposed = true;
     }
 

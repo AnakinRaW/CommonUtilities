@@ -1,31 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>net5-windows;net48</TargetFrameworks>
-	  <Nullable>enable</Nullable>
-	  <LangVersion>10.0</LangVersion>
+	<PropertyGroup>
+		<TargetFrameworks>net5-windows;net48</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
+		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows</AssemblyName>
+		<SignAssembly>True</SignAssembly>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-	  <RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows</RootNamespace>
-	  <AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows</AssemblyName>
-	  <SignAssembly>True</SignAssembly>
-	  <Authors>Anakin Sklavenwalker</Authors>
-	  <Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
-	  <Copyright>Anakin Sklavenwalker</Copyright>
-	  <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <EnableNETAnalyzers>True</EnableNETAnalyzers>
-	  <AnalysisLevel>latest</AnalysisLevel>
-	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	  <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Anakin Sklavenwalker</Authors>
+		<Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
+		<Copyright>Anakin Sklavenwalker</Copyright>
+		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="Validation" Version="2.5.42" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+		<PackageReference Include="Validation" Version="2.5.42" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\CommonUtilities.Registry\src\CommonUtilities.Registry.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\CommonUtilities.Registry\src\CommonUtilities.Registry.csproj" />
+	</ItemGroup>
 
 </Project>
