@@ -17,8 +17,10 @@ public abstract class RegistryKeyBase : IRegistryKey
     public bool GetValueOrDefault<T>(string name, string subPath, out T? result, T? defaultValue)
     {
         result = defaultValue;
-        using var key = GetKey(subPath);
+        var key = GetKey(subPath);
         var value = key?.GetValue(name, defaultValue);
+        if (key is not null && key != this)
+            key.Dispose();
         if (value is null)
             return false;
 
@@ -111,10 +113,12 @@ public abstract class RegistryKeyBase : IRegistryKey
     {
         try
         {
-            using var key = GetKey(subPath, true);
+            var key = GetKey(subPath, true);
             if (key is null)
                 return false;
             key.SetValue(name, value);
+            if (key != this)
+                key.Dispose();
             return true;
         }
         catch
@@ -138,6 +142,8 @@ public abstract class RegistryKeyBase : IRegistryKey
             if (key is null)
                 return false;
             key.DeleteValue(name);
+            if (key != this)
+                key.Dispose();
             return true;
         }
         catch
@@ -162,6 +168,11 @@ public abstract class RegistryKeyBase : IRegistryKey
         catch
         {
             return null;
+        }
+        finally
+        {
+            if (key != this)
+                key.Dispose();
         }
     }
 
