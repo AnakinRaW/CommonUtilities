@@ -12,6 +12,10 @@ namespace Commonutilities.FileSystem.Windows.Test
 
         public WindowsPathServiceTest()
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             _service = new WindowsPathService();
         }
 
@@ -45,6 +49,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("\\file")]
         public void TestInvalidFileName(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.False(_service.IsValidFileName(input));
         }
 
@@ -54,6 +62,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData(".con")]
         public void TestValidFileName(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.True(_service.IsValidFileName(input));
         }
 
@@ -65,6 +77,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("\\\\network\\path")]
         public void TestValidAbsolutePath(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.True(_service.IsValidAbsolutePath(input));
             Assert.True(_service.IsValidPath(input));
         }
@@ -75,6 +91,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData(".abc")]
         public void TestValidPath(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.Throws<InvalidOperationException>(() => _service.IsValidAbsolutePath(input));
         }
 
@@ -106,6 +126,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("C:\\lpt9\\")]
         public void TestInvalidPath(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.False(_service.IsValidAbsolutePath(input));
             Assert.False(_service.IsValidPath(input));
         }
@@ -116,6 +140,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("X:\\Test", DriveType.NoRootDirectory)]
         public void TestDriveType(string input, DriveType type)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.Equal(type, _service.GetDriveType(input));
         }
 
@@ -123,6 +151,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("Test")]
         public void TestDriveTypeThrows(string input)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.Throws<InvalidOperationException>(() => _service.GetDriveType(input));
         }
 
@@ -131,6 +163,10 @@ namespace Commonutilities.FileSystem.Windows.Test
         [InlineData("C:\\System Volume Information", false)]
         public void TestAccessRights(string input, bool expected)
         {
+#if NET
+            if (!OperatingSystem.IsWindows())
+                return;
+#endif
             Assert.Equal(expected, _service.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
         }
     }

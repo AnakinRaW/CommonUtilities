@@ -485,11 +485,4 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
             }
         }
     }
-
-    public enum DirectoryOverwriteOption
-    {
-        NoOverwrite,
-        MergeOverwrite,
-        CleanOverwrite
-    }
 }

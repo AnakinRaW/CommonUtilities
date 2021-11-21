@@ -18,8 +18,12 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         string NormalizePath(string path, PathNormalizeOptions options);
 
         /// <summary>
-        /// Returns <paramref name="pathToRelativize"/> relative to <paramref name="relativePathBase"/>, with default System Directory Separator character as separator.
+        /// Returns <paramref name="pathToRelativize"/> relative to <paramref name="relativePathBase"/>, with default System Directory Separator character as separator. 
         /// </summary>
+        /// <remarks>
+        /// <paramref name="relativePathBase"/> is expected to have a trailing path separator if it is a directory.
+        /// </remarks>
+        /// <returns>The relative path, or path if the paths don't share the same root.</returns>
         string GetRelativePath(string relativePathBase, string pathToRelativize);
 
         /// <summary>
