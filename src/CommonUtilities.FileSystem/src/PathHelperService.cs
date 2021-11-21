@@ -42,6 +42,10 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
         {
             if (path is null) throw new ArgumentNullException(nameof(path));
 
+            // Needs to be the first operation!
+            if (options.HasFlag(PathNormalizeOptions.UnifySlashes))
+                path = GetPathWithDirectorySeparator(path);
+
             if (options.HasFlag(PathNormalizeOptions.ResolveFullPath))
                 path = _fileSystem.Path.GetFullPath(path);
 
@@ -51,14 +55,11 @@ namespace Sklavenwalker.CommonUtilities.FileSystem
                 if (!options.HasFlag(PathNormalizeOptions.ResolveFullPath))
                     path = RemoveAdjacentChars(path, 1);
             }
-
-            if (options.HasFlag(PathNormalizeOptions.UnifySlashes))
-                path = GetPathWithDirectorySeparator(path);
-
+            
             if (options.HasFlag(PathNormalizeOptions.TrimTrailingSeparator)) 
                 path = TrimTrailingSeparators(path);
 
-            if (options.HasFlag(PathNormalizeOptions.ToLowerCase))
+            if (options.HasFlag(PathNormalizeOptions.ToLowerCase) && IsFileSystemCaseInsensitive.Value)
                 path = path.ToLower();
 
             return path;
