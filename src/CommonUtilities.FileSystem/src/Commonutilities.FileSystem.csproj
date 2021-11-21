@@ -1,31 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
-    <LangVersion>10.0</LangVersion>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
+		<RootNamespace>Sklavenwalker.CommonUtilities.FileSystem</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.FileSystem</AssemblyName>
+		<SignAssembly>True</SignAssembly>
+		
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-    <RootNamespace>Sklavenwalker.CommonUtilities.FileSystem</RootNamespace>
-    <AssemblyName>Sklavenwalker.CommonUtilities.FileSystem</AssemblyName>
-    <SignAssembly>True</SignAssembly>
-    <Authors>Anakin Sklavenwalker</Authors>
-    <Description>Helper classes and methods targeting the Filesystem and Paths.</Description>
-    <Copyright>Anakin Sklavenwalker</Copyright>
-    <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>latest</AnalysisLevel>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Anakin Sklavenwalker</Authors>
+		<Description>Helper classes and methods targeting the Filesystem and Paths.</Description>
+		<Copyright>Anakin Sklavenwalker</Copyright>
+		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Roslyn.System.IO.Abstractions.Analyzers" Version="12.2.19">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.IO.Abstractions" Version="13.2.47" />
-    <PackageReference Include="Validation" Version="2.5.42" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Roslyn.System.IO.Abstractions.Analyzers" Version="12.2.19">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="System.IO.Abstractions" Version="13.2.47" />
+		<PackageReference Include="Validation" Version="2.5.42" />
+	</ItemGroup>
 
 </Project>

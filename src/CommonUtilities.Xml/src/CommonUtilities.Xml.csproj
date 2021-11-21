@@ -1,25 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>netstandard2.0</TargetFrameworks>
-	  <Nullable>enable</Nullable>
-	  <LangVersion>10.0</LangVersion>
-	  <RootNamespace>Sklavenwalker.CommonUtilities.Xml</RootNamespace>
-	  <AssemblyName>Sklavenwalker.CommonUtilities.Xml</AssemblyName>
-	  <SignAssembly>True</SignAssembly>
-	  <Authors>Anakin Sklavenwalker</Authors>
-	  <Description>Common services for validating and deserializing XML data.</Description>
-	  <Copyright>Anakin Sklavenwalker</Copyright>
-	  <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <EnableNETAnalyzers>True</EnableNETAnalyzers>
-	  <AnalysisLevel>latest</AnalysisLevel>
-	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	  <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
+		<RootNamespace>Sklavenwalker.CommonUtilities.Xml</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.Xml</AssemblyName>
+		<SignAssembly>True</SignAssembly>
 
-  <ItemGroup>
-    <PackageReference Include="Validation" Version="2.5.42" />
-  </ItemGroup>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Anakin Sklavenwalker</Authors>
+		<Description>Common services for validating and deserializing XML data.</Description>
+		<Copyright>Anakin Sklavenwalker</Copyright>
+		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Validation" Version="2.5.42" />
+	</ItemGroup>
 
 </Project>

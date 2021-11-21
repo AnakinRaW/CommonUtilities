@@ -1,31 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
-	  <Nullable>enable</Nullable>
-	  <LangVersion>10.0</LangVersion>
-	  <RootNamespace>Sklavenwalker.CommonUtilities.DownloadManager</RootNamespace>
-	  <AssemblyName>Sklavenwalker.CommonUtilities.DownloadManager</AssemblyName>
-	  <SignAssembly>True</SignAssembly>
-	  <Authors>Anakin Sklavenwalker</Authors>
-	  <Description>Simple Download Manager supporting the local file system and HTTP downlaods.</Description>
-	  <Copyright>Anakin Sklavenwalker</Copyright>
-	  <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <EnableNETAnalyzers>True</EnableNETAnalyzers>
-	  <AnalysisLevel>latest</AnalysisLevel>
-	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	  <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
+		<RootNamespace>Sklavenwalker.CommonUtilities.DownloadManager</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.DownloadManager</AssemblyName>
+		<SignAssembly>True</SignAssembly>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Validation" Version="2.5.42" />
-  </ItemGroup>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Anakin Sklavenwalker</Authors>
+		<Description>Simple Download Manager supporting the local file system and HTTP downlaods.</Description>
+		<Copyright>Anakin Sklavenwalker</Copyright>
+		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Validation" Version="2.5.42" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
+	</ItemGroup>
 
 </Project>

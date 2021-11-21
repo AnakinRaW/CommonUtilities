@@ -1,31 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
-    <LangVersion>10.0</LangVersion>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
 
-    <RootNamespace>Sklavenwalker.CommonUtilities.FileSystem.Windows</RootNamespace>
-    <AssemblyName>Sklavenwalker.CommonUtilities.FileSystem.Windows</AssemblyName>
-    <SignAssembly>True</SignAssembly>
-    <Authors>Anakin Sklavenwalker</Authors>
-    <Description>Helper classes and methods targeting the Windows Filesystem and Paths.</Description>
-    <Copyright>Anakin Sklavenwalker</Copyright>
-    <RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>latest</AnalysisLevel>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+		<RootNamespace>Sklavenwalker.CommonUtilities.FileSystem.Windows</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.FileSystem.Windows</AssemblyName>
+		<SignAssembly>True</SignAssembly>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-  </ItemGroup>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Anakin Sklavenwalker</Authors>
+		<Description>Helper classes and methods targeting the Windows Filesystem and Paths.</Description>
+		<Copyright>Anakin Sklavenwalker</Copyright>
+		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+		<PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
+	</ItemGroup>
 
 </Project>
