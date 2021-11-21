@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
 	  <Nullable>enable</Nullable>
-	  <LangVersion>latest</LangVersion>
+	  <LangVersion>10.0</LangVersion>
 	  <RootNamespace>Sklavenwalker.CommonUtilities.DownloadManager</RootNamespace>
 	  <AssemblyName>Sklavenwalker.CommonUtilities.DownloadManager</AssemblyName>
 	  <SignAssembly>True</SignAssembly>

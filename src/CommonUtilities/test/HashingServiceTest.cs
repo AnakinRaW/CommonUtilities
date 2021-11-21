@@ -4,83 +4,82 @@ using System.IO.Abstractions.TestingHelpers;
 using Sklavenwalker.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Test
+namespace Sklavenwalker.CommonUtilities.Test;
+
+public class HashingServiceTest
 {
-    public class HashingServiceTest
+    private readonly HashingService _hashingService;
+
+    public HashingServiceTest()
     {
-        private readonly HashingService _hashingService;
+        _hashingService = new HashingService();
+    }
 
-        public HashingServiceTest()
+    [Fact]
+    public void TestUnknownAlgorithm()
+    {
+        Assert.Throws<NotSupportedException>(() =>
+            _hashingService.GetStreamHash(new MemoryStream(), HashType.None));
+    }
+
+    [Fact]
+    public void TestStreamClosed()
+    {
+        var ms = new MemoryStream();
+        _hashingService.GetStreamHash(ms, HashType.MD5);
+        Assert.Throws<ObjectDisposedException>(() => ms.Position = 0);
+    }
+
+    [Fact]
+    public void TestStreamKeepOpen()
+    {
+        var ms = new MemoryStream();
+        _hashingService.GetStreamHash(ms, HashType.MD5, true);
+        ms.Position = 0;
+    }
+
+    [Theory]
+    [InlineData(HashType.MD5, 16)]
+    [InlineData(HashType.Sha1, 20)]
+    [InlineData(HashType.Sha256, 32)]
+    [InlineData(HashType.Sha384, 48)]
+    [InlineData(HashType.Sha512, 64)]
+    public void TestCorrectAlgorithm(HashType type, byte digestSize)
+    {
+        var ms = new MemoryStream();
+        var hash = _hashingService.GetStreamHash(ms, type);
+        Assert.Equal(digestSize, hash.Length);
+    }
+
+    [Fact]
+    public void TestFile()
+    {
+        var fs = new MockFileSystem();
+        fs.AddFile("file.exe", MockFileData.NullObject);
+        var hash = _hashingService.GetFileHash(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        var hs = ByteArrayToString(hash);
+        Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
+
+        static string ByteArrayToString(byte[] ba)
         {
-            _hashingService = new HashingService();
+            return BitConverter.ToString(ba).Replace("-", "");
         }
-
-        [Fact]
-        public void TestUnknownAlgorithm()
-        {
-            Assert.Throws<NotSupportedException>(() =>
-                _hashingService.GetStreamHash(new MemoryStream(), HashType.None));
-        }
-
-        [Fact]
-        public void TestStreamClosed()
-        {
-            var ms = new MemoryStream();
-            _hashingService.GetStreamHash(ms, HashType.MD5);
-            Assert.Throws<ObjectDisposedException>(() => ms.Position = 0);
-        }
-
-        [Fact]
-        public void TestStreamKeepOpen()
-        {
-            var ms = new MemoryStream();
-            _hashingService.GetStreamHash(ms, HashType.MD5, true);
-            ms.Position = 0;
-        }
-
-        [Theory]
-        [InlineData(HashType.MD5, 16)]
-        [InlineData(HashType.Sha1, 20)]
-        [InlineData(HashType.Sha256, 32)]
-        [InlineData(HashType.Sha384, 48)]
-        [InlineData(HashType.Sha512, 64)]
-        public void TestCorrectAlgorithm(HashType type, byte digestSize)
-        {
-            var ms = new MemoryStream();
-            var hash = _hashingService.GetStreamHash(ms, type);
-            Assert.Equal(digestSize, hash.Length);
-        }
-
-        [Fact]
-        public void TestFile()
-        {
-            var fs = new MockFileSystem();
-            fs.AddFile("file.exe", MockFileData.NullObject);
-            var hash = _hashingService.GetFileHash(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
-            var hs = ByteArrayToString(hash);
-            Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
-
-            static string ByteArrayToString(byte[] ba)
-            {
-                return BitConverter.ToString(ba).Replace("-", "");
-            }
-        }
+    }
 
 #if NET
-        [Fact]
-        public async void TestFileAsync()
-        {
-            var fs = new MockFileSystem();
-            fs.AddFile("file.exe", MockFileData.NullObject);
-            var hash = await _hashingService.HashFileAsync(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
-            var hs = ByteArrayToString(hash);
-            Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
+    [Fact]
+    public async void TestFileAsync()
+    {
+        var fs = new MockFileSystem();
+        fs.AddFile("file.exe", MockFileData.NullObject);
+        var hash = await _hashingService.HashFileAsync(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        var hs = ByteArrayToString(hash);
+        Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
 
-            static string ByteArrayToString(byte[] ba)
-            {
-                return BitConverter.ToString(ba).Replace("-", "");
-            }
+        static string ByteArrayToString(byte[] ba)
+        {
+            return BitConverter.ToString(ba).Replace("-", "");
         }
-#endif
     }
+#endif
 }

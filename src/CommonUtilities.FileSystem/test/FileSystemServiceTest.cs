@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using System.Threading;
-using System.Threading.Tasks;
 using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
 

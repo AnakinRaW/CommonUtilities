@@ -1,99 +1,98 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities
+namespace Sklavenwalker.CommonUtilities;
+
+/// <summary>
+/// Base implementation for classes which shall implement the <see cref="IDisposable"/> interface.
+/// This class provides convenience like an event, a status flag and validation method.
+/// <br/>
+/// Disposable resources are divided in managed resources and unmanaged resources.
+/// Managed resources get disposed when explicitly calling <see cref="Dispose()"/> on the instance.
+/// Unmanaged resources additionally get disposed when the instance is finalized by the GC.
+/// </summary>
+public abstract class DisposableObject : IDisposable
 {
+    private EventHandler? _disposing;
+
     /// <summary>
-    /// Base implementation for classes which shall implement the <see cref="IDisposable"/> interface.
-    /// This class provides convenience like an event, a status flag and validation method.
-    /// <br/>
-    /// Disposable resources are divided in managed resources and unmanaged resources.
-    /// Managed resources get disposed when explicitly calling <see cref="Dispose()"/> on the instance.
-    /// Unmanaged resources additionally get disposed when the instance is finalized by the GC.
+    /// Event which get's raised when the instance is getting disposed.
+    /// <remarks>The event is not triggered when the object is finalized by the GC.</remarks>
     /// </summary>
-    public abstract class DisposableObject : IDisposable
+    public event EventHandler Disposing
     {
-        private EventHandler? _disposing;
-
-        /// <summary>
-        /// Event which get's raised when the instance is getting disposed.
-        /// <remarks>The event is not triggered when the object is finalized by the GC.</remarks>
-        /// </summary>
-        public event EventHandler Disposing
+        add
         {
-            add
-            {
-                ThrowIfDisposed();
-                _disposing += value;
-            }
-            remove => _disposing -= value;
+            ThrowIfDisposed();
+            _disposing += value;
         }
+        remove => _disposing -= value;
+    }
 
-        /// <summary>
-        /// Indicates whether this instance is disposed.
-        /// </summary>
-        public bool IsDisposed { get; private set; }
+    /// <summary>
+    /// Indicates whether this instance is disposed.
+    /// </summary>
+    public bool IsDisposed { get; private set; }
         
-        /// <inheritdoc/>
-        ~DisposableObject()
-        {
-            Dispose(false);
-        }
+    /// <inheritdoc/>
+    ~DisposableObject()
+    {
+        Dispose(false);
+    }
 
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        /// <summary>
-        /// Throws an <see cref="ObjectDisposedException"/> if this instance already is disposed.
-        /// </summary>
-        protected void ThrowIfDisposed()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-        }
+    /// <summary>
+    /// Throws an <see cref="ObjectDisposedException"/> if this instance already is disposed.
+    /// </summary>
+    protected void ThrowIfDisposed()
+    {
+        if (IsDisposed)
+            throw new ObjectDisposedException(GetType().Name);
+    }
 
-        /// <summary>
-        /// Disposes this instance and frees managed and unmanaged resources.
-        /// Once this method is called <see cref="IsDisposed"/> is set to <see langword="true"/>
-        /// </summary>
-        /// <param name="disposing">When set to <see langword="true"/> managed resources get disposed.</param>
-        protected void Dispose(bool disposing)
+    /// <summary>
+    /// Disposes this instance and frees managed and unmanaged resources.
+    /// Once this method is called <see cref="IsDisposed"/> is set to <see langword="true"/>
+    /// </summary>
+    /// <param name="disposing">When set to <see langword="true"/> managed resources get disposed.</param>
+    protected void Dispose(bool disposing)
+    {
+        if (IsDisposed)
+            return;
+        try
         {
-            if (IsDisposed)
-                return;
-            try
+            if (disposing)
             {
-                if (disposing)
-                {
-                    _disposing?.Invoke(this, EventArgs.Empty);
-                    _disposing = null;
-                    DisposeManagedResources();
-                }
-                DisposeNativeResources();
+                _disposing?.Invoke(this, EventArgs.Empty);
+                _disposing = null;
+                DisposeManagedResources();
             }
-            finally
-            {
-                IsDisposed = true;
-            }
+            DisposeNativeResources();
         }
-
-        /// <summary>
-        /// Disposes all managed resources.
-        /// This method gets invoked if and only if the object's <see cref="Dispose()"/> method was called.
-        /// </summary>
-        protected virtual void DisposeManagedResources()
+        finally
         {
+            IsDisposed = true;
         }
+    }
 
-        /// <summary>
-        /// Disposes all managed resources.
-        /// This method gets invoked if the object gets disposed or finalized.
-        /// </summary>
-        protected virtual void DisposeNativeResources()
-        {
-        }
+    /// <summary>
+    /// Disposes all managed resources.
+    /// This method gets invoked if and only if the object's <see cref="Dispose()"/> method was called.
+    /// </summary>
+    protected virtual void DisposeManagedResources()
+    {
+    }
+
+    /// <summary>
+    /// Disposes all managed resources.
+    /// This method gets invoked if the object gets disposed or finalized.
+    /// </summary>
+    protected virtual void DisposeNativeResources()
+    {
     }
 }

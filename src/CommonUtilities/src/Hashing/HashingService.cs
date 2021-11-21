@@ -7,58 +7,59 @@ using Validation;
 using System.Threading.Tasks;
 #endif
 
-namespace Sklavenwalker.CommonUtilities.Hashing
+namespace Sklavenwalker.CommonUtilities.Hashing;
+
+/// <inheritdoc cref="IHashingService"/>
+public class HashingService : IHashingService
 {
-    /// <inheritdoc cref="IHashingService"/>
-    public class HashingService : IHashingService
+    /// <inheritdoc/>
+    public byte[] GetFileHash(IFileInfo file, HashType hashType)
     {
-        /// <inheritdoc/>
-        public byte[] GetFileHash(IFileInfo file, HashType hashType)
-        {
-            Requires.NotNull(file, nameof(file));
-            if (!file.Exists)
-                throw new FileNotFoundException(nameof(file));
+        Requires.NotNull(file, nameof(file));
+        if (!file.Exists)
+            throw new FileNotFoundException(nameof(file));
 
-            using var stream = file.FileSystem.FileStream.Create(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return GetStreamHash(stream, hashType, true);
-        }
+        using var stream =
+            file.FileSystem.FileStream.Create(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return GetStreamHash(stream, hashType, true);
+    }
 
-        /// <inheritdoc/>
-        public byte[] GetStreamHash(Stream stream, HashType hashType, bool keepOpen = false)
-        {
-            Requires.NotNull(stream, nameof(stream));
-            return HashFileInternal(stream, GetAlgorithm(hashType), keepOpen);
-        }
+    /// <inheritdoc/>
+    public byte[] GetStreamHash(Stream stream, HashType hashType, bool keepOpen = false)
+    {
+        Requires.NotNull(stream, nameof(stream));
+        return HashFileInternal(stream, GetAlgorithm(hashType), keepOpen);
+    }
 
-        private static byte[] HashFileInternal(Stream inputStream, HashAlgorithm algorithm, bool keepOpen)
+    private static byte[] HashFileInternal(Stream inputStream, HashAlgorithm algorithm, bool keepOpen)
+    {
+        if (!inputStream.CanRead)
+            throw new InvalidOperationException("Cannot hash unreadable stream");
+        inputStream.Position = 0;
+        try
         {
-            if (!inputStream.CanRead)
-                throw new InvalidOperationException("Cannot hash unreadable stream");
-            inputStream.Position = 0;
-            try
-            {
-                using (algorithm)
-                    return algorithm.ComputeHash(inputStream);
-            }
-            finally
-            {
-                if (!keepOpen)
-                    inputStream.Dispose();
-            }
+            using (algorithm)
+                return algorithm.ComputeHash(inputStream);
         }
+        finally
+        {
+            if (!keepOpen)
+                inputStream.Dispose();
+        }
+    }
 
-        private static HashAlgorithm GetAlgorithm(HashType hashType)
+    private static HashAlgorithm GetAlgorithm(HashType hashType)
+    {
+        return hashType switch
         {
-            return hashType switch
-            {
-                HashType.MD5 => MD5.Create(),
-                HashType.Sha1 => SHA1.Create(),
-                HashType.Sha256 => SHA256.Create(),
-                HashType.Sha512 => SHA512.Create(),
-                HashType.Sha384 => SHA384.Create(),
-                _ => throw new NotSupportedException("Unable to find a hashing algorithm")
-            };
-        }
+            HashType.MD5 => MD5.Create(),
+            HashType.Sha1 => SHA1.Create(),
+            HashType.Sha256 => SHA256.Create(),
+            HashType.Sha512 => SHA512.Create(),
+            HashType.Sha384 => SHA384.Create(),
+            _ => throw new NotSupportedException("Unable to find a hashing algorithm")
+        };
+    }
 
 #if NET
         /// <inheritdoc/>
@@ -80,5 +81,4 @@ namespace Sklavenwalker.CommonUtilities.Hashing
             }
         }
 #endif
-    }
 }
