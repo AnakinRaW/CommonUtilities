@@ -60,14 +60,14 @@ public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
         var lastProgressUpdate = now1;
         ProgressUpdateCallback? wrappedProgress = null;
         if (progress != null)
-            wrappedProgress = (p =>
+            wrappedProgress = p =>
             {
                 var now2 = DateTime.Now;
                 var timeSpan = now2 - lastProgressUpdate;
                 var bitRate = 8.0 * p.BytesRead / timeSpan.TotalSeconds;
                 progress(new ProgressUpdateStatus(p.BytesRead, p.TotalBytes, bitRate));
                 lastProgressUpdate = now2;
-            });
+            };
         var downloadSummary = DownloadCore(uri, outputStream, wrappedProgress, cancellationToken);
         downloadSummary.DownloadTime = DateTime.Now - now1;
         downloadSummary.BitRate = 8.0 * downloadSummary.DownloadedSize / downloadSummary.DownloadTime.TotalSeconds;
