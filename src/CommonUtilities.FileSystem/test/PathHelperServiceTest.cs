@@ -1,6 +1,7 @@
 ﻿using System.IO.Abstractions.TestingHelpers;
 using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
+#pragma warning disable CS0162
 #if NET
 using System;
 #endif

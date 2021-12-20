@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -12,7 +13,7 @@ namespace Sklavenwalker.CommonUtilities.FileSystem.Windows;
 /// <summary>
 /// Service for validating file and directory paths for the Windows Operating System.
 /// </summary>
-public class WindowsPathService
+public class WindowsPathService : IWindowsPathService
 {
     private static readonly Regex RegexInvalidName =
         new("^(COM\\d|CLOCK\\$|LPT\\d|AUX|NUL|CON|PRN|(.*[\\ud800-\\udfff]+.*))$", RegexOptions.IgnoreCase);
@@ -30,15 +31,26 @@ public class WindowsPathService
         InvalidNameChars = Path.GetInvalidFileNameChars().Concat("/?:&\\*#%;").ToArray();
 
     private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
+   
+    private readonly IFileSystem _fileSystem;
 
     /// <summary>
-    /// Creates a new service instance.
+    /// Initializes a new instance with a given <see cref="IFileSystem"/>.
     /// </summary>
+    /// <param name="fileSystem">The file system associated to this instance.</param>
     /// <exception cref="PlatformNotSupportedException">If object is created on a non-Windows system.</exception>
-    public WindowsPathService()
+    public WindowsPathService(IFileSystem fileSystem)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new PlatformNotSupportedException("Only available on Windows");
+        _fileSystem = fileSystem;
+    }
+
+    /// <summary>
+    /// Initializes a new instance with the default <see cref="FileSystem"/> implementation.
+    /// </summary>
+    public WindowsPathService() : this(new System.IO.Abstractions.FileSystem())
+    {
     }
 
     /// <summary>
@@ -49,11 +61,11 @@ public class WindowsPathService
     /// <exception cref="InvalidOperationException">If the <paramref name="location"/> is not absolute.</exception>
     public DriveType GetDriveType(string location)
     {
-        if (!Path.IsPathRooted(location))
+        if (!_fileSystem.Path.IsPathRooted(location))
             throw new InvalidOperationException("location not an absolute path.");
-        string pathRoot = Path.GetPathRoot(location)!;
-        if (pathRoot[pathRoot.Length - 1] != Path.DirectorySeparatorChar)
-            pathRoot += Path.DirectorySeparatorChar.ToString();
+        var pathRoot = _fileSystem.Path.GetPathRoot(location)!;
+        if (pathRoot[pathRoot.Length - 1] != _fileSystem.Path.DirectorySeparatorChar)
+            pathRoot += _fileSystem.Path.DirectorySeparatorChar.ToString();
         return (DriveType)Kernel32.GetDriveTypeW(pathRoot);
     }
 
@@ -80,7 +92,7 @@ public class WindowsPathService
     /// <exception cref="InvalidOperationException">If the <paramref name="path"/> is not absolute.</exception>
     public bool IsValidAbsolutePath(string path)
     {
-        if (!Path.IsPathRooted(path))
+        if (!_fileSystem.Path.IsPathRooted(path))
             throw new InvalidOperationException("path not absolute.");
         return IsValidPath(path, true);
     }
@@ -107,7 +119,7 @@ public class WindowsPathService
     public bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
     {
         bool isInRoleWithAccess;
-        var di = new DirectoryInfo(path);
+        var di = _fileSystem.DirectoryInfo.FromDirectoryName(path);
         try
         {
             if (!di.Exists)
@@ -122,13 +134,13 @@ public class WindowsPathService
         return isInRoleWithAccess;
     }
         
-    private static bool IsValidPath(string path, bool forceAbsolute)
+    private bool IsValidPath(string path, bool forceAbsolute)
     {
         if (!IsPathValidAndNotEmpty(path, forceAbsolute))
             return false;
         try
         {
-            path = Path.GetDirectoryName(path)!;
+            path = _fileSystem.Path.GetDirectoryName(path)!;
             if (!string.IsNullOrEmpty(path))
             {
                 if (RegexInvalidPath.IsMatch(path))
@@ -154,7 +166,7 @@ public class WindowsPathService
         return path.IndexOfAny(InvalidPathChars) < 0;
     }
 
-    private static bool TestAccessRightsOnWindows(DirectoryInfo directoryInfo, FileSystemRights accessRights)
+    private static bool TestAccessRightsOnWindows(IDirectoryInfo directoryInfo, FileSystemRights accessRights)
     {
         var acl = directoryInfo.GetAccessControl();
         var rules = acl.GetAccessRules(true, true,

@@ -8,7 +8,7 @@ namespace Commonutilities.FileSystem.Windows.Test;
 
 public class WindowsPathServiceTest
 {
-    private readonly WindowsPathService _service;
+    private readonly WindowsPathService? _service;
 
     public WindowsPathServiceTest()
     {
@@ -53,7 +53,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.False(_service.IsValidFileName(input));
+        Assert.False(_service!.IsValidFileName(input));
     }
 
     [Theory]
@@ -66,7 +66,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.True(_service.IsValidFileName(input));
+        Assert.True(_service!.IsValidFileName(input));
     }
 
     [Theory]
@@ -81,7 +81,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.True(_service.IsValidAbsolutePath(input));
+        Assert.True(_service!.IsValidAbsolutePath(input));
         Assert.True(_service.IsValidPath(input));
     }
 
@@ -95,7 +95,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.Throws<InvalidOperationException>(() => _service.IsValidAbsolutePath(input));
+        Assert.Throws<InvalidOperationException>(() => _service!.IsValidAbsolutePath(input));
     }
 
     [Theory]
@@ -130,7 +130,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.False(_service.IsValidAbsolutePath(input));
+        Assert.False(_service!.IsValidAbsolutePath(input));
         Assert.False(_service.IsValidPath(input));
     }
 
@@ -144,7 +144,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.Equal(type, _service.GetDriveType(input));
+        Assert.Equal(type, _service!.GetDriveType(input));
     }
 
     [Theory]
@@ -155,7 +155,7 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.Throws<InvalidOperationException>(() => _service.GetDriveType(input));
+        Assert.Throws<InvalidOperationException>(() => _service!.GetDriveType(input));
     }
 
     [Theory]
@@ -167,6 +167,6 @@ public class WindowsPathServiceTest
             if (!OperatingSystem.IsWindows())
                 return;
 #endif
-        Assert.Equal(expected, _service.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
+        Assert.Equal(expected, _service!.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
     }
 }

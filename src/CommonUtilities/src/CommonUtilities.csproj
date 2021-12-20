@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.1</VersionPrefix>
+		<VersionPrefix>1.0.2</VersionPrefix>
 		<Authors>Anakin Sklavenwalker</Authors>
 		<Description>Shared set of common classes and utilities for all of my software.</Description>
 		<Copyright>Anakin Sklavenwalker</Copyright>
@@ -24,7 +24,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.IO.Abstractions" Version="13.2.47" />
+		<PackageReference Include="System.IO.Abstractions" Version="14.0.13" />
 		<PackageReference Include="Validation" Version="2.5.42" />
 	</ItemGroup>
 
