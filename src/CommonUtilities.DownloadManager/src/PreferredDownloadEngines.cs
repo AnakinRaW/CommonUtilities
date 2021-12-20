@@ -48,7 +48,7 @@ internal class PreferredDownloadEngines
                 if (!downloadEngineList.Contains(viableEngine))
                     downloadEngineList.Add(viableEngine);
             }
-            return downloadEngineList;
+            return downloadEngineList!;
         }
     }
 }
