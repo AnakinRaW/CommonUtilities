@@ -16,7 +16,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.1</VersionPrefix>
+		<VersionPrefix>1.1.0</VersionPrefix>
 		<Authors>Anakin Sklavenwalker</Authors>
 		<Description>Helper classes and methods targeting the Windows Filesystem and Paths.</Description>
 		<Copyright>Anakin Sklavenwalker</Copyright>
