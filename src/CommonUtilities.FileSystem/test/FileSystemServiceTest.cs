@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
-using System.Reflection;
 using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
-using Xunit.Sdk;
 
 #pragma warning disable CS0162
 
