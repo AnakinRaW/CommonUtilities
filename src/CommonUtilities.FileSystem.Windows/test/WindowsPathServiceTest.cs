@@ -136,7 +136,7 @@ public class WindowsPathServiceTest
 
     [Theory]
     [InlineData("C:\\Test", DriveType.Fixed)]
-    [InlineData("E:\\Test", DriveType.CDRom)]
+    //[InlineData("E:\\Test", DriveType.CDRom)]
     [InlineData("X:\\Test", DriveType.NoRootDirectory)]
     public void TestDriveType(string input, DriveType type)
     {
