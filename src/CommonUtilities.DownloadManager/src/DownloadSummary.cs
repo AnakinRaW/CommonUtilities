@@ -47,7 +47,7 @@ public class DownloadSummary
     /// Creates an empty <see cref="DownloadSummary"/>
     /// </summary>
     public DownloadSummary()
-        : this(null!, 0L, 0.0, TimeSpan.Zero, default)
+        : this(string.Empty, 0L, 0.0, TimeSpan.Zero, default)
     {
     }
 
@@ -66,7 +66,7 @@ public class DownloadSummary
         BitRate = bitRate;
         DownloadTime = downloadTime;
         ProxyResolution = null;
-        FinalUri = null;
+        FinalUri = string.Empty;
         ValidationResult = validationResult;
     }
 }

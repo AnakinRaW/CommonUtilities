@@ -11,7 +11,7 @@ public class InMemoryRegistryKeyTest
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
         key.SetValue(null, "Default");
-        key.GetValue(null!, out object value);
+        key.GetValue(null!, out object? value);
         Assert.Equal("Default", value);
         value = key.GetValue(null, "other Default")!;
         Assert.Equal("Default", value);
@@ -33,6 +33,6 @@ public class InMemoryRegistryKeyTest
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
         var subKey = key.CreateSubKey(@"Deep\SubKey");
         Assert.NotNull(subKey);
-        Assert.Equal("SubKey", subKey.Name);
+        Assert.Equal("SubKey", subKey!.Name);
     }
 }
