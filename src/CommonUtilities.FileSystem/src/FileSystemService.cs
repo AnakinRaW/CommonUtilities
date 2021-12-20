@@ -366,7 +366,7 @@ public class FileSystemService : IFileSystemService
             while (queue.Count > 0)
             {
                 var copyInformation = queue.Dequeue();
-                CopyFile(source, copyInformation, destination, queue.Count, totalFileCount);
+                CopyFile(source, copyInformation, destination, queue.Count, ref totalFileCount);
             }
         }
 
@@ -411,11 +411,11 @@ public class FileSystemService : IFileSystemService
             BlockingCollection<CopyInformation> queue, ref int fileCount)
         {
             foreach (var copyInfo in queue.GetConsumingEnumerable())
-                CopyFile(source, copyInfo, destination, queue.Count, fileCount);
+                CopyFile(source, copyInfo, destination, queue.Count, ref fileCount);
         }
 
         private void CopyFile(IDirectoryInfo source, CopyInformation copyInfo, string destination,
-            int remainingFileCount, int totalFileCount)
+            int remainingFileCount, ref int totalFileCount)
         {
             var fileToCopy = copyInfo.File;
             var localFilePath = fileToCopy.FullName.Substring(source.FullName.Length + 1);
