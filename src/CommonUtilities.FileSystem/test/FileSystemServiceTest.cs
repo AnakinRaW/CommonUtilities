@@ -318,7 +318,7 @@ public class FileSystemServiceTest
     }
 
     [Fact]
-    public async void TestCopyDirAsync_Linux(int num)
+    public async void TestCopyDirAsync_Linux()
     {
 #if NET
             if (OperatingSystem.IsWindows())
