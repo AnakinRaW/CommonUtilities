@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
@@ -6,9 +7,6 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
-#if NET
-using System.Buffers;
-#endif
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
 
@@ -52,31 +50,21 @@ internal class WebClientDownloader : DownloadEngineBase
                     bool streamReadError;
                     var totalBytesRead = 0L;
                     var bufferSize = Math.Max(1024, Math.Min(totalStreamLength, 32768));
-                    byte[] array;
-#if NET
-                        var arrayRent = false;
-                        if (bufferSize <= int.MaxValue)
-                        {
-                            array = ArrayPool<byte>.Shared.Rent((int) bufferSize);
-                            arrayRent = true;
-                        }
-                        else
-                            array = new byte[bufferSize];
-#else
-                    array = new byte[bufferSize];
-#endif
-                    var registration2 = cancellationToken.Register(() => webRequest.Abort());
+
+                    var buffer = ArrayPool<byte>.Shared.Rent((int)bufferSize);
+                    
+                    var registration2 = cancellationToken.Register(() => webRequest!.Abort());
                     try
                     {
                         while (true)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            var bytesRead = responseStream!.Read(array, 0, array.Length);
+                            var bytesRead = responseStream!.Read(buffer, 0, buffer.Length);
                             streamReadError = bytesRead < 0;
                             if (bytesRead <= 0)
                                 break;
                             totalBytesRead += bytesRead;
-                            outputStream.Write(array, 0, bytesRead);
+                            outputStream.Write(buffer, 0, bytesRead);
                             if (totalStreamLength < totalBytesRead)
                                 totalStreamLength = totalBytesRead;
                             progress?.Invoke(new ProgressUpdateStatus(totalBytesRead, totalStreamLength, 0));
@@ -84,10 +72,7 @@ internal class WebClientDownloader : DownloadEngineBase
                     }
                     finally
                     {
-#if NET
-                            if (arrayRent)
-                                ArrayPool<byte>.Shared.Return(array);
-#endif
+                        ArrayPool<byte>.Shared.Return(buffer);
                         registration2.Dispose();
                     }
 
@@ -104,13 +89,13 @@ internal class WebClientDownloader : DownloadEngineBase
                         : "DownloadCore failed";
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        _logger.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " +
+                        _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " +
                                          message);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
                     else
                     {
-                        _logger.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "'.");
+                        _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "'.");
                         throw;
                     }
                 }
@@ -169,7 +154,7 @@ internal class WebClientDownloader : DownloadEngineBase
                     !uri.ToString().EndsWith(responseUri, StringComparison.InvariantCultureIgnoreCase))
                 {
                     summary.FinalUri = responseUri;
-                    _logger.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
+                    _logger?.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
                 }
 
                 switch (httpWebResponse.StatusCode)
@@ -188,11 +173,11 @@ internal class WebClientDownloader : DownloadEngineBase
                             WrappedWebException.Throw((int)httpWebResponse.StatusCode, "WebRequest.GetResponse", summary.FinalUri);
                             continue;
                         }
-                        _logger.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}' - '{uri.AbsoluteUri}'. Reattempt with proxy set to '{proxyResolution}'");
+                        _logger?.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}' - '{uri.AbsoluteUri}'. Reattempt with proxy set to '{proxyResolution}'");
                         continue;
                     default:
                         proxyResolution = ProxyResolution.Error;
-                        _logger.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}'  - '{uri.AbsoluteUri}'.");
+                        _logger?.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}'  - '{uri.AbsoluteUri}'.");
                         WrappedWebException.Throw((int)httpWebResponse.StatusCode, "WebRequest.GetResponse", summary.FinalUri);
                         continue;
                 }
@@ -201,7 +186,7 @@ internal class WebClientDownloader : DownloadEngineBase
             {
                 if (proxyResolution == ProxyResolution.Error)
                 {
-                    _logger.LogDebug($"WebResponse exception '{ex.Status}' with '{uri}'.");
+                    _logger?.LogDebug($"WebResponse exception '{ex.Status}' with '{uri}'.");
                     throw;
                 }
             }
@@ -210,10 +195,10 @@ internal class WebClientDownloader : DownloadEngineBase
                 var errorMessage = cancellationToken.IsCancellationRequested ? "GetWebResponse failed along with a cancellation request" : "GetWebResponse failed";
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " + errorMessage);
+                    _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " + errorMessage);
                     cancellationToken.ThrowIfCancellationRequested();
                 }
-                _logger.LogTrace("WebClient error '" + ex.Status + "' - proxy setting '" + proxyResolution + "' - '" + uri.AbsoluteUri + "'.");
+                _logger?.LogTrace("WebClient error '" + ex.Status + "' - proxy setting '" + proxyResolution + "' - '" + uri.AbsoluteUri + "'.");
                 switch (ex.Status)
                 {
                     case WebExceptionStatus.NameResolutionFailure:
@@ -229,7 +214,7 @@ internal class WebClientDownloader : DownloadEngineBase
                 }
                 if (proxyResolution == ProxyResolution.Error)
                 {
-                    _logger.LogTrace("WebClient failed in '" + uri.AbsoluteUri + "' with '" + ex.Message + "' - '" + uri.AbsoluteUri + "'.");
+                    _logger?.LogTrace("WebClient failed in '" + uri.AbsoluteUri + "' with '" + ex.Message + "' - '" + uri.AbsoluteUri + "'.");
                     throw;
                 }
             }

@@ -4,6 +4,9 @@ using System.Linq;
 namespace Sklavenwalker.CommonUtilities;
 
 //Copyright (c) 2017 Jean Lourenço - https://github.com/jean-lourenco/UrlCombine/
+/// <summary>
+/// Provides helper methods to combine URLs.
+/// </summary>
 public static class UrlCombine
 {
     /// <summary>

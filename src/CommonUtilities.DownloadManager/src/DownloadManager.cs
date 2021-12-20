@@ -88,7 +88,7 @@ public class DownloadManager : IDownloadManager {
         }
         catch (Exception ex)
         {
-            _logger.LogTrace($"Unable to get download engine: {ex.Message}");
+            _logger?.LogTrace($"Unable to get download engine: {ex.Message}");
             throw;
         }
     }
