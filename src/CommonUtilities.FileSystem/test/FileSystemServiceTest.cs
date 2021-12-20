@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
+using System.Reflection;
 using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
+using Xunit.Sdk;
 
 #pragma warning disable CS0162
 
@@ -314,7 +318,7 @@ public class FileSystemServiceTest
     }
 
     [Fact]
-    public async void TestCopyDirAsync_Linux()
+    public async void TestCopyDirAsync_Linux(int num)
     {
 #if NET
             if (OperatingSystem.IsWindows())
