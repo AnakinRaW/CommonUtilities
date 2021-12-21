@@ -26,6 +26,4 @@ jobs:
         run: dotnet pack ${{ env.solution }} -c Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o ./nupkgs
 
       - name: Publish to Nuget
-        run: dotnet nuget push nupkgs/**/*.nupkg  --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-        # TODO deploy
+        run: dotnet nuget push nupkgs/**/*.nupkg  --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }}
