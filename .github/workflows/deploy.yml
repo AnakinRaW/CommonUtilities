@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    name: Pack & Deploy Release
+    runs-on: ubuntu-latest
+
+    env:
+      solution: "CommonUtilities.sln"
+            
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Build & Test
+        run: dotnet pack ${{ env.solution }} -c Release
+
+        # TODO deploy

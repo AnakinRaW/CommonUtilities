@@ -1,0 +1,12 @@
+name: CI develop
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+
+  build-test:
+    uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/test.yml@main

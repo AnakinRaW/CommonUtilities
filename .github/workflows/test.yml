@@ -1,17 +1,15 @@
 name: Build-Test
 
 on:
-  push:
-    branches: [develop]
-  pull_request:
-    branches: [main, develop]
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   build-test:
     name: Build & Test CommonUtilities
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         dotnet-framework: [net6.0, net48]
         exclude:
           - os: ubuntu-latest
@@ -21,17 +19,15 @@ jobs:
 
     env:
       solution: "CommonUtilities.sln"
-
+        
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
-      - name: Setup .NET Core SDK
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: "6.0.x"
-
+          dotnet-version: '6.0.x'
+        
       - name: Build & Test
-        run: dotnet test ${{ env.solution}} -c Release -f ${{ matrix.dotnet-framework }}
+        run: dotnet test ${{ env.solution }} -c Release -f ${{ matrix.dotnet-framework }}

@@ -1,0 +1,25 @@
+name: CI/CD main
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency: deploy-tagging
+
+jobs:
+
+  build-test:
+    uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/test.yml@main
+
+  pack-deploy:
+    if: ${{ github.event_name == 'push' }}
+    needs: build-test
+    uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/pack-deploy.yml@main
+
+# We pack and deploy before tagging, because we don't depend on the generated tag version name in this repo.
+    
+  tag:
+    needs: pack-deploy
+    uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/tag.yml@main
