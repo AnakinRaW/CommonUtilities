@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 env:
+  solution: "CommonUtilities.sln"
   NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
   PACKAGE_OUTPUT_DIR: ${{ github.workspace}}/nupkgs
 
@@ -11,9 +12,6 @@ jobs:
   deploy:
     name: Pack & Deploy Release
     runs-on: ubuntu-latest
-
-    env:
-      solution: "CommonUtilities.sln"
             
     steps:
       - name: checkout
