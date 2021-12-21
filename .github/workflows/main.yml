@@ -17,11 +17,11 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     needs: build-test
     uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/pack-deploy.yml@main
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
 # We pack and deploy before tagging, because we don't depend on the generated tag version name in this repo.
     
   tag:
     needs: pack-deploy
     uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/tag.yml@main
-    secrets:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
