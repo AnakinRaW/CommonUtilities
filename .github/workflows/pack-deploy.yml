@@ -2,6 +2,9 @@ name: Deploy
 
 on:
   workflow_call:
+    secrets:
+      NUGET_API_KEY:
+        required: true
 
 env:
   solution: "CommonUtilities.sln"
@@ -23,9 +26,10 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.0.x'
+          
 
       - name: Build & Test
         run: dotnet pack ${{ env.solution }} --configuration Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --output ${{ env.PACKAGE_OUTPUT_DIR }}
 
       - name: Publish to Nuget
-        run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIR }}/**/*.nupkg  --source ${{ env.NUGET_SOURCE_URL }} --api-key ${{ secrets.NUGETAUTHKEY }} --skip-duplicate
+        run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIR }}/**/*.nupkg  --source ${{ env.NUGET_SOURCE_URL }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate

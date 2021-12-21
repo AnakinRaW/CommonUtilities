@@ -23,3 +23,5 @@ jobs:
   tag:
     needs: pack-deploy
     uses: AnakinSklavenwalker/CommonUtilities/.github/workflows/tag.yml@main
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
