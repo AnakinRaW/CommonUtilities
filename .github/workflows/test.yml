@@ -9,7 +9,7 @@ jobs:
     name: Build & Test CommonUtilities
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest, ubuntu-latest]
         dotnet-framework: [net6.0, net48]
         exclude:
           - os: ubuntu-latest
