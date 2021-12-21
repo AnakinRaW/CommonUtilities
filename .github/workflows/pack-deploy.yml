@@ -23,6 +23,9 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Build & Test
-        run: dotnet pack ${{ env.solution }} -c Release
+        run: dotnet pack ${{ env.solution }} -c Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o ./nupkgs
+
+      - name: Publish to Nuget
+        run: dotnet nuget push nupkgs/**/*.nupkg  --source https://api.nuget.org/v3/index.json --skip-duplicate
 
         # TODO deploy
