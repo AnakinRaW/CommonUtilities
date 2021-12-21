@@ -1,13 +1,13 @@
-name: CommonUtilities Build & Test
+name: Build-Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
-  build-test-core:
+  build-test:
     name: Build & Test CommonUtilities
     strategy:
       matrix:
@@ -18,23 +18,20 @@ jobs:
             dotnet-framework: net48
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    
+
     env:
-        solution: 'CommonUtilities.sln'
-    
+      solution: "CommonUtilities.sln"
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        
-    - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0.x'
-        
-    - name: Build
-      run: dotnet build ${{ env.solution }} -c Release
-        
-    - name: Test
-      run: dotnet test ${{ env.solution}} -c Release -f ${{ matrix.dotnet-framework }} 
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "6.0.x"
+
+      - name: Build & Test
+        run: dotnet test ${{ env.solution}} -c Release -f ${{ matrix.dotnet-framework }}
