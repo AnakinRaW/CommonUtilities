@@ -47,10 +47,8 @@ public class WindowsPathServiceTest
     [InlineData("\\file")]
     public void TestInvalidFileName(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.False(_service!.IsValidFileName(input));
     }
 
@@ -60,10 +58,8 @@ public class WindowsPathServiceTest
     [InlineData(".con")]
     public void TestValidFileName(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.True(_service!.IsValidFileName(input));
     }
 
@@ -75,10 +71,8 @@ public class WindowsPathServiceTest
     [InlineData("\\\\network\\path")]
     public void TestValidAbsolutePath(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.True(_service!.IsValidAbsolutePath(input));
         Assert.True(_service.IsValidPath(input));
     }
@@ -89,10 +83,8 @@ public class WindowsPathServiceTest
     [InlineData(".abc")]
     public void TestValidPath(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.Throws<InvalidOperationException>(() => _service!.IsValidAbsolutePath(input));
     }
 
@@ -124,10 +116,8 @@ public class WindowsPathServiceTest
     [InlineData("C:\\lpt9\\")]
     public void TestInvalidPath(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.False(_service!.IsValidAbsolutePath(input));
         Assert.False(_service.IsValidPath(input));
     }
@@ -138,10 +128,8 @@ public class WindowsPathServiceTest
     [InlineData("X:\\Test", DriveType.NoRootDirectory)]
     public void TestDriveType(string input, DriveType type)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.Equal(type, _service!.GetDriveType(input));
     }
 
@@ -149,10 +137,8 @@ public class WindowsPathServiceTest
     [InlineData("Test")]
     public void TestDriveTypeThrows(string input)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.Throws<InvalidOperationException>(() => _service!.GetDriveType(input));
     }
 
@@ -161,10 +147,8 @@ public class WindowsPathServiceTest
     [InlineData("C:\\System Volume Information", false)]
     public void TestAccessRights(string input, bool expected)
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
         Assert.Equal(expected, _service!.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
     }
 }
