@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using Xunit;
 
@@ -11,10 +12,8 @@ public class WindowsPathServiceTest
 
     public WindowsPathServiceTest()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
-#endif
         _service = new WindowsPathService();
     }
 
