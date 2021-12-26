@@ -397,9 +397,8 @@ public class FileSystemService : IFileSystemService
                     File = file,
                     IsMove = isMove
                 };
-
-                queue.Add(copyInformation);
                 ++fileCount;
+                queue.Add(copyInformation);
             }
 
             queue.CompleteAdding();

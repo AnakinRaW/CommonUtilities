@@ -206,7 +206,7 @@ public interface IFileSystemService
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-    /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>returns>
+    /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
     bool DeleteDirectoryWithRetry(IDirectoryInfo directory, bool recursive = true, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null);
 }

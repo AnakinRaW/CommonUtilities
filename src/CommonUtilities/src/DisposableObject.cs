@@ -32,14 +32,14 @@ public abstract class DisposableObject : IDisposable
     /// Indicates whether this instance is disposed.
     /// </summary>
     public bool IsDisposed { get; private set; }
-        
-    /// <inheritdoc/>
+
+    /// <inheritdoc cref="Finalize"/>
     ~DisposableObject()
     {
         Dispose(false);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="IDisposable.Dispose"/>
     public void Dispose()
     {
         Dispose(true);

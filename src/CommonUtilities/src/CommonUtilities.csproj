@@ -1,30 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Nullable>enable</Nullable>
-		<LangVersion>10.0</LangVersion>
-		<RootNamespace>Sklavenwalker.CommonUtilities</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities</AssemblyName>
-		<SignAssembly>True</SignAssembly>
-
-		<EnableNETAnalyzers>True</EnableNETAnalyzers>
-		<AnalysisLevel>latest</AnalysisLevel>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+		<Description>Shared set of common classes and utilities for all of my software.</Description>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<Version>2.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.2</VersionPrefix>
-		<Authors>Anakin Sklavenwalker</Authors>
-		<Description>Shared set of common classes and utilities for all of my software.</Description>
-		<Copyright>Anakin Sklavenwalker</Copyright>
-		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<RootNamespace>Sklavenwalker.CommonUtilities</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities</AssemblyName>
+		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<InheritDocEnabled>true</InheritDocEnabled>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.IO.Abstractions" Version="14.0.13" />
+		<PackageReference Include="System.IO.Abstractions" Version="16.0.1" />
 		<PackageReference Include="Validation" Version="2.5.42" />
 	</ItemGroup>
 

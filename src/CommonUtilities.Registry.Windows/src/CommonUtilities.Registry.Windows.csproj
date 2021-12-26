@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
-		<Nullable>enable</Nullable>
-		<LangVersion>10.0</LangVersion>
-		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows</AssemblyName>
-		<SignAssembly>True</SignAssembly>
-		<EnableNETAnalyzers>True</EnableNETAnalyzers>
-		<AnalysisLevel>latest</AnalysisLevel>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<AssemblyOriginatorKeyFile>..\..\..\AnakinOSS.snk</AssemblyOriginatorKeyFile>
+		<Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<Version>2.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.2</VersionPrefix>
-		<Authors>Anakin Sklavenwalker</Authors>
-		<Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
-		<Copyright>Anakin Sklavenwalker</Copyright>
-		<RepositoryUrl>https://github.com/AnakinSklavenwalker/CommonUtilities</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
+		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows</RootNamespace>
+		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows</AssemblyName>
+		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<InheritDocEnabled>true</InheritDocEnabled>
 	</PropertyGroup>
 
 	<ItemGroup>
