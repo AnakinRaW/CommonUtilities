@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Security.AccessControl;
-using Sklavenwalker.CommonUtilities.FileSystem.Windows;
 using Xunit;
 
-namespace Commonutilities.FileSystem.Windows.Test;
+namespace Sklavenwalker.CommonUtilities.FileSystem.Windows.Test;
 
 public class WindowsPathServiceTest
 {
