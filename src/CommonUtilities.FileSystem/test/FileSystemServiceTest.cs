@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using Sklavenwalker.CommonUtilities.FileSystem;
 using Xunit;
 
 #pragma warning disable CS0162
 
-namespace Commonutilities.FileSystem.Test;
+namespace Sklavenwalker.CommonUtilities.FileSystem.Test;
 
 public class FileSystemServiceTest
 {
