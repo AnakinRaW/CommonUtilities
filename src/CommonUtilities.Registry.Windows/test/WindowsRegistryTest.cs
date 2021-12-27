@@ -1,6 +1,4 @@
-﻿#if WINDOWS
-
-using System;
+﻿using System;
 using Microsoft.Win32;
 using Xunit;
 
@@ -33,7 +31,7 @@ public class WindowsRegistryKeyTest : IDisposable
     {
         _registryKey.SetValue("Test", true);
         Assert.NotNull(w_registryKey.GetValue("Test"));
-        
+
         _registryKey.DeleteValue("Test");
         Assert.Null(w_registryKey.GetValue("Test"));
 
@@ -54,7 +52,7 @@ public class WindowsRegistryKeyTest : IDisposable
         var sub = _registryKey.CreateSubKey("Sub")!;
         var w_sub = w_registryKey.OpenSubKey("Sub");
         Assert.NotNull(w_sub);
-        
+
         sub.SetValue("Test", true);
         Assert.NotNull(w_sub.GetValue("Test"));
 
@@ -115,4 +113,3 @@ public class WindowsRegistryKeyTest : IDisposable
         B
     }
 }
-#endif

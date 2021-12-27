@@ -4,17 +4,14 @@
 		<TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
 		<IsPackable>false</IsPackable>
 		<IsTestable>true</IsTestable>
+		<IsTestProject Condition="$([MSBuild]::IsOsUnixLike())">false</IsTestProject>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows.Test</RootNamespace>
 		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows.Test</AssemblyName>
 	</PropertyGroup>
-
-	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-		<DefineConstants>WINDOWS</DefineConstants>
-	</PropertyGroup>
-
+	
 	<ItemGroup>
 		<PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
