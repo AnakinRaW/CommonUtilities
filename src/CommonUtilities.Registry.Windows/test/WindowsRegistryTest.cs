@@ -79,6 +79,16 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestDataTypes()
     {
+        _registryKey.SetValue("TestEnum", 1);
+        _registryKey.GetValue("TestEnum", out int oi);
+        var i = Assert.IsType<int>(oi);
+        Assert.Equal(1, i);
+
+        _registryKey.SetValue("TestEnum", 1ul);
+        _registryKey.GetValue("TestEnum", out ulong oul);
+        var ul = Assert.IsType<ulong>(oul);
+        Assert.Equal(1ul, ul);
+
         _registryKey.SetValue("TestBool", true);
         _registryKey.GetValue("TestBool", out bool ob);
         var b = Assert.IsType<bool>(ob);
