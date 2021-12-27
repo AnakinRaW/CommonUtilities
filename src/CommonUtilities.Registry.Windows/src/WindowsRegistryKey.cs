@@ -66,12 +66,12 @@ public class WindowsRegistryKey : RegistryKeyBase
     }
 
     /// <inheritdoc/>
-    protected override void DeleteKeyCore(string subkey, bool recursive)
+    protected override void DeleteKeyCore(string subPath, bool recursive)
     {
         if (recursive)
-            WindowsKey.DeleteSubKeyTree(subkey, false);
+            WindowsKey.DeleteSubKeyTree(subPath, false);
         else
-            WindowsKey.DeleteSubKey(subkey, false);
+            WindowsKey.DeleteSubKey(subPath, false);
     }
 
     /// <inheritdoc/>

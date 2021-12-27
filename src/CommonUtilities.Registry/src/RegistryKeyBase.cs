@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Sklavenwalker.CommonUtilities.Registry;
 
@@ -160,11 +159,11 @@ public abstract class RegistryKeyBase : IRegistryKey
     }
 
     /// <summary>
-    /// Deletes the specified subkey.
+    /// Deletes the specified subPath.
     /// </summary>
-    /// <param name="subkey">The name of the subkey to delete.</param>
-    /// <param name="recursive">If set to <see langword="true"/>, deletes the subkey and any child subkeys recursively.</param>
-    protected abstract void DeleteKeyCore(string subkey, bool recursive);
+    /// <param name="subPath">The name of the subPath to delete.</param>
+    /// <param name="recursive">If set to <see langword="true"/>, deletes the subPath and any child subkeys recursively.</param>
+    protected abstract void DeleteKeyCore(string subPath, bool recursive);
 
     /// <summary>
     /// 
