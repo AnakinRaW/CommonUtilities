@@ -4,6 +4,7 @@
 		<TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
 		<IsPackable>false</IsPackable>
 		<IsTestable>true</IsTestable>
+		<IsTestProject Condition="$([MSBuild]::IsOsUnixLike())">false</IsTestProject>
 	</PropertyGroup>
 
 	<PropertyGroup>

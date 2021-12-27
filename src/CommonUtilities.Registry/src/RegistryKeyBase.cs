@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Sklavenwalker.CommonUtilities.Registry;
 
@@ -16,23 +17,34 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public bool GetValueOrDefault<T>(string name, string subPath, out T? result, T? defaultValue)
     {
-        result = defaultValue;
-        var key = GetKey(subPath);
-        var value = key?.GetValue(name, defaultValue);
-        if (key is not null && key != this)
-            key.Dispose();
-        if (value is null)
-            return false;
-
-        try
+        object? resultValue = defaultValue;
+        var valueReceived = TryKeyOperation(subPath, key =>
         {
-            result = (T)value;
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+            var value = key?.GetValue(name, defaultValue);
+            if (value is null)
+                return false;
+            try
+            {
+                if (value is T t)
+                {
+                    resultValue = t;
+                    return true;
+                }
+                if (typeof(T).IsEnum)
+                {
+                    resultValue = Enum.Parse(typeof(T), value.ToString());
+                    return true;
+                }
+                resultValue = (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }, false, false);
+        result = (T?) resultValue;
+        return valueReceived;
     }
 
     /// <inheritdoc/>
@@ -53,8 +65,7 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public bool HasPath(string path)
     {
-        using var key = GetKey(path);
-        return key != null;
+        return TryKeyOperation(path, key => key != null, false, false);
     }
 
     /// <inheritdoc/>
@@ -111,20 +122,13 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public bool WriteValue(string name, string subPath, object value)
     {
-        try
+        return TryKeyOperation(subPath, key =>
         {
-            var key = GetKey(subPath, true);
             if (key is null)
                 return false;
             key.SetValue(name, value);
-            if (key != this)
-                key.Dispose();
             return true;
-        }
-        catch
-        {
-            return false;
-        }
+        }, false, true);
     }
 
     /// <inheritdoc/>
@@ -132,25 +136,76 @@ public abstract class RegistryKeyBase : IRegistryKey
     {
         return DeleteValue(name, string.Empty);
     }
-
+    
     /// <inheritdoc/>
     public bool DeleteValue(string name, string subPath)
     {
+        return TryKeyOperation(subPath, key =>
+        {
+            if (key is null)
+                return true;
+            if (key != this)
+                return key.DeleteValue(name);
+            DeleteValueCore(name);
+            return true;
+        }, false, true);
+    }
+
+    /// <summary>
+    /// Deletes the given value.
+    /// </summary>
+    /// <param name="name">The name of the value to delete.</param>
+    protected abstract void DeleteValueCore(string name);
+
+    /// <inheritdoc/>
+    public bool DeleteKey(string subPath, bool recursive)
+    {
+        return TryKeyOperation(subPath, key =>
+        {
+            if (key is null)
+                return true;
+            DeleteKeyCore(subPath, recursive);
+            if (key == this)
+                Dispose();
+            return true;
+        }, false, true);
+    }
+
+    /// <summary>
+    /// Deletes the specified subPath.
+    /// </summary>
+    /// <param name="subPath">The name of the subPath to delete.</param>
+    /// <param name="recursive">If set to <see langword="true"/>, deletes the subPath and any child subkeys recursively.</param>
+    protected abstract void DeleteKeyCore(string subPath, bool recursive);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="subPath"></param>
+    /// <param name="operation"></param>
+    /// <param name="errorValue"></param>
+    /// <param name="writable"></param>
+    /// <returns></returns>
+    protected T TryKeyOperation<T>(string subPath, Func<IRegistryKey?, T> operation, T errorValue, bool writable)
+    {
+        var key = GetKey(subPath, writable);
         try
         {
-            using var key = GetKey(subPath, true);
-            if (key is null)
-                return false;
-            key.DeleteValue(name);
-            if (key != this)
-                key.Dispose();
-            return true;
+            return operation(key);
         }
         catch
         {
-            return false;
+            return errorValue;
+        }
+        finally
+        {
+            if (key != this)
+                key?.Dispose();
         }
     }
+
+
 
     /// <inheritdoc/>
     public abstract IRegistryKey? CreateSubKey(string subKey);
@@ -158,7 +213,7 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public string[]? GetSubKeyNames(string subPath)
     {
-        using var key = GetKey(subPath);
+        var key = GetKey(subPath);
         if (key is null)
             return null;
         try

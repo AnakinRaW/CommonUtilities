@@ -25,7 +25,8 @@ public interface IRegistryKey : IDisposable
     /// <param name="name">The name of the key.</param>
     /// <param name="subPath">The sub path of the key.</param>
     /// <param name="result">The returned value or <paramref name="defaultValue"/> if no value could be found.</param>
-    /// <param name="defaultValue"></param>
+    /// <param name="defaultValue">The default value, if no value could be found.</param>
+    /// <returns><see langword="true"/> if a value was found; <see langword="false"/> otherwise.</returns>
     bool GetValueOrDefault<T>(string name, string subPath, out T? result, T? defaultValue);
 
     /// <summary>
@@ -138,7 +139,8 @@ public interface IRegistryKey : IDisposable
     ///  Tries to delete a value from a registry key.
     /// </summary>
     /// <param name="name">The name of the key.</param>
-    /// <returns><see langword="true"/> if a value was deleted successfully; <see langword="false"/> otherwise.</returns>
+    /// <returns><see langword="true"/> if a value was deleted successfully or didn't exist;
+    /// <see langword="false"/> if the operation failed.</returns>
     bool DeleteValue(string name);
 
     /// <summary>
@@ -146,8 +148,19 @@ public interface IRegistryKey : IDisposable
     /// </summary>
     /// <param name="name">The name of the key.</param>
     /// <param name="subPath">The sub-path.</param>
-    /// <returns><see langword="true"/> if a value was deleted successfully; <see langword="false"/> otherwise.</returns>
+    /// <returns><see langword="true"/> if a value was deleted successfully or didn't exist;
+    /// <see langword="false"/> if the operation failed.</returns>
     bool DeleteValue(string name, string subPath);
+
+    /// <summary>
+    /// Deletes the specified <paramref name="subKey"/>.
+    /// </summary>
+    /// <param name="subKey">The name of the subkey to delete.</param>
+    /// <param name="recursive">If set to <see langword="true"/>, deletes a subkey and any child subkeys recursively.</param>
+    /// <returns><see langword="true"/> if the key was deleted successfully or didn't exist;
+    /// <see langword="false"/> if the operation failed.</returns>
+    /// <remarks>If <paramref name="subKey"/> is empty, the current instance will be disposed and deleted.</remarks>
+    bool DeleteKey(string subKey, bool recursive);
 
     /// <summary>
     /// Retrieves an array of strings that contains all the subkey names or <see langword="null"/> if the operation failed.

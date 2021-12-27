@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Sklavenwalker.CommonUtilities.Registry;
@@ -42,6 +43,34 @@ public class InMemoryRegistryKey : RegistryKeyBase
     {
         var valueName = name ?? string.Empty;
         _values[valueName] = value;
+    }
+
+    /// <inheritdoc/>
+    protected override void DeleteValueCore(string name)
+    {
+        _values.Remove(name);
+    }
+
+    /// <inheritdoc/>
+    protected override void DeleteKeyCore(string subPath, bool recursive)
+    {
+        var key = GetKeyCore(subPath, false);
+        if (key is not InMemoryRegistryKey memKey)
+            return;
+        if (memKey._subKeys.Any() && !recursive)
+            throw new InvalidOperationException();
+
+        var keyQueue = new Queue<InMemoryRegistryKey>();
+        keyQueue.Enqueue(memKey);
+        while (!keyQueue.Any())
+        {
+            var keyToDelete = keyQueue.Dequeue();
+            foreach (var inMemoryRegistryKey in keyToDelete._subKeys.Values) 
+                keyQueue.Enqueue(inMemoryRegistryKey);
+            keyToDelete._subKeys.Clear();
+            keyToDelete._values.Clear();
+        }
+        _subKeys.Clear();
     }
 
     /// <inheritdoc />
