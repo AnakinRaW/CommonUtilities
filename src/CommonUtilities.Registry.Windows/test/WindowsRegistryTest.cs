@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if WINDOWS
+
+using System;
 using Microsoft.Win32;
 using Xunit;
 
@@ -113,3 +115,4 @@ public class WindowsRegistryKeyTest : IDisposable
         B
     }
 }
+#endif
