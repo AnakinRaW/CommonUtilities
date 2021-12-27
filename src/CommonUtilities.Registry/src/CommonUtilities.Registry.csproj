@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Description>Platform independent abstraction layer for the Windows Registry.</Description>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.0.0</Version>
+		<Version>2.1.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
