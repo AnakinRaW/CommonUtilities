@@ -60,6 +60,21 @@ public class WindowsRegistryKey : RegistryKeyBase
     }
 
     /// <inheritdoc/>
+    protected override void DeleteValueCore(string name)
+    {
+        WindowsKey.DeleteValue(name, false);
+    }
+
+    /// <inheritdoc/>
+    protected override void DeleteKeyCore(string subkey, bool recursive)
+    {
+        if (recursive)
+            WindowsKey.DeleteSubKeyTree(subkey, false);
+        else
+            WindowsKey.DeleteSubKey(subkey, false);
+    }
+
+    /// <inheritdoc/>
     public override IRegistryKey? CreateSubKey(string subKey)
     {
         var winKey = WindowsKey.CreateSubKey(subKey);

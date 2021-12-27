@@ -44,6 +44,18 @@ public class InMemoryRegistryKey : RegistryKeyBase
         _values[valueName] = value;
     }
 
+    /// <inheritdoc/>
+    protected override void DeleteValueCore(string name)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    protected override void DeleteKeyCore(string subkey, bool recursive)
+    {
+        throw new System.NotImplementedException();
+    }
+
     /// <inheritdoc />
     public override IRegistryKey? CreateSubKey(string subKey)
     {
