@@ -25,7 +25,8 @@ public interface IRegistryKey : IDisposable
     /// <param name="name">The name of the key.</param>
     /// <param name="subPath">The sub path of the key.</param>
     /// <param name="result">The returned value or <paramref name="defaultValue"/> if no value could be found.</param>
-    /// <param name="defaultValue"></param>
+    /// <param name="defaultValue">The default value, if no value could be found.</param>
+    /// <returns><see langword="true"/> if a value was found; <see langword="false"/> otherwise.</returns>
     bool GetValueOrDefault<T>(string name, string subPath, out T? result, T? defaultValue);
 
     /// <summary>

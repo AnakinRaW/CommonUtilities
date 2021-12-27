@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Sklavenwalker.CommonUtilities.Registry;
 
@@ -16,22 +17,34 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public bool GetValueOrDefault<T>(string name, string subPath, out T? result, T? defaultValue)
     {
-        result = defaultValue;
-        var key = GetKey(subPath);
-        var value = key?.GetValue(name, defaultValue);
-        if (key is not null && key != this)
-            key.Dispose();
-        if (value is null)
-            return false;
-        try
+        object? resultValue = defaultValue;
+        var valueReceived = TryKeyOperation(subPath, key =>
         {
-            result = (T)value;
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+            var value = key?.GetValue(name, defaultValue);
+            if (value is null)
+                return false;
+            try
+            {
+                if (value is T t)
+                {
+                    resultValue = t;
+                    return true;
+                }
+                if (typeof(T).IsEnum)
+                {
+                    resultValue = Enum.Parse(typeof(T), value.ToString());
+                    return true;
+                }
+                resultValue = (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }, false, false);
+        result = (T?) resultValue;
+        return valueReceived;
     }
 
     /// <inheritdoc/>

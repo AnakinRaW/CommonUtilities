@@ -76,10 +76,30 @@ public class WindowsRegistryKeyTest : IDisposable
         Assert.Null(w_registryKey.OpenSubKey("Sub"));
     }
 
+    [Fact]
+    public void TestDataTypes()
+    {
+        _registryKey.SetValue("TestBool", true);
+        _registryKey.GetValue("TestBool", out bool ob);
+        var b = Assert.IsType<bool>(ob);
+        Assert.True(b);
+
+        _registryKey.SetValue("TestEnum", MyEnum.B);
+        _registryKey.GetValue("TestEnum", out MyEnum oe);
+        var e = Assert.IsType<MyEnum>(oe);
+        Assert.Equal(MyEnum.B, e);
+    }
+
     public void Dispose()
     {
         var wBase = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default);
         wBase.DeleteSubKeyTree(SubKey);
         _registryKey.Dispose();
+    }
+
+    private enum MyEnum
+    {
+        A,
+        B
     }
 }
