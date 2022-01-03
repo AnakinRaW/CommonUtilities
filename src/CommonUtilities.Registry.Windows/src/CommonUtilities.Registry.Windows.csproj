@@ -24,7 +24,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-		<PackageReference Include="Validation" Version="2.5.42" />
+		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 
 	<ItemGroup>

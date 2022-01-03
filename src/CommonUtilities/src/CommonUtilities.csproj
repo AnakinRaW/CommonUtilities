@@ -24,7 +24,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="System.IO.Abstractions" Version="16.0.1" />
-		<PackageReference Include="Validation" Version="2.5.42" />
+		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 
 </Project>
