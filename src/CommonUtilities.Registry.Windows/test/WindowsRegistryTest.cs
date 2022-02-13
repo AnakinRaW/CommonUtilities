@@ -13,6 +13,10 @@ public class WindowsRegistryKeyTest : IDisposable
 
     public WindowsRegistryKeyTest()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         var baseKey = new WindowsRegistry().OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
         _registryKey = baseKey.CreateSubKey(SubKey)!;
         w_registryKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default)
@@ -22,6 +26,10 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestExists()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         Assert.True(_registryKey.HasPath(""));
         Assert.NotNull(w_registryKey);
     }
@@ -29,6 +37,10 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestCrud()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         _registryKey.SetValue("Test", true);
         Assert.NotNull(w_registryKey.GetValue("Test"));
 
@@ -49,6 +61,10 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestCrudSub()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         var sub = _registryKey.CreateSubKey("Sub")!;
         var w_sub = w_registryKey.OpenSubKey("Sub");
         Assert.NotNull(w_sub);
@@ -67,6 +83,10 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestSelfDelete()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         _registryKey.DeleteValue("Test");
         Assert.Null(w_registryKey.GetValue("Test"));
 
@@ -79,6 +99,10 @@ public class WindowsRegistryKeyTest : IDisposable
     [Fact]
     public void TestDataTypes()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         _registryKey.SetValue("TestEnum", 1);
         _registryKey.GetValue("TestEnum", out int oi);
         var i = Assert.IsType<int>(oi);
@@ -102,6 +126,10 @@ public class WindowsRegistryKeyTest : IDisposable
 
     public void Dispose()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+            return;
+#endif
         var wBase = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default);
         wBase.DeleteSubKeyTree(SubKey);
         _registryKey.Dispose();
