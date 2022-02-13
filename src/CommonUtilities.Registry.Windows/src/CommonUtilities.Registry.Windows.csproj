@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.1.0</Version>
+		<Version>2.1.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -24,7 +24,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-		<PackageReference Include="Validation" Version="2.5.42" />
+		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 
 	<ItemGroup>
