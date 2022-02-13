@@ -72,6 +72,7 @@ public class FileSystemServiceTest
         Assert.Throws<FileNotFoundException>(() => _service.CopyFileWithRetry(fileToCopy, "D:\\test.txt"));
         _fileSystem.AddFile("C:\\test.txt", new MockFileData("test"));
         _fileSystem.AddFile("C:\\test1.txt", MockFileData.NullObject);
+        fileToCopy.Refresh();
         _service.CopyFileWithRetry(fileToCopy, "C:\\test1.txt");
         Assert.Equal("test", _fileSystem.File.ReadAllText("C:\\test1.txt"));
         Assert.True(_fileSystem.FileExists("C:\\test.txt"));
@@ -84,6 +85,7 @@ public class FileSystemServiceTest
         Assert.Throws<FileNotFoundException>(() => _service.MoveFile(fileToMove, "D:\\test.txt", false));
         _fileSystem.AddFile("C:\\test.txt", new MockFileData("test"));
         _fileSystem.AddFile("C:\\test1.txt", MockFileData.NullObject);
+        fileToMove.Refresh();
         Assert.Throws<IOException>(() => _service.MoveFile(fileToMove, "C:\\test1.txt", false));
         _service.MoveFile(fileToMove, "C:\\test1.txt", true);
         Assert.Equal("test", _fileSystem.File.ReadAllText("C:\\test1.txt"));
@@ -106,6 +108,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
         _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("C:\\test1");
+        dirToMove.Refresh();
         Assert.Throws<IOException>(() => _service.MoveDirectory(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         var delSuc = _service.MoveDirectory(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -138,6 +141,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("/test/1.txt", new MockFileData("1"));
         _fileSystem.AddFile("/test/2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("/test1");
+        dirToMove.Refresh();
         Assert.Throws<IOException>(() => _service.MoveDirectory(dirToMove, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         var delSuc = _service.MoveDirectory(dirToMove, "/test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -171,6 +175,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
         _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("C:\\test1");
+        dirToMove.Refresh();
         await Assert.ThrowsAsync<IOException>(async () => await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         var delSuc = await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -203,6 +208,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("/test/1.txt", new MockFileData("1"));
         _fileSystem.AddFile("/test/2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("/test1");
+        dirToMove.Refresh();
         await Assert.ThrowsAsync<IOException>(async () => await _service.MoveDirectoryAsync(dirToMove, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         var delSuc = await _service.MoveDirectoryAsync(dirToMove, "/test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -234,6 +240,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
         _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("C:\\test1");
+        dirToCopy.Refresh();
         Assert.Throws<IOException>(() => _service.CopyDirectory(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         _service.CopyDirectory(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -264,6 +271,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("/test/1.txt", new MockFileData("1"));
         _fileSystem.AddFile("/test/2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("/test1");
+        dirToCopy.Refresh();
         Assert.Throws<IOException>(() => _service.CopyDirectory(dirToCopy, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
 
         _service.CopyDirectory(dirToCopy, "/test1", null, DirectoryOverwriteOption.CleanOverwrite);
@@ -295,7 +303,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
         _fileSystem.AddFile("C:\\test\\2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("C:\\test1");
-
+        dirToCopy.Refresh();
         await _service.CopyDirectoryAsync(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("C:\\test"));
         Assert.True(_fileSystem.Directory.Exists("C:\\test1"));
@@ -326,6 +334,7 @@ public class FileSystemServiceTest
         _fileSystem.AddFile("/test/2.txt", new MockFileData("2"));
         _fileSystem.AddDirectory("/test1");
 
+        dirToCopy.Refresh();
         await _service.CopyDirectoryAsync(dirToCopy, "/test1", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("/test"));
         Assert.True(_fileSystem.Directory.Exists("/test1"));
@@ -361,6 +370,9 @@ public class FileSystemServiceTest
         _service.DeleteFileIfInTemp(file2);
         _service.DeleteFileIfInTemp(file3);
 
+        file1.Refresh();
+        file2.Refresh();
+        file3.Refresh();
         Assert.True(file1.Exists);
         Assert.False(file2.Exists);
         Assert.False(file3.Exists);
@@ -384,7 +396,10 @@ public class FileSystemServiceTest
         _service.DeleteFileIfInTemp(file1);
         _service.DeleteFileIfInTemp(file2);
         _service.DeleteFileIfInTemp(file3);
-
+        
+        file1.Refresh();
+        file2.Refresh();
+        file3.Refresh();
         Assert.True(file1.Exists);
         Assert.False(file2.Exists);
         Assert.False(file3.Exists);
@@ -400,9 +415,13 @@ public class FileSystemServiceTest
         var file2 = _fileSystem.FileInfo.FromFileName("text2.txt");
         file2.Attributes |= FileAttributes.ReadOnly;
 
+        file1.Refresh();
+        file2.Refresh();
         _service.DeleteFileWithRetry(file1);
         _service.DeleteFileWithRetry(file2);
 
+        file1.Refresh();
+        file2.Refresh();
         Assert.False(file1.Exists);
         Assert.False(file2.Exists);
     }
@@ -416,10 +435,13 @@ public class FileSystemServiceTest
         var dir1 = _fileSystem.DirectoryInfo.FromDirectoryName("test");
         var dir2 = _fileSystem.DirectoryInfo.FromDirectoryName("test1");
 
+        dir1.Refresh();
         Assert.Throws<IOException>(() => _service.DeleteDirectoryWithRetry(dir1, false));
         _service.DeleteDirectoryWithRetry(dir1);
         _service.DeleteDirectoryWithRetry(dir2);
 
+        dir1.Refresh();
+        dir2.Refresh();
         Assert.False(dir1.Exists);
         Assert.False(dir2.Exists);
     }
