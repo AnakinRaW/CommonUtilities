@@ -1,14 +1,16 @@
-﻿using System;
-using System.Buffers;
+﻿#if !NET6_0_OR_GREATER
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
+using System.Net.Http;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+
 
 internal class WebClientDownloader : DownloadEngineBase
 {
@@ -37,50 +39,28 @@ internal class WebClientDownloader : DownloadEngineBase
         {
             if (webResponse != null)
             {
-                var registration1 = cancellationToken.Register(() => webResponse.Close());
+                var responseRegistration = cancellationToken.Register(() => webResponse.Close());
                 try
                 {
                     using var responseStream = webResponse.GetResponseStream();
-                    var header = webResponse.Headers["Content-Length"];
-                    if (string.IsNullOrEmpty(header))
+                    var contentLength = webResponse.Headers["Content-Length"];
+                    if (string.IsNullOrEmpty(contentLength))
                         throw new IOException("Error: Content-Length is missing from response header.");
-                    long totalStreamLength = Convert.ToInt32(header);
+                    var totalStreamLength = Convert.ToInt64(contentLength);
                     if (totalStreamLength.Equals(0L))
                         throw new IOException("Error: Response stream length is 0.");
-                    bool streamReadError;
-                    var totalBytesRead = 0L;
-                    var bufferSize = Math.Max(1024, Math.Min(totalStreamLength, 32768));
 
-                    var buffer = ArrayPool<byte>.Shared.Rent((int)bufferSize);
-                    
-                    var registration2 = cancellationToken.Register(() => webRequest!.Abort());
+                    var requestRegistration = cancellationToken.Register(() => webRequest!.Abort());
                     try
                     {
-                        while (true)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var bytesRead = responseStream!.Read(buffer, 0, buffer.Length);
-                            streamReadError = bytesRead < 0;
-                            if (bytesRead <= 0)
-                                break;
-                            totalBytesRead += bytesRead;
-                            outputStream.Write(buffer, 0, bytesRead);
-                            if (totalStreamLength < totalBytesRead)
-                                totalStreamLength = totalBytesRead;
-                            progress?.Invoke(new ProgressUpdateStatus(totalBytesRead, totalStreamLength, 0));
-                        }
+                        summary.DownloadedSize = StreamUtilities.CopyStreamWithProgress(responseStream, totalStreamLength, outputStream, progress,
+                            cancellationToken);
+                        return summary;
                     }
                     finally
                     {
-                        ArrayPool<byte>.Shared.Return(buffer);
-                        registration2.Dispose();
+                        requestRegistration.Dispose();
                     }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    if (streamReadError)
-                        throw new IOException("Internal error while downloading the stream.");
-                    summary.DownloadedSize = totalBytesRead;
-                    return summary;
                 }
                 catch (WebException ex)
                 {
@@ -101,7 +81,7 @@ internal class WebClientDownloader : DownloadEngineBase
                 }
                 finally
                 {
-                    registration1.Dispose();
+                    responseRegistration.Dispose();
                 }
             }
 
@@ -122,6 +102,16 @@ internal class WebClientDownloader : DownloadEngineBase
             var successful = true;
             try
             {
+
+                var i = new HttpClientHandler();
+                i.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                var h = new HttpClient(i);
+                h.Timeout = TimeSpan.FromMilliseconds(120000);
+
+                h.GetAsync()
+
+
+
                 webRequest = (HttpWebRequest)WebRequest.Create(uri);
                 webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");
@@ -233,3 +223,4 @@ internal class WebClientDownloader : DownloadEngineBase
         return null;
     }
 }
+#endif

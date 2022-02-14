@@ -41,7 +41,17 @@ public class DownloadManager : IDownloadManager {
         _configuration = _serviceProvider.GetService<IDownloadManagerConfiguration>() ??
                          DownloadManagerConfiguration.Default;
         _verifier = _serviceProvider.GetRequiredService<IVerifier>();
-        AddDownloadEngine(new WebClientDownloader(_serviceProvider));
+        switch (_configuration.InternetClient)
+        {
+            case InternetClient.HttpClient:
+                AddDownloadEngine(new HttpClientDownloader(_serviceProvider));
+                break;
+            case InternetClient.WebClient:
+                AddDownloadEngine(new WebClientDownloader(_serviceProvider));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
         AddDownloadEngine(new FileDownloader(_serviceProvider));
     }
 

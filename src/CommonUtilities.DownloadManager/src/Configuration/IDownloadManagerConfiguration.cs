@@ -1,4 +1,6 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
+﻿using System.Net.Http;
+
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
 
 /// <summary>
 /// Configures the behavior of an <see cref="IDownloadManager"/>
@@ -21,4 +23,10 @@ public interface IDownloadManagerConfiguration
     /// Specifies how verification after the download shall be handled.
     /// </summary>
     VerificationPolicy VerificationPolicy { get; set; }
+
+    /// <summary>
+    /// The <see cref="Configuration.InternetClient"/> implementation which shall get used.
+    /// Default is <see cref="HttpClient"/>
+    /// </summary>
+    InternetClient InternetClient { get; set; }
 }
