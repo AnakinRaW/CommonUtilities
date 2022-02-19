@@ -5,9 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sklavenwalker.CommonUtilities.Hashing;
 using Validation;
-#if !(NET || NETSTANDARD2_1)
-using System.Linq;
-#endif
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 
@@ -38,8 +35,14 @@ public class HashVerifier : IVerifier
         if (file is not FileStream fileStream)
             throw new ArgumentException("The stream does not represent a file", nameof(file));
         var path = fileStream.Name;
+        return Verify(file, path, verificationContext);
+
+    }
+
+    internal VerificationResult Verify(Stream file, string path, VerificationContext verificationContext)
+    {
         if (string.IsNullOrEmpty(path) || !_fileSystem.File.Exists(path))
-            throw new InvalidOperationException("Cannot verify a non-existing file.");
+            throw new FileNotFoundException("Cannot verify a non-existing file.");
         try
         {
             if (!verificationContext.Verify())
@@ -48,7 +51,7 @@ public class HashVerifier : IVerifier
             if (verificationContext.HashType == HashType.None)
                 return VerificationResult.Success;
 
-            return CompareHashes(fileStream, verificationContext.HashType, verificationContext.Hash)
+            return CompareHashes(file, verificationContext.HashType, verificationContext.Hash)
                 ? VerificationResult.Success
                 : VerificationResult.VerificationFailed;
         }
