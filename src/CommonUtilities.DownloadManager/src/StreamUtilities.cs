@@ -25,7 +25,6 @@ internal static class StreamUtilities
         if (progress == null)
             return CopyStream(inputStream, inputLength, outputStream, cancellationToken);
         
-        bool streamReadError;
         var totalBytesRead = 0L;
         var bufferSize = GetBufferSize(inputLength);
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
@@ -36,7 +35,6 @@ internal static class StreamUtilities
                 cancellationToken.ThrowIfCancellationRequested();
                 var bytesRead = inputStream.Read(buffer, 0, buffer.Length);
                 cancellationToken.ThrowIfCancellationRequested();
-                streamReadError = bytesRead < 0;
                 if (bytesRead <= 0)
                     break;
                 totalBytesRead += bytesRead;
@@ -50,10 +48,6 @@ internal static class StreamUtilities
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
-
-
-        if (streamReadError || totalBytesRead < inputLength)
-            throw new IOException("Internal error while downloading the stream.");
 
         return totalBytesRead;
     }

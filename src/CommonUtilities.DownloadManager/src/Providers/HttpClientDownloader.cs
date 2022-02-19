@@ -105,7 +105,6 @@ internal class HttpClientDownloader : DownloadProviderBase
             request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
-
             response = client.SendAsync(request, cancellationToken).GetAwaiter().GetResult();
             var responseUri = response.RequestMessage?.RequestUri?.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&

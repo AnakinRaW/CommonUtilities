@@ -105,6 +105,11 @@ public class DownloadManager : IDownloadManager {
         }
     }
 
+    internal void RemoveAllEngines()
+    {
+        _allProviders.Clear();
+    }
+
     private DownloadSummary DownloadWithRetry(IDownloadProvider[] providers, Uri uri, Stream outputStream,
         ProgressUpdateCallback? progress, VerificationContext? verificationContext, CancellationToken cancellationToken)
     {
@@ -136,8 +141,7 @@ public class DownloadManager : IDownloadManager {
                     throw exception;
                 }
 
-                if (_configuration.VerificationPolicy != VerificationPolicy.Skip && 
-                    verificationContext is not null && outputStream.Length != 0)
+                if (_configuration.VerificationPolicy != VerificationPolicy.Skip && verificationContext is not null)
                 {
                     var valid = verificationContext.Verify();
                     if (valid)
@@ -180,8 +184,11 @@ public class DownloadManager : IDownloadManager {
                     throw new DownloadFailedException(failureList);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                outputStream.SetLength(length);
-                outputStream.Seek(position, SeekOrigin.Begin);
+                if (outputStream.CanSeek)
+                {
+                    outputStream.SetLength(length);
+                    outputStream.Seek(position, SeekOrigin.Begin);
+                }
                 var millisecondsTimeout = _configuration.DownloadRetryDelay;
                 if (millisecondsTimeout <= 0)
                     continue;
