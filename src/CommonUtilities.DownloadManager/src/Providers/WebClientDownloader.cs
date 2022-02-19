@@ -52,7 +52,8 @@ internal class WebClientDownloader : DownloadProviderBase
                     var requestRegistration = cancellationToken.Register(() => webRequest!.Abort());
                     try
                     {
-                        summary.DownloadedSize = StreamUtilities.CopyStreamWithProgress(responseStream, totalStreamLength, outputStream, progress,
+                        summary.DownloadedSize = StreamUtilities.CopyStreamWithProgress(responseStream,
+                            totalStreamLength, outputStream, progress,
                             cancellationToken);
                         return summary;
                     }
@@ -69,7 +70,7 @@ internal class WebClientDownloader : DownloadProviderBase
                     if (cancellationToken.IsCancellationRequested)
                     {
                         _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " +
-                                         message);
+                                          message);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
                     else
@@ -92,124 +93,70 @@ internal class WebClientDownloader : DownloadProviderBase
         }
     }
 
-    private HttpWebResponse? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpWebRequest? webRequest, CancellationToken cancellationToken)
+    private HttpWebResponse? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpWebRequest? webRequest,
+        CancellationToken cancellationToken)
     {
-        var proxyResolution = ProxyResolution.Default;
-        while (proxyResolution != ProxyResolution.Error)
+        HttpWebResponse? httpWebResponse = null;
+        var successful = true;
+        try
         {
-            HttpWebResponse? httpWebResponse = null;
-            var successful = true;
-            try
-            {
-                webRequest = (HttpWebRequest)WebRequest.Create(uri);
-                webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");
-                webRequest.KeepAlive = true;
-                webRequest.Timeout = 120000;
+            webRequest = (HttpWebRequest)WebRequest.Create(uri);
+            webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");
+            webRequest.KeepAlive = true;
+            webRequest.Timeout = 120000;
 
-                var requestCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
-                webRequest.CachePolicy = requestCachePolicy;
+            var requestCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+            webRequest.CachePolicy = requestCachePolicy;
+            
+            var registerWebRequest = webRequest;
+            using (cancellationToken.Register(() => registerWebRequest.Abort()))
+                httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
 
-                switch (proxyResolution)
-                {
-                    case ProxyResolution.DefaultCredentialsOrNoAutoProxy:
-                        webRequest.UseDefaultCredentials = true;
-                        break;
-                    case ProxyResolution.NetworkCredentials:
-                        webRequest.UseDefaultCredentials = false;
-                        webRequest.Proxy = WebRequest.GetSystemWebProxy();
-                        webRequest.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                        break;
-                    case ProxyResolution.DirectAccess:
-                        webRequest.Proxy = null;
-                        break;
-                }
-                var registerWebRequest = webRequest;
-                using (cancellationToken.Register(() => registerWebRequest.Abort()))
-                    httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
+            var responseUri = httpWebResponse.ResponseUri.ToString();
+            if (!string.IsNullOrEmpty(responseUri) &&
+                !uri.ToString().EndsWith(responseUri, StringComparison.InvariantCultureIgnoreCase))
+            {
+                summary.FinalUri = responseUri;
+                _logger?.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
+            }
 
-                var responseUri = httpWebResponse.ResponseUri.ToString();
-                if (!string.IsNullOrEmpty(responseUri) &&
-                    !uri.ToString().EndsWith(responseUri, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    summary.FinalUri = responseUri;
-                    _logger?.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
-                }
-
-                switch (httpWebResponse.StatusCode)
-                {
-                    case HttpStatusCode.OK:
-                        summary.ProxyResolution = proxyResolution;
-                        successful = false;
-                        return httpWebResponse;
-                    case HttpStatusCode.UseProxy:
-                    case HttpStatusCode.ProxyAuthenticationRequired:
-                    case HttpStatusCode.GatewayTimeout:
-                        ++proxyResolution;
-                        if (proxyResolution == ProxyResolution.Error)
-                        {
-                            _logger?.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}' with '{uri}'.");
-                            WrappedWebException.Throw((int)httpWebResponse.StatusCode, "WebRequest.GetResponse", summary.FinalUri);
-                            continue;
-                        }
-                        _logger?.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}' - '{uri.AbsoluteUri}'. Reattempt with proxy set to '{proxyResolution}'");
-                        continue;
-                    default:
-                        proxyResolution = ProxyResolution.Error;
-                        _logger?.LogTrace($"WebResponse error '{httpWebResponse.StatusCode}'  - '{uri.AbsoluteUri}'.");
-                        WrappedWebException.Throw((int)httpWebResponse.StatusCode, "WebRequest.GetResponse", summary.FinalUri);
-                        continue;
-                }
-            }
-            catch (WrappedWebException ex)
+            switch (httpWebResponse.StatusCode)
             {
-                if (proxyResolution == ProxyResolution.Error)
-                {
-                    _logger?.LogDebug($"WebResponse exception '{ex.Status}' with '{uri}'.");
-                    throw;
-                }
-            }
-            catch (WebException ex)
-            {
-                var errorMessage = cancellationToken.IsCancellationRequested ? "GetWebResponse failed along with a cancellation request" : "GetWebResponse failed";
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " + errorMessage);
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-                _logger?.LogTrace("WebClient error '" + ex.Status + "' - proxy setting '" + proxyResolution + "' - '" + uri.AbsoluteUri + "'.");
-                switch (ex.Status)
-                {
-                    case WebExceptionStatus.NameResolutionFailure:
-                    case WebExceptionStatus.ConnectFailure:
-                    case WebExceptionStatus.SendFailure:
-                    case WebExceptionStatus.ProtocolError:
-                    case WebExceptionStatus.ProxyNameResolutionFailure:
-                        ++proxyResolution;
-                        break;
-                    default:
-                        proxyResolution = ProxyResolution.Error;
-                        break;
-                }
-                if (proxyResolution == ProxyResolution.Error)
-                {
-                    _logger?.LogTrace("WebClient failed in '" + uri.AbsoluteUri + "' with '" + ex.Message + "' - '" + uri.AbsoluteUri + "'.");
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogDebug(ex, "General exception error in web client.");
-                throw;
-            }
-            finally
-            {
-                if (httpWebResponse != null && successful)
-                    httpWebResponse.Close();
+                case HttpStatusCode.OK:
+                    successful = false;
+                    return httpWebResponse;
             }
         }
+        catch (WebException ex)
+        {
+            var errorMessage = cancellationToken.IsCancellationRequested
+                ? "GetWebResponse failed along with a cancellation request"
+                : "GetWebResponse failed";
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger?.LogTrace(
+                    "WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " + errorMessage);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            _logger?.LogTrace("WebClient error '" + ex.Status + "' - '" + uri.AbsoluteUri + "'.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogDebug(ex, "General exception error in web client.");
+            throw;
+        }
+        finally
+        {
+            if (httpWebResponse != null && successful)
+                httpWebResponse.Close();
+        }
+
         webRequest = null;
         return null;
     }
+
 }
 #endif

@@ -29,11 +29,6 @@ public class DownloadSummary
     public string DownloadProvider { get; internal set; }
 
     /// <summary>
-    /// Proxy resolution information.
-    /// </summary>
-    public ProxyResolution? ProxyResolution { get; internal set; }
-
-    /// <summary>
     /// The actual URI used to download the file.
     /// </summary>
     public string FinalUri { get; internal set; }
@@ -65,7 +60,6 @@ public class DownloadSummary
         DownloadedSize = downloadSize;
         BitRate = bitRate;
         DownloadTime = downloadTime;
-        ProxyResolution = null;
         FinalUri = string.Empty;
         ValidationResult = validationResult;
     }

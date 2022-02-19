@@ -86,98 +86,51 @@ internal class HttpClientDownloader : DownloadProviderBase
         }
     }
 
-    private HttpResponseMessage? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpRequestMessage? request, CancellationToken cancellationToken)
+    private HttpResponseMessage? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpRequestMessage? request,
+        CancellationToken cancellationToken)
     {
-        var proxyResolution = ProxyResolution.Default;
-        while (proxyResolution != ProxyResolution.Error)
+        HttpResponseMessage? response = null;
+        var success = false;
+        try
         {
-            HttpResponseMessage? response = null;
-            var resolutionSuccess = false;
-            try
+            var handler = new HttpClientHandler
             {
-
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                };
-                var client = new HttpClient(handler)
-                {
-                    MaxResponseContentBufferSize = 0,
-                    Timeout = TimeSpan.FromMilliseconds(120000)
-                };
-                request = new HttpRequestMessage(HttpMethod.Get, uri);
-                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-                request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
-                switch (proxyResolution)
-                {
-                    case ProxyResolution.DefaultCredentialsOrNoAutoProxy:
-                        handler.UseDefaultCredentials = true;
-                        break;
-                    case ProxyResolution.NetworkCredentials:
-                        handler.UseDefaultCredentials = false;
-                        handler.Proxy = WebRequest.GetSystemWebProxy();
-                        handler.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                        break;
-                    case ProxyResolution.DirectAccess:
-                        handler.Proxy = null;
-                        break;
-                }
-
-                response = client.SendAsync(request, cancellationToken).GetAwaiter().GetResult();
-                var responseUri = response.RequestMessage?.RequestUri?.ToString();
-                if (!string.IsNullOrEmpty(responseUri) &&
-                    !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    summary!.FinalUri = responseUri!;
-                    _logger?.LogTrace($"Uri '{uri}' redirected to '{responseUri}'");
-                }
-
-                switch (response.StatusCode)
-                {
-                    case HttpStatusCode.OK:
-                        summary!.ProxyResolution = proxyResolution;
-                        resolutionSuccess = true;
-                        return response;
-                    case HttpStatusCode.UseProxy:
-                    case HttpStatusCode.ProxyAuthenticationRequired:
-                    case HttpStatusCode.GatewayTimeout:
-                        ++proxyResolution;
-                        if (proxyResolution == ProxyResolution.Error)
-                        {
-                            _logger?.LogTrace($"WebResponse error '{response.StatusCode}' with '{uri}'.");
-                            WrappedWebException.Throw((int)response.StatusCode, "HttpClient.Send",
-                                summary.FinalUri);
-                            continue;
-                        }
-
-                        _logger?.LogTrace(
-                            $"WebResponse error '{response.StatusCode}' - '{uri.AbsoluteUri}'. Reattempt with proxy set to '{proxyResolution}'");
-                        continue;
-                    default:
-                        proxyResolution = ProxyResolution.Error;
-                        _logger?.LogTrace($"WebResponse error '{response.StatusCode}'  - '{uri.AbsoluteUri}'.");
-                        WrappedWebException.Throw((int)response.StatusCode, "HttpClient.Send", summary.FinalUri);
-                        continue;
-                }
-            }
-            catch (WrappedWebException ex)
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            };
+            var client = new HttpClient(handler)
             {
-                if (proxyResolution == ProxyResolution.Error)
-                {
-                    _logger?.LogTrace($"WebResponse exception '{ex.Status}' with '{uri}'.");
-                    throw;
-                }
-            }
-            catch (Exception ex)
+                MaxResponseContentBufferSize = 0,
+                Timeout = TimeSpan.FromMilliseconds(120000)
+            };
+            request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
+
+            response = client.SendAsync(request, cancellationToken).GetAwaiter().GetResult();
+            var responseUri = response.RequestMessage?.RequestUri?.ToString();
+            if (!string.IsNullOrEmpty(responseUri) &&
+                !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
             {
-                _logger?.LogError(ex, "General exception error in HttpClient");
-                throw;
+                summary.FinalUri = responseUri!;
+                _logger?.LogTrace($"Uri '{uri}' redirected to '{responseUri}'");
             }
-            finally
+
+            switch (response.StatusCode)
             {
-                if(response != null && !resolutionSuccess)
-                    response.Dispose();
+                case HttpStatusCode.OK:
+                    success = true;
+                    return response;
             }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "General exception error in HttpClient");
+            throw;
+        }
+        finally
+        {
+            if (response != null && !success)
+                response.Dispose();
         }
 
         request = null;
