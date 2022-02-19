@@ -23,7 +23,7 @@ public class DownloadManager : IDownloadManager {
 
     private readonly List<IDownloadProvider> _allProviders = new();
     private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
-    private readonly IVerifier _verifier;
+    private readonly IVerificationManager _verifier;
 
     /// <inheritdoc/>
     public IEnumerable<string> Providers => _allProviders.Select(e => e.Name);
@@ -38,7 +38,7 @@ public class DownloadManager : IDownloadManager {
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
         _configuration = serviceProvider.GetService<IDownloadManagerConfiguration>() ??
                          DownloadManagerConfiguration.Default;
-        _verifier = serviceProvider.GetRequiredService<IVerifier>();
+        _verifier = serviceProvider.GetRequiredService<IVerificationManager>();
         switch (_configuration.InternetClient)
         {
             case InternetClient.HttpClient:
@@ -75,7 +75,9 @@ public class DownloadManager : IDownloadManager {
             throw new InvalidOperationException("Input stream must be writable.");
         if (!uri.IsFile && !uri.IsUnc)
         {
-            if (!string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase) && !string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) && !string.Equals(uri.Scheme, "ftp", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase) && 
+                !string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(uri.Scheme, "ftp", StringComparison.OrdinalIgnoreCase))
             {
                 var argumentException = new ArgumentException($"Uri scheme '{uri.Scheme}' is not supported.");
                 _logger?.LogTrace($"Uri scheme '{uri.Scheme}' is not supported. {argumentException.Message}");

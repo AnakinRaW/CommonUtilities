@@ -21,7 +21,8 @@ public interface IDownloadManager
     /// <summary>
     /// Adds an <see cref="IDownloadProvider"/> to this instance.
     /// </summary>
-    /// <param name="provider"></param>
+    /// <param name="provider">The provider to add.</param>
+    /// <exception cref="InvalidOperationException">if a provider with the same name already exists.</exception>
     void AddDownloadProvider(IDownloadProvider provider);
 
     /// <summary>
@@ -32,7 +33,7 @@ public interface IDownloadManager
     /// <param name="progress">Progress callback</param>
     /// <param name="verificationContext">The <see cref="VerificationContext"/> of the downloaded file.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns></returns>
+    /// <returns>A task object producing a summary of the download operation.</returns>
     Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         VerificationContext? verificationContext = null, CancellationToken cancellationToken = default);
 }

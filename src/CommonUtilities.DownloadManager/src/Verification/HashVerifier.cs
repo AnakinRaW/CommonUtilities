@@ -11,12 +11,19 @@ using System.Linq;
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 
-internal class HashVerifier : IVerifier
+/// <summary>
+/// Verifies files based on their Hash.
+/// </summary>
+public class HashVerifier : IVerifier
 {
     private readonly ILogger? _logger;
     private readonly IFileSystem _fileSystem;
     private readonly IHashingService _hashingService;
 
+    /// <summary>
+    /// Initializes a new <see cref="HashVerifier"/>.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
     public HashVerifier(IServiceProvider serviceProvider)
     {
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
@@ -24,6 +31,7 @@ internal class HashVerifier : IVerifier
         _hashingService = serviceProvider.GetService<IHashingService>() ?? new HashingService();
     }
 
+    /// <inheritdoc/>
     public VerificationResult Verify(Stream file, VerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
