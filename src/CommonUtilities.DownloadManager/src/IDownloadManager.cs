@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager;
@@ -14,15 +14,15 @@ namespace Sklavenwalker.CommonUtilities.DownloadManager;
 public interface IDownloadManager
 {
     /// <summary>
-    /// Name collection of supported <see cref="IDownloadEngine"/>.
+    /// Name collection of supported <see cref="IDownloadProvider"/>.
     /// </summary>
-    IEnumerable<string> Engines { get; }
+    IEnumerable<string> Providers { get; }
 
     /// <summary>
-    /// Adds an <see cref="IDownloadEngine"/> to this instance.
+    /// Adds an <see cref="IDownloadProvider"/> to this instance.
     /// </summary>
-    /// <param name="engine"></param>
-    void AddDownloadEngine(IDownloadEngine engine);
+    /// <param name="provider"></param>
+    void AddDownloadProvider(IDownloadProvider provider);
 
     /// <summary>
     /// Downloads a file asynchronously.

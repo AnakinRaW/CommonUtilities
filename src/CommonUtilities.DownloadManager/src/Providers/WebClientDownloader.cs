@@ -3,16 +3,15 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
-using System.Net.Http;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
 
-internal class WebClientDownloader : DownloadEngineBase
+internal class WebClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
 

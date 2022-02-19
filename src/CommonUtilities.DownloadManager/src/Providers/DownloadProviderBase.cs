@@ -3,12 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
 /// <summary>
-/// Base implementation for an <see cref="IDownloadEngine"/>.
+/// Base implementation for an <see cref="IDownloadProvider"/>.
 /// </summary>
-public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
+public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider {
     
     private readonly DownloadSource[] _supportedSources;
 
@@ -16,11 +16,11 @@ public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
     public string Name { get; }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadEngine"/> instance.
+    /// Initializes an <see cref="IDownloadProvider"/> instance.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadEngineBase(string name, DownloadSource[] supportedSources)
+    protected DownloadProviderBase(string name, DownloadSource[] supportedSources)
     {
         Name = name;
         _supportedSources = supportedSources;

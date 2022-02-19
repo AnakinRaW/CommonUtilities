@@ -24,9 +24,9 @@ public class DownloadSummary
     public TimeSpan DownloadTime { get; internal set; }
 
     /// <summary>
-    /// Name of the used engine which downloaded the file.
+    /// Name of the used provider which downloaded the file.
     /// </summary>
-    public string DownloadEngine { get; internal set; }
+    public string DownloadProvider { get; internal set; }
 
     /// <summary>
     /// Proxy resolution information.
@@ -54,14 +54,14 @@ public class DownloadSummary
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    /// <param name="downloadEngine">The used engine name.</param>
+    /// <param name="downloadProvider">The used provider name.</param>
     /// <param name="downloadSize">The downloaded bytes.</param>
     /// <param name="bitRate">Mean downloading rate.</param>
     /// <param name="downloadTime">The download duration.</param>
     /// <param name="validationResult">The verification result.</param>
-    public DownloadSummary(string downloadEngine, long downloadSize, double bitRate, TimeSpan downloadTime, VerificationResult validationResult)
+    public DownloadSummary(string downloadProvider, long downloadSize, double bitRate, TimeSpan downloadTime, VerificationResult validationResult)
     {
-        DownloadEngine = downloadEngine;
+        DownloadProvider = downloadProvider;
         DownloadedSize = downloadSize;
         BitRate = bitRate;
         DownloadTime = downloadTime;

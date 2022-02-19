@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
-using Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 using Validation;
 
@@ -21,12 +21,12 @@ public class DownloadManager : IDownloadManager {
     private readonly ILogger? _logger;
     private readonly IDownloadManagerConfiguration _configuration;
 
-    private readonly List<IDownloadEngine> _allEngines = new();
-    private readonly PreferredDownloadEngines _preferredDownloadEngines = new();
+    private readonly List<IDownloadProvider> _allProviders = new();
+    private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
     private readonly IVerifier _verifier;
 
     /// <inheritdoc/>
-    public IEnumerable<string> Engines => _allEngines.Select(e => e.Name);
+    public IEnumerable<string> Providers => _allProviders.Select(e => e.Name);
 
     /// <summary>
     /// Creates a new <see cref="DownloadManager"/> instance.
@@ -42,26 +42,26 @@ public class DownloadManager : IDownloadManager {
         switch (_configuration.InternetClient)
         {
             case InternetClient.HttpClient:
-                AddDownloadEngine(new HttpClientDownloader(serviceProvider));
+                AddDownloadProvider(new HttpClientDownloader(serviceProvider));
                 break;
 #if !NET6_0_OR_GREATER
             case InternetClient.WebClient:
-                AddDownloadEngine(new WebClientDownloader(serviceProvider));
+                AddDownloadProvider(new WebClientDownloader(serviceProvider));
                 break;  
 #endif
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        AddDownloadEngine(new FileDownloader(serviceProvider));
+        AddDownloadProvider(new FileDownloader(serviceProvider));
     }
 
     /// <inheritdoc/>
-    public void AddDownloadEngine(IDownloadEngine engine)
+    public void AddDownloadProvider(IDownloadProvider provider)
     {
-        Requires.NotNull(engine, nameof(engine));
-        if (_allEngines.Any(e => string.Equals(e.Name, engine.Name, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException("Engine " + engine.Name + " already exists.");
-        _allEngines.Add(engine);
+        Requires.NotNull(provider, nameof(provider));
+        if (_allProviders.Any(e => string.Equals(e.Name, provider.Name, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Provider " + provider.Name + " already exists.");
+        _allProviders.Add(provider);
     }
 
     /// <inheritdoc/>
@@ -91,19 +91,19 @@ public class DownloadManager : IDownloadManager {
 
         try
         {
-            var engines = GetSuitableEngines(_allEngines, uri);
-            return Task.Factory.StartNew(() => DownloadWithRetry(engines, uri, outputStream, progress,
+            var providers = GetSuitableProvider(_allProviders, uri);
+            return Task.Factory.StartNew(() => DownloadWithRetry(providers, uri, outputStream, progress,
                     verificationContext, cancellationToken), cancellationToken,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
         catch (Exception ex)
         {
-            _logger?.LogTrace($"Unable to get download engine: {ex.Message}");
+            _logger?.LogTrace($"Unable to get download provider: {ex.Message}");
             throw;
         }
     }
 
-    private DownloadSummary DownloadWithRetry(IDownloadEngine[] engines, Uri uri, Stream outputStream,
+    private DownloadSummary DownloadWithRetry(IDownloadProvider[] providers, Uri uri, Stream outputStream,
         ProgressUpdateCallback? progress, VerificationContext? verificationContext, CancellationToken cancellationToken)
     {
         if (_configuration.VerificationPolicy == VerificationPolicy.Enforce && verificationContext is null)
@@ -115,17 +115,17 @@ public class DownloadManager : IDownloadManager {
         }
 
         var failureList = new List<DownloadFailureInformation>();
-        foreach (var engine in engines)
+        foreach (var provider in providers)
         {
             var position = outputStream.Position;
             var length = outputStream.Length;
             try
             {
-                _logger?.LogTrace($"Attempting download '{uri.AbsoluteUri}' using engine '{engine.Name}'");
-                var engineSummary = engine.Download(uri, outputStream,
+                _logger?.LogTrace($"Attempting download '{uri.AbsoluteUri}' using provider '{provider.Name}'");
+                var summary = provider.Download(uri, outputStream,
                     status =>
                     {
-                        progress?.Invoke(new ProgressUpdateStatus(engine.Name, status.BytesRead, status.TotalBytes, status.BitRate));
+                        progress?.Invoke(new ProgressUpdateStatus(provider.Name, status.BytesRead, status.TotalBytes, status.BitRate));
                     }, cancellationToken);
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
                 {
@@ -141,7 +141,7 @@ public class DownloadManager : IDownloadManager {
                     if (valid)
                     {
                         var verificationResult = _verifier.Verify(outputStream, verificationContext);
-                        engineSummary.ValidationResult = verificationResult;
+                        summary.ValidationResult = verificationResult;
                         if (verificationResult != VerificationResult.Success)
                         {
                             var exception = new VerificationFailedException(verificationResult,
@@ -159,11 +159,11 @@ public class DownloadManager : IDownloadManager {
                     }
                 }
 
-                _logger?.LogInformation($"Download of '{uri.AbsoluteUri}' succeeded using engine '{engine.Name}'");
-                _preferredDownloadEngines.LastSuccessfulEngineName = engine.Name;
+                _logger?.LogInformation($"Download of '{uri.AbsoluteUri}' succeeded using provider '{provider.Name}'");
+                _preferredDownloadProviders.LastSuccessfulProviderName = provider.Name;
 
-                engineSummary.DownloadEngine = engine.Name;
-                return engineSummary;
+                summary.DownloadProvider = provider.Name;
+                return summary;
             }
             catch (OperationCanceledException)
             {
@@ -171,11 +171,11 @@ public class DownloadManager : IDownloadManager {
             }
             catch (Exception ex)
             {
-                failureList.Add(new DownloadFailureInformation(ex, engine.Name));
-                _logger?.LogTrace($"Download failed using {engine.Name} engine. {ex}");
+                failureList.Add(new DownloadFailureInformation(ex, provider.Name));
+                _logger?.LogTrace($"Download failed using {provider.Name} provider. {ex}");
 
-                if (engine.Equals(engines.LastOrDefault()))
-                    throw new DownloadFailureException(failureList);
+                if (provider.Equals(providers.LastOrDefault()))
+                    throw new DownloadFailedException(failureList);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 outputStream.SetLength(length);
@@ -192,15 +192,15 @@ public class DownloadManager : IDownloadManager {
         return null!;
     }
 
-    private IDownloadEngine[] GetSuitableEngines(IEnumerable<IDownloadEngine> downloadEngines, Uri uri)
+    private IDownloadProvider[] GetSuitableProvider(IEnumerable<IDownloadProvider> providers, Uri uri)
     {
         var source = uri.IsFile || uri.IsUnc ? DownloadSource.File : DownloadSource.Internet;
-        var array = downloadEngines.Where(e => e.IsSupported(source)).ToArray();
+        var array = providers.Where(e => e.IsSupported(source)).ToArray();
         if (array.Length == 0)
         {
-            _logger?.LogTrace("Unable to select suitable download engine.");
-            throw new NoSuitableEngineException("Can not download. No suitable download engine found.");
+            _logger?.LogTrace("Unable to select suitable download provider.");
+            throw new NoSuitableProviderException("Can not download. No suitable download provider found.");
         }
-        return _preferredDownloadEngines.GetEnginesInPriorityOrder(array).ToArray();
+        return _preferredDownloadProviders.GetProvidersInPriorityOrder(array).ToArray();
     }
 }

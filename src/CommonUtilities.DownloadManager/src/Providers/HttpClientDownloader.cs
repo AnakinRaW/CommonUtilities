@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
-internal class HttpClientDownloader : DownloadEngineBase
+internal class HttpClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
 

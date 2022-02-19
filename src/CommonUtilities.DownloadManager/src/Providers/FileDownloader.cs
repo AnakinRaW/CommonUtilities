@@ -4,9 +4,9 @@ using System.IO.Abstractions;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
-internal class FileDownloader : DownloadEngineBase
+internal class FileDownloader : DownloadProviderBase
 {
     private readonly IServiceProvider _serviceProvider;
 

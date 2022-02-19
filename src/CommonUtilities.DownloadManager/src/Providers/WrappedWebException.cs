@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
 internal class WrappedWebException : WebException
 {
