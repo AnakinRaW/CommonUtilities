@@ -63,10 +63,6 @@ public class HashVerifier : IVerifier
     {
         fileStream.Seek(0L, SeekOrigin.Begin);
         var actualHash = _hashingService.GetStreamHash(fileStream, hashType, true);
-#if NET || NETSTANDARD2_1
         return actualHash.AsSpan().SequenceEqual(expected);
-#else
-        return actualHash.SequenceEqual(expected);
-#endif
     }
 }

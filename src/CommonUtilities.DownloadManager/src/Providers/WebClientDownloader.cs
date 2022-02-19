@@ -10,7 +10,6 @@ using Validation;
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
-
 internal class WebClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
