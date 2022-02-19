@@ -9,7 +9,6 @@ namespace Sklavenwalker.CommonUtilities.DownloadManager;
 internal class PreferredDownloadProviders
 {
     private static readonly object SyncRoot = new();
-    private static readonly ConcurrentDictionary<string, int> ConcurrentPreferredProviders = new();
     private readonly ConcurrentDictionary<string, int> _preferredProviders;
     private string? _lastSuccessfulProviderName;
 
@@ -29,9 +28,9 @@ internal class PreferredDownloadProviders
         }
     }
 
-    public PreferredDownloadProviders(ConcurrentDictionary<string, int>? preferredProviders = null)
+    public PreferredDownloadProviders()
     {
-        _preferredProviders = preferredProviders ?? ConcurrentPreferredProviders;
+        _preferredProviders = new ConcurrentDictionary<string, int>();
     }
 
     public IEnumerable<IDownloadProvider> GetProvidersInPriorityOrder(IEnumerable<IDownloadProvider> providers)

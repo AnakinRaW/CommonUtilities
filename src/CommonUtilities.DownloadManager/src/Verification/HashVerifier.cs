@@ -27,8 +27,8 @@ public class HashVerifier : IVerifier
     public HashVerifier(IServiceProvider serviceProvider)
     {
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _fileSystem = serviceProvider.GetService<IFileSystem>() ?? new FileSystem();
-        _hashingService = serviceProvider.GetService<IHashingService>() ?? new HashingService();
+        _fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
+        _hashingService = serviceProvider.GetRequiredService<IHashingService>();
     }
 
     /// <inheritdoc/>

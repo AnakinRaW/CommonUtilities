@@ -6,13 +6,13 @@ namespace Sklavenwalker.CommonUtilities.DownloadManager;
 /// <summary>
 /// Get's thrown if there could be no <see cref="IDownloadProvider"/> found for a download operation.
 /// </summary>
-public class NoSuitableProviderException : InvalidOperationException
+public class DownloadProviderNotFoundException : InvalidOperationException
 {
     /// <summary>
     /// Creates the exception
     /// </summary>
     /// <param name="message">The message of the exception</param>
-    public NoSuitableProviderException(string message)
+    public DownloadProviderNotFoundException(string message)
         : base(message)
     {
     }

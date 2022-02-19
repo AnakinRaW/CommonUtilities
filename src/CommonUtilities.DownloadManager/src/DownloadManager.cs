@@ -147,7 +147,7 @@ public class DownloadManager : IDownloadManager {
                         if (verificationResult != VerificationResult.Success)
                         {
                             var exception = new VerificationFailedException(verificationResult,
-                                $"Hash on downloaded file '{uri.AbsoluteUri}' does not match expected value.");
+                                $"Verification on downloaded file '{uri.AbsoluteUri}' was not successful.");
                             _logger?.LogError(exception, exception.Message);
                             throw exception;
                         }
@@ -201,7 +201,7 @@ public class DownloadManager : IDownloadManager {
         if (array.Length == 0)
         {
             _logger?.LogTrace("Unable to select suitable download provider.");
-            throw new NoSuitableProviderException("Can not download. No suitable download provider found.");
+            throw new DownloadProviderNotFoundException("Can not download. No suitable download provider found.");
         }
         return _preferredDownloadProviders.GetProvidersInPriorityOrder(array).ToArray();
     }
