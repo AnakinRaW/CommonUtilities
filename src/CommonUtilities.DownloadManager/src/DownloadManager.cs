@@ -18,7 +18,6 @@ namespace Sklavenwalker.CommonUtilities.DownloadManager;
 /// </summary>
 public class DownloadManager : IDownloadManager {
 
-    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger? _logger;
     private readonly IDownloadManagerConfiguration _configuration;
 
@@ -36,23 +35,24 @@ public class DownloadManager : IDownloadManager {
     public DownloadManager(IServiceProvider serviceProvider)
     {
         Requires.NotNull(serviceProvider, nameof(serviceProvider));
-        _serviceProvider = serviceProvider;
-        _logger = _serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _configuration = _serviceProvider.GetService<IDownloadManagerConfiguration>() ??
+        _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
+        _configuration = serviceProvider.GetService<IDownloadManagerConfiguration>() ??
                          DownloadManagerConfiguration.Default;
-        _verifier = _serviceProvider.GetRequiredService<IVerifier>();
+        _verifier = serviceProvider.GetRequiredService<IVerifier>();
         switch (_configuration.InternetClient)
         {
             case InternetClient.HttpClient:
-                AddDownloadEngine(new HttpClientDownloader(_serviceProvider));
+                AddDownloadEngine(new HttpClientDownloader(serviceProvider));
                 break;
+#if !NET6_0_OR_GREATER
             case InternetClient.WebClient:
-                AddDownloadEngine(new WebClientDownloader(_serviceProvider));
-                break;
+                AddDownloadEngine(new WebClientDownloader(serviceProvider));
+                break;  
+#endif
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        AddDownloadEngine(new FileDownloader(_serviceProvider));
+        AddDownloadEngine(new FileDownloader(serviceProvider));
     }
 
     /// <inheritdoc/>
@@ -152,8 +152,7 @@ public class DownloadManager : IDownloadManager {
                     }
                     else
                     {
-                        if (_configuration.VerificationPolicy == VerificationPolicy.Optional ||
-                            _configuration.VerificationPolicy == VerificationPolicy.Enforce)
+                        if (_configuration.VerificationPolicy is VerificationPolicy.Optional or VerificationPolicy.Enforce)
                             throw new VerificationFailedException(VerificationResult.VerificationContextError,
                                 "Download is missing or has an invalid VerificationContext");
                         _logger?.LogTrace("Skipping validation because verification context of is not valid.");

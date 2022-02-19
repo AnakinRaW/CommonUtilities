@@ -102,16 +102,6 @@ internal class WebClientDownloader : DownloadEngineBase
             var successful = true;
             try
             {
-
-                var i = new HttpClientHandler();
-                i.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                var h = new HttpClient(i);
-                h.Timeout = TimeSpan.FromMilliseconds(120000);
-
-                h.GetAsync()
-
-
-
                 webRequest = (HttpWebRequest)WebRequest.Create(uri);
                 webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");

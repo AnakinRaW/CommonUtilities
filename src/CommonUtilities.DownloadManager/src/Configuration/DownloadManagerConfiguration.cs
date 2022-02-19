@@ -17,4 +17,7 @@ public record DownloadManagerConfiguration : IDownloadManagerConfiguration
 
     /// <inheritdoc/>
     public VerificationPolicy VerificationPolicy { get; set; }
+    
+    /// <inheritdoc/>
+    public InternetClient InternetClient { get; set; }
 }
