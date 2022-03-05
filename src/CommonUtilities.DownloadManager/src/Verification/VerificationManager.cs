@@ -13,7 +13,7 @@ public class VerificationManager : IVerificationManager
 {
     private readonly IFileSystem _fileSystem;
     private readonly ILogger? _logger;
-    private readonly IDictionary<string, ICollection<IVerifier>> _verifiers;
+    internal readonly IDictionary<string, List<IVerifier>> Verifiers;
 
     /// <summary>
     /// Initializes a new <see cref="VerificationManager"/>.
@@ -21,7 +21,7 @@ public class VerificationManager : IVerificationManager
     /// <param name="serviceProvider">The service provider.</param>
     public VerificationManager(IServiceProvider serviceProvider)
     {
-        _verifiers = new Dictionary<string, ICollection<IVerifier>>(StringComparer.OrdinalIgnoreCase);
+        Verifiers = new Dictionary<string, List<IVerifier>>(StringComparer.OrdinalIgnoreCase);
         _fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
@@ -29,11 +29,11 @@ public class VerificationManager : IVerificationManager
     /// <inheritdoc/>
     public void RegisterVerifier(string extension, IVerifier verifier)
     {
-        Requires.NotNullOrEmpty(extension, nameof(extension));
+        Requires.NotNullOrWhiteSpace(extension, nameof(extension));
         Requires.NotNull(verifier, nameof(verifier));
         extension = NormalizeExtension(extension);
-        if (!_verifiers.TryGetValue(extension, out var verifiers))
-            _verifiers[extension] = new List<IVerifier>{ verifier };
+        if (!Verifiers.TryGetValue(extension, out var verifiers))
+            Verifiers[extension] = new List<IVerifier>{ verifier };
         else
             verifiers.Add(verifier);
     }
@@ -41,11 +41,15 @@ public class VerificationManager : IVerificationManager
     /// <inheritdoc/>
     public void RemoveVerifier(string extension, IVerifier verifier)
     {
-        Requires.NotNullOrEmpty(extension, nameof(extension));
+        Requires.NotNullOrWhiteSpace(extension, nameof(extension));
         Requires.NotNull(verifier, nameof(verifier));
         extension = NormalizeExtension(extension);
-        if (_verifiers.TryGetValue(extension, out var verifiers)) 
-            verifiers.Remove(verifier);
+        if (Verifiers.TryGetValue(extension, out var verifiers))
+        {
+            verifiers.RemoveAll(v => v == verifier);
+            if (verifiers.Count == 0)
+                Verifiers.Remove(extension);
+        }
     }
 
     /// <inheritdoc/>
@@ -54,12 +58,25 @@ public class VerificationManager : IVerificationManager
         Requires.NotNull(file, nameof(file));
         if (file is not FileStream fileStream)
             throw new ArgumentException(nameof(file));
+        var path = fileStream.Name;
+        return Verify(fileStream, path, verificationContext);
+    }
+
+    /// <inheritdoc/>
+    public VerificationResult Verify(IFileInfo file, VerificationContext verificationContext)
+    {
+        Requires.NotNull(file, nameof(file));
+        var stream = file.OpenRead();
+        var path = file.FullName;
+        return Verify(stream, path, verificationContext);
+    }
+
+    private VerificationResult Verify(Stream stream, string path, VerificationContext verificationContext)
+    {
+        Requires.NotNullOrEmpty(path, nameof(path));
         var result = VerificationResult.NotVerified;
-        string? path = null;
-        if (path is null && _fileSystem.File.Exists(fileStream.Name))
-            path = fileStream.Name;
-        if (path is null)
-            throw new InvalidOperationException();
+        if (!_fileSystem.File.Exists(path))
+            throw new FileNotFoundException();
         try
         {
             var extension = NormalizeExtension(_fileSystem.Path.GetExtension(path));
@@ -68,12 +85,12 @@ public class VerificationManager : IVerificationManager
                 return VerificationResult.NotVerified;
             foreach (var verifier in verifiers)
             {
-                fileStream.Seek(0, SeekOrigin.Begin);
-                result = verifier.Verify(fileStream, verificationContext);
+                stream.Seek(0, SeekOrigin.Begin);
+                result = verifier.Verify(stream, verificationContext);
                 if (result != VerificationResult.Success)
                     break;
             }
-            if (result == VerificationResult.Success) 
+            if (result == VerificationResult.Success)
                 _logger?.LogTrace($"Verification of {path} successful.");
         }
         catch (OperationCanceledException)
@@ -93,10 +110,10 @@ public class VerificationManager : IVerificationManager
     private ICollection<IVerifier>? GetVerifier(string extension)
     {
         ICollection<IVerifier>? verifiers = null;
-        if (_verifiers.ContainsKey(extension))
-            verifiers = _verifiers[extension];
-        else if (_verifiers.ContainsKey("*"))
-            verifiers = _verifiers["*"];
+        if (Verifiers.ContainsKey(extension))
+            verifiers = Verifiers[extension];
+        else if (Verifiers.ContainsKey("*"))
+            verifiers = Verifiers["*"];
         return verifiers;
     }
 

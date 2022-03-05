@@ -21,7 +21,7 @@ internal class WebClientDownloader : DownloadProviderBase
         ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
-    public WebClientDownloader(IServiceProvider services) : base("WebClient", new[] { DownloadSource.Internet })
+    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadSource.Internet)
     {
         Requires.NotNull(services, nameof(services));
         _logger = services.GetService<ILogger>();

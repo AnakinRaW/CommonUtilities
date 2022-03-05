@@ -10,7 +10,7 @@ internal class FileDownloader : DownloadProviderBase
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public FileDownloader(IServiceProvider serviceProvider) : base("File", new DownloadSource[1])
+    public FileDownloader(IServiceProvider serviceProvider) : base("File", DownloadSource.File)
     {
         _serviceProvider = serviceProvider;
     }

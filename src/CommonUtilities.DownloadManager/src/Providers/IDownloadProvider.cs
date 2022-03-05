@@ -29,6 +29,6 @@ public interface IDownloadProvider
     /// <param name="progress">A callback reporting the current status of the download.</param>
     /// <param name="cancellationToken">A token to cancel the download operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback progress,
+    DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 }

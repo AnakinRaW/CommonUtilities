@@ -21,7 +21,7 @@ internal class HttpClientDownloader : DownloadProviderBase
         ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
-    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", new[] { DownloadSource.Internet })
+    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadSource.Internet)
     {
         Requires.NotNull(services, nameof(services));
         _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
@@ -99,13 +99,12 @@ internal class HttpClientDownloader : DownloadProviderBase
             };
             var client = new HttpClient(handler)
             {
-                MaxResponseContentBufferSize = 0,
                 Timeout = TimeSpan.FromMilliseconds(120000)
             };
             request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
-            response = client.SendAsync(request, cancellationToken).GetAwaiter().GetResult();
+            response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).GetAwaiter().GetResult();
             var responseUri = response.RequestMessage?.RequestUri?.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
