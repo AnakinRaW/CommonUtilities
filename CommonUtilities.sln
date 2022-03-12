@@ -41,8 +41,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.DownloadMan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.Registry.Windows.Test", "src\CommonUtilities.Registry.Windows\test\CommonUtilities.Registry.Windows.Test.csproj", "{B2CCF30B-7221-4DB0-BDBA-06BA2CF9A659}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.TaskPipeline", "CommonUtilities.TaskPipeline", "{9D9B958B-7495-4614-8D0D-47587C8FEBC4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.DownloadManager.Test", "src\CommonUtilities.DownloadManager\test\CommonUtilities.DownloadManager.Test.csproj", "{B67F61B6-489C-4036-9380-8B8DB45AB295}"
 EndProject
 Global
