@@ -36,7 +36,7 @@ public class WebClientDownloadTest
     {
         var outStream = new MemoryStream();
         var result = _provider.Download(
-            new Uri("https://file-examples-com.github.io/uploads/2017/02/file_example_CSV_5000.csv"),
+            new Uri("https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);

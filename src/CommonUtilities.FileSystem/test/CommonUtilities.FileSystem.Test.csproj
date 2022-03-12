@@ -12,16 +12,6 @@
 		<AssemblyName>Sklavenwalker.CommonUtilities.FileSystem.Test</AssemblyName>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<TargetOSTrait Condition="'$(OS)' == 'Windows_NT'">nonwindowstests</TargetOSTrait>
-		<TargetOSTrait Condition="'$(OS)' == 'Linux'">nonlinuxtests</TargetOSTrait>
-		<TargetOSTrait Condition="'$(OS)' == 'OSX'">nonosxtests</TargetOSTrait>
-		<TargetOSTrait Condition="'$(OS)' == 'FreeBSD'">nonfreebsdtests</TargetOSTrait>
-		<TargetOSTrait Condition="'$(OS)' == 'NetBSD'">nonnetbsdtests</TargetOSTrait>
-
-		<TestRunnerAdditionalArguments Condition="'$(TargetOSTrait)' != ''">-notrait category=$(TargetOSTrait)</TestRunnerAdditionalArguments>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />

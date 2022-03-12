@@ -12,9 +12,7 @@
 		<AssemblyName>Sklavenwalker.CommonUtilities.DownloadManager</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
-
-		<!--TODO: Enable when ready to deploy-->
-		<IsPackable>false</IsPackable>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<PropertyGroup>
