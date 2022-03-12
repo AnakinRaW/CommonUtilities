@@ -21,9 +21,9 @@ public class ProgressUpdateStatus
     public double BitRate { get; }
 
     /// <summary>
-    /// The used engine name.
+    /// The used provider name.
     /// </summary>
-    public string? DownloadEngine { get; }
+    public string? DownloadProvider { get; }
 
     /// <summary>
     /// Creates new instance with performance data only.
@@ -39,13 +39,13 @@ public class ProgressUpdateStatus
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    /// <param name="downloadEngine">The download engine.</param>
+    /// <param name="downloadProvider">The download provider.</param>
     /// <param name="bytesRead">Bytes read from the source.</param>
     /// <param name="totalBytes">Bytes written to the output.</param>
     /// <param name="bitRate">Current bit rate.</param>
-    public ProgressUpdateStatus(string? downloadEngine, long bytesRead, long totalBytes, double bitRate)
+    public ProgressUpdateStatus(string? downloadProvider, long bytesRead, long totalBytes, double bitRate)
     {
-        DownloadEngine = downloadEngine;
+        DownloadProvider = downloadProvider;
         BytesRead = bytesRead;
         TotalBytes = totalBytes;
         BitRate = bitRate;
