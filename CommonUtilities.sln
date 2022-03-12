@@ -45,8 +45,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.DownloadMan
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.TaskPipeline", "CommonUtilities.TaskPipeline", "{9D9B958B-7495-4614-8D0D-47587C8FEBC4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.TaskPipeline", "CommonUtilities.TaskPipeline", "{9D9B958B-7495-4614-8D0D-47587C8FEBC4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.TaskPipeline", "src\CommonUtilities.TaskPipeline\src\CommonUtilities.TaskPipeline.csproj", "{283BBAA8-482D-4DB5-9707-3F325D2AE41F}"
 EndProject
 Global
