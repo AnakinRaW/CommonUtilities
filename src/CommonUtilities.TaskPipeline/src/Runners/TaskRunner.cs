@@ -50,7 +50,7 @@ public class TaskRunner : IRunner
         Requires.NotNull(services, nameof(services));
         TaskQueue = new ConcurrentQueue<ITask>();
         TaskList = new List<ITask>();
-        Logger = services.GetService<ILogger>();
+        Logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
     /// <inheritdoc/>

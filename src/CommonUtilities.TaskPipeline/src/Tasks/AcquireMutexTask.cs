@@ -19,7 +19,7 @@ public class AcquireMutexTask : RunnerTask
     /// <param name="name">The name of the mutex.</param>
     public AcquireMutexTask(string? name, IServiceProvider serviceProvider) : base(serviceProvider)
     {
-        MutexName = name ?? Utilities.GlobalPipelineMutex;
+        MutexName = name ?? Utilities.GlobalCurrentProcessMutex;
     }
 
     /// <inheritdoc/>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Sklavenwalker.CommonUtilities.TaskPipeline;
@@ -15,15 +14,5 @@ internal static class Extensions
                 p.IsExceptionType<T>()),
             _ => false
         };
-    }
-
-    public static void AddRange<T>(this ICollection<T> source, IEnumerable<T> items)
-    {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (items is null)
-            throw new ArgumentNullException(nameof(items));
-        foreach (var obj in items)
-            source.Add(obj);
     }
 }

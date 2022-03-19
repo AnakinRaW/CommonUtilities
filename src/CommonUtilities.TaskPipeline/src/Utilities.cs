@@ -9,7 +9,7 @@ namespace Sklavenwalker.CommonUtilities.TaskPipeline;
 
 internal static class Utilities
 {
-    internal static readonly string GlobalPipelineMutex = $"Global\\{Process.GetCurrentProcess().ProcessName}";
+    internal static readonly string GlobalCurrentProcessMutex = $"Global\\{Process.GetCurrentProcess().ProcessName}";
 
     internal static Mutex CheckAndSetGlobalMutex(string? name = null)
     {
@@ -27,7 +27,7 @@ internal static class Utilities
 
     internal static Mutex? EnsureMutex(string? name, TimeSpan timeout)
     {
-        name ??= GlobalPipelineMutex;
+        name ??= GlobalCurrentProcessMutex;
         Mutex mutex;
         try
         {
@@ -38,7 +38,7 @@ internal static class Utilities
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
                 mutex = CreateSecurityMutexWindows(name);
             else
-                throw new NotImplementedException("No mutex for non-Windows Systems.");
+                throw new PlatformNotSupportedException("No mutex for non-Windows Systems.");
         }
 
         bool mutexAbandoned;
@@ -62,10 +62,6 @@ internal static class Utilities
         var mutexSecurity = new MutexSecurity();
         var rule = new MutexAccessRule(securityIdentifier, MutexRights.FullControl, AccessControlType.Allow);
         mutexSecurity.AddAccessRule(rule);
-#if NET || NETSTANDARD || NETCOREAPP
         return MutexAcl.Create(false, name, out _, mutexSecurity);
-#else
-        return new Mutex(false, name, out _, mutexSecurity);
-#endif
     }
 }
