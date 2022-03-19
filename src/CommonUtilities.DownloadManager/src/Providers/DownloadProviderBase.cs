@@ -1,29 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
+using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
 /// <summary>
-/// Base implementation for an <see cref="IDownloadEngine"/>.
+/// Base implementation for an <see cref="IDownloadProvider"/>.
 /// </summary>
-public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
+public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider {
     
-    private readonly DownloadSource[] _supportedSources;
+    private readonly HashSet<DownloadSource> _supportedSources;
 
     /// <inheritdoc/>
     public string Name { get; }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadEngine"/> instance.
+    /// Initializes an <see cref="IDownloadProvider"/> instance.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadEngineBase(string name, DownloadSource[] supportedSources)
+    protected DownloadProviderBase(string name, DownloadSource supportedSources) : this(name, new []{supportedSources})
     {
+    }
+
+    /// <summary>
+    /// Initializes an <see cref="IDownloadProvider"/> instance.
+    /// </summary>
+    /// <param name="name">The name of the concrete instance.</param>
+    /// <param name="supportedSources">The supported download locations by this instance.</param>
+    protected DownloadProviderBase(string name, IEnumerable<DownloadSource> supportedSources)
+    {
+        Requires.NotNullOrEmpty(name, nameof(name));
         Name = name;
-        _supportedSources = supportedSources;
+        _supportedSources = new HashSet<DownloadSource>(supportedSources);
     }
 
     /// <inheritdoc/>
@@ -33,7 +44,7 @@ public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
     }
 
     /// <inheritdoc/>
-    public DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback progress,
+    public DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         return DownloadWithBitRate(uri, outputStream, progress, cancellationToken);
@@ -46,7 +57,7 @@ public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
     /// <param name="outputStream">The output stream.</param>
     /// <param name="progress">Progress with already updated performance data.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns></returns>
+    /// <returns>A summary of the download operation.</returns>
     protected abstract DownloadSummary DownloadCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 
@@ -56,20 +67,20 @@ public abstract class DownloadEngineBase : DisposableObject, IDownloadEngine {
         ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var now1 = DateTime.Now;
-        var lastProgressUpdate = now1;
+        var start = DateTime.Now;
+        var lastProgressUpdate = start;
         ProgressUpdateCallback? wrappedProgress = null;
         if (progress != null)
             wrappedProgress = p =>
             {
-                var now2 = DateTime.Now;
-                var timeSpan = now2 - lastProgressUpdate;
+                var now = DateTime.Now;
+                var timeSpan = now - lastProgressUpdate;
                 var bitRate = 8.0 * p.BytesRead / timeSpan.TotalSeconds;
                 progress(new ProgressUpdateStatus(p.BytesRead, p.TotalBytes, bitRate));
-                lastProgressUpdate = now2;
+                lastProgressUpdate = now;
             };
         var downloadSummary = DownloadCore(uri, outputStream, wrappedProgress, cancellationToken);
-        downloadSummary.DownloadTime = DateTime.Now - now1;
+        downloadSummary.DownloadTime = DateTime.Now - start;
         downloadSummary.BitRate = 8.0 * downloadSummary.DownloadedSize / downloadSummary.DownloadTime.TotalSeconds;
         return downloadSummary;
     }

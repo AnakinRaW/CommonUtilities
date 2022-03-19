@@ -7,7 +7,7 @@ namespace Sklavenwalker.CommonUtilities.DownloadManager;
 /// <summary>
 /// Aggregated exception which holds all <see cref="DownloadFailureInformation"/> of a file download operation.
 /// </summary>
-public class DownloadFailureException : Exception
+public class DownloadFailedException : Exception
 {
     /// <summary>
     /// All failures during a file download operation.
@@ -26,7 +26,7 @@ public class DownloadFailureException : Exception
             {
                 if (stringBuilder.Length > 0)
                     stringBuilder.Append(". ");
-                stringBuilder.Append(downloadFailure.Engine);
+                stringBuilder.Append(downloadFailure.Provider);
                 stringBuilder.Append(" download failed: ");
                 stringBuilder.Append(downloadFailure.Exception.Message);
             }
@@ -35,10 +35,10 @@ public class DownloadFailureException : Exception
     }
 
     /// <summary>
-    /// Creates a new <see cref="DownloadFailureException"/> exception.
+    /// Creates a new <see cref="DownloadFailedException"/> exception.
     /// </summary>
     /// <param name="downloadFailures">Failures which occurred during a file download.</param>
-    public DownloadFailureException(IEnumerable<DownloadFailureInformation> downloadFailures)
+    public DownloadFailedException(IEnumerable<DownloadFailureInformation> downloadFailures)
     {
         DownloadFailures = downloadFailures;
     }

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Description>Helper classes and methods targeting the Filesystem and Paths.</Description>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.0.1</Version>
+		<Version>2.0.2</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -27,7 +27,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.IO.Abstractions" Version="16.1.10" />
+		<PackageReference Include="System.IO.Abstractions" Version="16.1.23" />
 		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 

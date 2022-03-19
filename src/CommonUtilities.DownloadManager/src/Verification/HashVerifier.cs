@@ -5,33 +5,44 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sklavenwalker.CommonUtilities.Hashing;
 using Validation;
-#if !(NET || NETSTANDARD2_1)
-using System.Linq;
-#endif
 
 namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 
-internal class HashVerifier : IVerifier
+/// <summary>
+/// Verifies files based on their Hash.
+/// </summary>
+public class HashVerifier : IVerifier
 {
     private readonly ILogger? _logger;
     private readonly IFileSystem _fileSystem;
     private readonly IHashingService _hashingService;
 
+    /// <summary>
+    /// Initializes a new <see cref="HashVerifier"/>.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
     public HashVerifier(IServiceProvider serviceProvider)
     {
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _fileSystem = serviceProvider.GetService<IFileSystem>() ?? new FileSystem();
-        _hashingService = serviceProvider.GetService<IHashingService>() ?? new HashingService();
+        _fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
+        _hashingService = serviceProvider.GetRequiredService<IHashingService>();
     }
 
+    /// <inheritdoc/>
     public VerificationResult Verify(Stream file, VerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
         if (file is not FileStream fileStream)
             throw new ArgumentException("The stream does not represent a file", nameof(file));
         var path = fileStream.Name;
+        return Verify(file, path, verificationContext);
+
+    }
+
+    internal VerificationResult Verify(Stream file, string path, VerificationContext verificationContext)
+    {
         if (string.IsNullOrEmpty(path) || !_fileSystem.File.Exists(path))
-            throw new InvalidOperationException("Cannot verify a non-existing file.");
+            throw new FileNotFoundException("Cannot verify a non-existing file.");
         try
         {
             if (!verificationContext.Verify())
@@ -40,7 +51,7 @@ internal class HashVerifier : IVerifier
             if (verificationContext.HashType == HashType.None)
                 return VerificationResult.Success;
 
-            return CompareHashes(fileStream, verificationContext.HashType, verificationContext.Hash)
+            return CompareHashes(file, verificationContext.HashType, verificationContext.Hash)
                 ? VerificationResult.Success
                 : VerificationResult.VerificationFailed;
         }
@@ -55,10 +66,6 @@ internal class HashVerifier : IVerifier
     {
         fileStream.Seek(0L, SeekOrigin.Begin);
         var actualHash = _hashingService.GetStreamHash(fileStream, hashType, true);
-#if NET || NETSTANDARD2_1
         return actualHash.AsSpan().SequenceEqual(expected);
-#else
-        return actualHash.SequenceEqual(expected);
-#endif
     }
 }

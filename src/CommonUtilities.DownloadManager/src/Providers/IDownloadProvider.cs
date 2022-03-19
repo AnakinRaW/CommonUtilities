@@ -2,20 +2,20 @@
 using System.IO;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Engines;
+namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 
 /// <summary>
-/// Engine which downloads a file in a specific manner.
+/// Provider which downloads a file in a specific manner.
 /// </summary>
-public interface IDownloadEngine
+public interface IDownloadProvider
 {
     /// <summary>
-    /// The name of the engine.
+    /// The name of the provider.
     /// </summary>
     string Name { get; }
 
     /// <summary>
-    /// Evaluates whether a given <see cref="DownloadSource"/> is supported by this engine.
+    /// Evaluates whether a given <see cref="DownloadSource"/> is supported by this provider.
     /// </summary>
     /// <param name="source">The target <see cref="DownloadSource"/>.</param>
     /// <returns><see langword="true"/> is <paramref name="source"/> is supported; <see langword="false"/> otherwise.</returns>
@@ -29,6 +29,6 @@ public interface IDownloadEngine
     /// <param name="progress">A callback reporting the current status of the download.</param>
     /// <param name="cancellationToken">A token to cancel the download operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback progress,
+    DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 }

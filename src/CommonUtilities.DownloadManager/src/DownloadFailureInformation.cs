@@ -13,18 +13,18 @@ public class DownloadFailureInformation
     public Exception Exception { get; }
 
     /// <summary>
-    /// The engine which caused the failure.
+    /// The provider which caused the failure.
     /// </summary>
-    public string Engine { get; }
+    public string Provider { get; }
 
     /// <summary>
     /// Crates a new <see cref="DownloadFailureInformation"/> instance.
     /// </summary>
     /// <param name="exception">The exception of the download failure.</param>
-    /// <param name="engine">The engine which caused the failure.</param>
-    public DownloadFailureInformation(Exception exception, string engine)
+    /// <param name="provider">The provider which caused the failure.</param>
+    public DownloadFailureInformation(Exception exception, string provider)
     {
         Exception = exception;
-        Engine = engine;
+        Provider = provider;
     }
 }
