@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\src\Commonutilities.TaskPipeline.csproj" />
+	  <ProjectReference Include="..\src\CommonUtilities.TaskPipeline.csproj" />
 	</ItemGroup>
 
 </Project>
