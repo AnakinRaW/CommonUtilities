@@ -28,6 +28,6 @@ jobs:
       - name: Build & Test in Release Mode
         run: dotnet test --configuration Release --logger "GitHubActions"
 
-      #- name: Build & Test .NET Framework
-      #  if: matrix.os == 'windows-latest'
-      #  run: dotnet test --configuration Release -f net48 --logger "GitHubActions"
+      - name: Build & Test .NET Framework
+        if: matrix.os == 'windows-latest'
+        run: dotnet test --configuration Release -f net48 --logger "GitHubActions"
