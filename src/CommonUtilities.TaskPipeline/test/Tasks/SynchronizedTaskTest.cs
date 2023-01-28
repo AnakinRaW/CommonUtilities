@@ -105,9 +105,9 @@ public class SynchronizedTaskTest
         };
 
         task.Protected().Setup("SynchronizedInvoke", false, (CancellationToken)default)
-            .Callback(async () =>
+            .Callback(() =>
             {
-                await Task.Delay(1000).ConfigureAwait(false);
+                Task.Delay(1000).Wait();
             });
 
         Task.Factory.StartNew(() => task.Object.Run(default), default, TaskCreationOptions.None, TaskScheduler.Default);
