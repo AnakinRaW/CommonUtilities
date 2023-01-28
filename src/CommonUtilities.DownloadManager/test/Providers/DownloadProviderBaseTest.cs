@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Moq;
 using Moq.Protected;
@@ -36,6 +37,7 @@ public class DownloadProviderBaseTest
                 ItExpr.IsAny<ProgressUpdateCallback>(), ItExpr.IsAny<CancellationToken>())
             .Callback((Uri _, Stream _, ProgressUpdateCallback p, CancellationToken _) =>
             {
+                Task.Delay(100).Wait();
                 p.Invoke(new ProgressUpdateStatus(1, 2, 100));
             })
             .Returns(result);
