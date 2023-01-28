@@ -140,7 +140,7 @@ public class DownloadManagerTest
         }
 
         p.Setup(x => x.Download(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
-            .Callback<Uri, Stream, ProgressUpdateCallback?, CancellationToken>((_, stream, callback, _) =>
+            .Callback<Uri, Stream, ProgressUpdateCallback, CancellationToken>((_, stream, callback, _) =>
             {
                 stream.WriteByte(1);
                 callback(new ProgressUpdateStatus(1, 1, 0));

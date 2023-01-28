@@ -56,7 +56,7 @@ public class HashingServiceTest
     {
         var fs = new MockFileSystem();
         fs.AddFile("file.exe", new MockFileData(string.Empty));
-        var hash = _hashingService.GetFileHash(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        var hash = _hashingService.GetFileHash(fs.FileInfo.New("file.exe"), HashType.MD5);
         var hs = ByteArrayToString(hash);
         Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
 
@@ -72,7 +72,7 @@ public class HashingServiceTest
     {
         var fs = new MockFileSystem();
         fs.AddFile("file.exe", new MockFileData(string.Empty));
-        var hash = await _hashingService.HashFileAsync(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        var hash = await _hashingService.HashFileAsync(fs.FileInfo.New("file.exe"), HashType.MD5);
         var hs = ByteArrayToString(hash);
         Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
 

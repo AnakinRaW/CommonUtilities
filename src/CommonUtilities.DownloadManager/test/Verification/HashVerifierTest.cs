@@ -35,7 +35,7 @@ public class HashVerifierTest
     [Fact]
     public void TestFileNotFound()
     {
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
         Assert.Throws<FileNotFoundException>(() =>
             _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.None)));
@@ -45,7 +45,7 @@ public class HashVerifierTest
     public void TestInvalidVerificationContext()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
         var result = _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.MD5));
         Assert.Equal(VerificationResult.VerificationContextError, result);
@@ -55,7 +55,7 @@ public class HashVerifierTest
     public void TestHashTypeNoneAlwaysSucceeds()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
@@ -69,7 +69,7 @@ public class HashVerifierTest
     public void TestVerificationFailed()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
@@ -83,7 +83,7 @@ public class HashVerifierTest
     public void TestVerificationSucceeds()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         var hash = new byte[16];
@@ -99,7 +99,7 @@ public class HashVerifierTest
     public void TestVerificationWithException()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         var hash = new byte[16];

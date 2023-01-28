@@ -27,7 +27,7 @@ public class FileDownloadTest
     {
         const string data = "This is some text.";
         _fileSystem.AddFile("test.file", new MockFileData(data));
-        var source = _fileSystem.FileInfo.FromFileName("test.file");
+        var source = _fileSystem.FileInfo.New("test.file");
 
         var outStream = new MemoryStream();
         var result = _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
@@ -40,7 +40,7 @@ public class FileDownloadTest
     [Fact]
     public void TestDownloadFileNotFound()
     {
-        var source = _fileSystem.FileInfo.FromFileName("test.file");
+        var source = _fileSystem.FileInfo.New("test.file");
         var outStream = new MemoryStream();
         Assert.Throws<FileNotFoundException>(() =>
             _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None));

@@ -88,14 +88,14 @@ public class VerificationManagerTest
         Assert.Throws<ArgumentException>(() => _manager.Verify(new MemoryStream(), new VerificationContext(Array.Empty<byte>(), HashType.None)));
         
         Assert.Throws<FileNotFoundException>(() => _manager.Verify(new FileStream("test.file", FileMode.Open), new VerificationContext(Array.Empty<byte>(), HashType.None)));
-        Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileInfo.FromFileName("test.file"), new VerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileInfo.New("test.file"), new VerificationContext(Array.Empty<byte>(), HashType.None)));
     }
 
     [Fact]
     public void TestVerifyNoVerifiers()
     { 
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -112,7 +112,7 @@ public class VerificationManagerTest
     public void TestVerifyException()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -129,7 +129,7 @@ public class VerificationManagerTest
     public void TestVerifySuccess()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -146,7 +146,7 @@ public class VerificationManagerTest
     public void TestVerifySuccessMany()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -165,7 +165,7 @@ public class VerificationManagerTest
     public void TestVerifyFailure()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -182,7 +182,7 @@ public class VerificationManagerTest
     public void TestVerifyInvalid()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -199,7 +199,7 @@ public class VerificationManagerTest
     public void TestVerifyFailureMany1()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
@@ -218,7 +218,7 @@ public class VerificationManagerTest
     public void TestVerifyFailureMany2()
     {
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
-        var file = _fileSystem.FileInfo.FromFileName("test.file");
+        var file = _fileSystem.FileInfo.New("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
 
