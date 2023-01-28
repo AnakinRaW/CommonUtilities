@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
@@ -15,9 +17,10 @@ public class HttpClientDownloadTest
     private readonly MockFileSystem _fileSystem = new();
     private readonly HttpClientDownloader _provider;
 
-    public HttpClientDownloadTest()
+    public HttpClientDownloadTest(ITestOutputHelper outputHelper)
     {
         var sc = new ServiceCollection();
+        sc.AddLogging(builder => builder.AddXUnit(outputHelper));
         sc.AddSingleton<IFileSystem>(_fileSystem);
         _provider = new HttpClientDownloader(sc.BuildServiceProvider());
     }
