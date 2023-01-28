@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using Sklavenwalker.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test;
 
 public class HashingServiceTest
 {
@@ -48,15 +48,15 @@ public class HashingServiceTest
     {
         var ms = new MemoryStream();
         var hash = _hashingService.GetStreamHash(ms, type);
-        Assert.Equal(digestSize, hash.Length);
+        Assert.Equal<int>(digestSize, hash.Length);
     }
 
     [Fact]
     public void TestFile()
     {
         var fs = new MockFileSystem();
-        fs.AddFile("file.exe", MockFileData.NullObject);
-        var hash = _hashingService.GetFileHash(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        fs.AddFile("file.exe", new MockFileData(string.Empty));
+        var hash = _hashingService.GetFileHash(fs.FileInfo.New("file.exe"), HashType.MD5);
         var hs = ByteArrayToString(hash);
         Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
 
@@ -71,8 +71,8 @@ public class HashingServiceTest
     public async void TestFileAsync()
     {
         var fs = new MockFileSystem();
-        fs.AddFile("file.exe", MockFileData.NullObject);
-        var hash = await _hashingService.HashFileAsync(fs.FileInfo.FromFileName("file.exe"), HashType.MD5);
+        fs.AddFile("file.exe", new MockFileData(string.Empty));
+        var hash = await _hashingService.HashFileAsync(fs.FileInfo.New("file.exe"), HashType.MD5);
         var hs = ByteArrayToString(hash);
         Assert.Equal("d41d8cd98f00b204e9800998ecf8427e", hs, StringComparer.InvariantCultureIgnoreCase);
 

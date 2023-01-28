@@ -1,6 +1,6 @@
-﻿using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+﻿using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// The supported source file location of an <see cref="IDownloadProvider"/>.

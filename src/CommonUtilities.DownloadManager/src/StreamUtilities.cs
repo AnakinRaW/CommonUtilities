@@ -3,7 +3,7 @@ using System.Buffers;
 using System.IO;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 internal static class StreamUtilities
 {

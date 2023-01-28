@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Service to download files.

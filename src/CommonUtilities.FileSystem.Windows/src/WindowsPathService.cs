@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
-using Sklavenwalker.CommonUtilities.FileSystem.Windows.NativeMethods;
+using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
 /// Service for validating file and directory paths for the Windows Operating System.
@@ -119,7 +119,7 @@ public class WindowsPathService : IWindowsPathService
     public bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
     {
         bool isInRoleWithAccess;
-        var di = _fileSystem.DirectoryInfo.FromDirectoryName(path);
+        var di = _fileSystem.DirectoryInfo.New(path);
         try
         {
             if (!di.Exists)

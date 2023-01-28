@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Runners;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Runners;
 
 /// <summary>
 /// Runner engine, which executes all queued tasks parallel. Tasks may be queued while task execution has been started.

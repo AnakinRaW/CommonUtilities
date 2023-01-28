@@ -3,7 +3,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
 
 /// <summary>
 /// A task that waits for a given <see cref="IParallelRunner"/> to finish.

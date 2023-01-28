@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.Xml;
+namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <summary>
 /// Data which represents the result of an XML validation.

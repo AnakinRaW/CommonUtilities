@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 /// <summary>
 /// Base implementation for an <see cref="IDownloadProvider"/>.

@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Schema;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.Xml;
+namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <inheritdoc cref="IXmlValidator"/>
 public class XmlValidator : IXmlValidator

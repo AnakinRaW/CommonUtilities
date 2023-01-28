@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Contains information about a failed download

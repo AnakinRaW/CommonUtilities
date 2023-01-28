@@ -1,18 +1,17 @@
-﻿using System;
+﻿#if !NET5_0_OR_GREATER
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities;
+namespace AnakinRaW.CommonUtilities;
 
 /// <summary>
 /// Extension methods and awaitables for .NET types.
 /// </summary>
 public static class AwaitExtensions
 {
-
-#if !NET5_0_OR_GREATER
     /// <summary>
     /// Returns a task that completes when the process exits and provides the exit code of that process.
     /// </summary>
@@ -59,5 +58,5 @@ public static class AwaitExtensions
             process.Exited -= Handler!;
         }
     }
-#endif
 }
+#endif

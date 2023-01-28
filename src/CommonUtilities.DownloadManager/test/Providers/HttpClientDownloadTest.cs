@@ -4,20 +4,23 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class HttpClientDownloadTest
 {
     private readonly MockFileSystem _fileSystem = new();
     private readonly HttpClientDownloader _provider;
 
-    public HttpClientDownloadTest()
+    public HttpClientDownloadTest(ITestOutputHelper outputHelper)
     {
         var sc = new ServiceCollection();
+        sc.AddLogging(builder => builder.AddXUnit(outputHelper));
         sc.AddSingleton<IFileSystem>(_fileSystem);
         _provider = new HttpClientDownloader(sc.BuildServiceProvider());
     }
@@ -28,7 +31,7 @@ public class HttpClientDownloadTest
         var outStream = new MemoryStream();
         var result = _provider.Download(new Uri("https://example.com/test.txt"), outStream, null,
             CancellationToken.None);
-        Assert.Equal(0, result.DownloadedSize);
+        Assert.Equal<long>(0, result.DownloadedSize);
     }
 
     [Fact]
@@ -36,7 +39,7 @@ public class HttpClientDownloadTest
     {
         var outStream = new MemoryStream();
         var result = _provider.Download(
-            new Uri("https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip"),
+            new Uri("http://speedtest.ftp.otenet.gr/files/test100k.db"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem;
+namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <summary>
 /// Options which can be performed by an path normalization.

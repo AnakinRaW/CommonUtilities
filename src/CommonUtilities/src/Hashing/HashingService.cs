@@ -2,12 +2,10 @@
 using System.IO;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
-using Validation;
-#if NET
 using System.Threading.Tasks;
-#endif
+using Validation;
 
-namespace Sklavenwalker.CommonUtilities.Hashing;
+namespace AnakinRaW.CommonUtilities.Hashing;
 
 /// <inheritdoc cref="IHashingService"/>
 public class HashingService : IHashingService
@@ -20,7 +18,7 @@ public class HashingService : IHashingService
             throw new FileNotFoundException(nameof(file));
 
         using var stream =
-            file.FileSystem.FileStream.Create(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            file.FileSystem.FileStream.New(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
         return GetStreamHash(stream, hashType, true);
     }
 

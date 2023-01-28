@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class StreamUtilitiesTest
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Aggregated exception which holds all <see cref="DownloadFailureInformation"/> of a file download operation.

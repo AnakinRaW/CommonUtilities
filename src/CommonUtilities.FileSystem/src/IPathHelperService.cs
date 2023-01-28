@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem;
+namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <summary>
 /// Path Utility service providing methods to work with IO paths.

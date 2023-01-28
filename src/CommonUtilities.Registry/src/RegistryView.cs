@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.Registry;
+﻿namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// Specifies which registry view to target on a 64-bit operating system.

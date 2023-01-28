@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Sklavenwalker.CommonUtilities.Xml;
+namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <summary>
 /// Service to Validate and XML against a XSD schema.

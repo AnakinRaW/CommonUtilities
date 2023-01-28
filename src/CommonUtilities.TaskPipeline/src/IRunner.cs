@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// Execution engine to run one or many <see cref="ITask"/>s.

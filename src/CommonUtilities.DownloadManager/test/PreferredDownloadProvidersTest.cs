@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Moq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class PreferredDownloadProvidersTest
 {

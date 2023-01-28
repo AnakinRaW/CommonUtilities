@@ -2,14 +2,12 @@
 
 	<PropertyGroup>
 		<Description>Platform independent abstraction layer for the Windows Registry.</Description>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.1.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0</TargetFrameworks>
-		<RootNamespace>Sklavenwalker.CommonUtilities.Registry</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.Registry</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.Registry</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.Registry</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 	</PropertyGroup>

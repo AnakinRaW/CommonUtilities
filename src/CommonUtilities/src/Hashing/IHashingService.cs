@@ -1,12 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
-#if NET
 using System.Threading.Tasks;
-#endif
 
 
-namespace Sklavenwalker.CommonUtilities.Hashing;
+namespace AnakinRaW.CommonUtilities.Hashing;
 
 /// <summary>
 /// Service for calculating hash codes.

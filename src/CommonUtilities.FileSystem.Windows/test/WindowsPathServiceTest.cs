@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Windows.Test;
+namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
 
 public class WindowsPathServiceTest
 {

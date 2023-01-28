@@ -2,13 +2,13 @@
 using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
-using Sklavenwalker.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Verification;
 
 public class HashVerifierTest
 {
@@ -35,7 +35,7 @@ public class HashVerifierTest
     [Fact]
     public void TestFileNotFound()
     {
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
         Assert.Throws<FileNotFoundException>(() =>
             _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.None)));
@@ -44,8 +44,8 @@ public class HashVerifierTest
     [Fact]
     public void TestInvalidVerificationContext()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
         var result = _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.MD5));
         Assert.Equal(VerificationResult.VerificationContextError, result);
@@ -54,8 +54,8 @@ public class HashVerifierTest
     [Fact]
     public void TestHashTypeNoneAlwaysSucceeds()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
@@ -68,8 +68,8 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationFailed()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
@@ -82,8 +82,8 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationSucceeds()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         var hash = new byte[16];
@@ -98,8 +98,8 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationWithException()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
-        var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
         var hash = new byte[16];

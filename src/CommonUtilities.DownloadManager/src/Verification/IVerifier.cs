@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <summary>
 /// Service to verify a file against a pre-defined constraints.

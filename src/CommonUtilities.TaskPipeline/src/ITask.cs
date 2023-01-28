@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// A task can be queued to an <see cref="IRunner"/> and performs an custom action.

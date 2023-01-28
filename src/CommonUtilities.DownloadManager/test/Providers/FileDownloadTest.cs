@@ -4,11 +4,11 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Threading;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class FileDownloadTest
 {
@@ -27,12 +27,12 @@ public class FileDownloadTest
     {
         const string data = "This is some text.";
         _fileSystem.AddFile("test.file", new MockFileData(data));
-        var source = _fileSystem.FileInfo.FromFileName("test.file");
+        var source = _fileSystem.FileInfo.New("test.file");
 
         var outStream = new MemoryStream();
         var result = _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
 
-        Assert.Equal(data.Length, result.DownloadedSize);
+        Assert.Equal<long>(data.Length, result.DownloadedSize);
         var copyData = Encoding.Default.GetString(outStream.ToArray());
         Assert.Equal(data, copyData);
     }
@@ -40,7 +40,7 @@ public class FileDownloadTest
     [Fact]
     public void TestDownloadFileNotFound()
     {
-        var source = _fileSystem.FileInfo.FromFileName("test.file");
+        var source = _fileSystem.FileInfo.New("test.file");
         var outStream = new MemoryStream();
         Assert.Throws<FileNotFoundException>(() =>
             _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None));

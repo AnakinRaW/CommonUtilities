@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Sklavenwalker.CommonUtilities.Xml;
+namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <summary>
 /// Generic XML Deserializer service.

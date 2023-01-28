@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Windows.NativeMethods;
+namespace AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 
 [Flags]
 internal enum MoveFileFlags
