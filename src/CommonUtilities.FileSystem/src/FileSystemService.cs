@@ -52,7 +52,7 @@ public class FileSystemService : IFileSystemService
         Requires.NotNull(fsItem, nameof(fsItem));
         var pathInstance = FileSystem.Path;
         var root = pathInstance.GetPathRoot(fsItem.FullName);
-        return FileSystem.DriveInfo.FromDriveName(root).AvailableFreeSpace;
+        return FileSystem.DriveInfo.New(root!).AvailableFreeSpace;
     }
 
     /// <inheritdoc/>
@@ -62,7 +62,7 @@ public class FileSystemService : IFileSystemService
         Stream? stream = null;
         ExecuteFileActionWithRetry(retryCount, retryDelay,
             () => stream =
-                FileSystem.FileStream.Create(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None));
+                FileSystem.FileStream.New(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None));
         return stream;
     }
 
@@ -474,7 +474,9 @@ public class FileSystemService : IFileSystemService
         private void CreateDirectoryOfFile(string filePath)
         {
             var directoryPath = _service.FileSystem.Path.GetDirectoryName(filePath);
-            _service.FileSystem.Directory.CreateDirectory(directoryPath);
+            if (string.IsNullOrEmpty(directoryPath))
+                return;
+            _service.FileSystem.Directory.CreateDirectory(directoryPath!);
         }
 
         private struct CopyInformation

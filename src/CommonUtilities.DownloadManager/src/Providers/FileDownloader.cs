@@ -32,7 +32,7 @@ internal class FileDownloader : DownloadProviderBase
         var fileSystem = _serviceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
-        using var fileStream = fileSystem.FileStream.Create(filePath, FileMode.Open, FileAccess.Read);
+        using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
         return StreamUtilities.CopyStreamWithProgress(fileStream, outStream, progress, cancellationToken);
     }
 }

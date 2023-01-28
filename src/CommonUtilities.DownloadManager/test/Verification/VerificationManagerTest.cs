@@ -94,7 +94,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyNoVerifiers()
     { 
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -111,7 +111,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyException()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -128,7 +128,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifySuccess()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -145,7 +145,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifySuccessMany()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -164,7 +164,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyFailure()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -181,7 +181,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyInvalid()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -198,7 +198,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyFailureMany1()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
@@ -217,7 +217,7 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyFailureMany2()
     {
-        _fileSystem.AddFile("test.file", MockFileData.NullObject);
+        _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.FromFileName("test.file");
 
         var context = new VerificationContext(Array.Empty<byte>(), HashType.None);

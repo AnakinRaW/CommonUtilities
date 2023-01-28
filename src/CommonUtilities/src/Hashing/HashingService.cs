@@ -18,7 +18,7 @@ public class HashingService : IHashingService
             throw new FileNotFoundException(nameof(file));
 
         using var stream =
-            file.FileSystem.FileStream.Create(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            file.FileSystem.FileStream.New(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
         return GetStreamHash(stream, hashType, true);
     }
 

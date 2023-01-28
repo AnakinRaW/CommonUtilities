@@ -44,7 +44,7 @@ public class HashVerifierTest
     [Fact]
     public void TestInvalidVerificationContext()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
         var stream = new MemoryStream();
         var result = _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.MD5));
@@ -54,7 +54,7 @@ public class HashVerifierTest
     [Fact]
     public void TestHashTypeNoneAlwaysSucceeds()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
         var stream = new MemoryStream();
 
@@ -68,7 +68,7 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationFailed()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
         var stream = new MemoryStream();
 
@@ -82,7 +82,7 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationSucceeds()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
         var stream = new MemoryStream();
 
@@ -98,7 +98,7 @@ public class HashVerifierTest
     [Fact]
     public void TestVerificationWithException()
     {
-        _fileSystem.AddFile("test.txt", MockFileData.NullObject);
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.FromFileName("test.txt").FullName;
         var stream = new MemoryStream();
 

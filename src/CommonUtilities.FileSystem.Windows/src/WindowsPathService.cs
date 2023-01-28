@@ -119,7 +119,7 @@ public class WindowsPathService : IWindowsPathService
     public bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
     {
         bool isInRoleWithAccess;
-        var di = _fileSystem.DirectoryInfo.FromDirectoryName(path);
+        var di = _fileSystem.DirectoryInfo.New(path);
         try
         {
             if (!di.Exists)
