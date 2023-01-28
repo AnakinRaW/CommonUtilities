@@ -39,7 +39,7 @@ public class HttpClientDownloadTest
     {
         var outStream = new MemoryStream();
         var result = _provider.Download(
-            new Uri("https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip"),
+            new Uri("http://speedtest.ftp.otenet.gr/files/test100k.db"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);
