@@ -1,12 +1,9 @@
-﻿using System.IO.Abstractions.TestingHelpers;
+﻿#pragma warning disable CS0162
+using System;
+using System.IO.Abstractions.TestingHelpers;
 using Xunit;
 
-#pragma warning disable CS0162
-#if NET
-using System;
-#endif
-
-namespace Sklavenwalker.CommonUtilities.FileSystem.Test;
+namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class PathHelperServiceTest
 {

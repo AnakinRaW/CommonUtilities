@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Win32;
 
-namespace Sklavenwalker.CommonUtilities.Registry.Windows;
+namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 /// <summary>
 /// Windows specific Registry implementation of <see cref="IRegistry"/>

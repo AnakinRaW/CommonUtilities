@@ -2,14 +2,12 @@
 
 	<PropertyGroup>
 		<Description>Helper classes and methods targeting the Filesystem and Paths.</Description>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.0.2</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<RootNamespace>Sklavenwalker.CommonUtilities.FileSystem</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.FileSystem</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.FileSystem</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.FileSystem</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 	</PropertyGroup>
@@ -27,7 +25,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.IO.Abstractions" Version="16.1.23" />
+		<PackageReference Include="System.IO.Abstractions" Version="19.1.13" />
 		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 

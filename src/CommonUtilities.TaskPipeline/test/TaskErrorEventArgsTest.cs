@@ -1,7 +1,7 @@
 ﻿using Moq;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Test;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Test;
 
 public class TaskErrorEventArgsTest
 {

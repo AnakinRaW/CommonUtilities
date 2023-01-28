@@ -2,15 +2,15 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
-using Sklavenwalker.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class DownloadManagerTest
 {
@@ -140,7 +140,7 @@ public class DownloadManagerTest
         }
 
         p.Setup(x => x.Download(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
-            .Callback<Uri, Stream, ProgressUpdateCallback?, CancellationToken>((_, stream, callback, _) =>
+            .Callback<Uri, Stream, ProgressUpdateCallback, CancellationToken>((_, stream, callback, _) =>
             {
                 stream.WriteByte(1);
                 callback(new ProgressUpdateStatus(1, 1, 0));

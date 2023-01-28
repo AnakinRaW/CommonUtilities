@@ -2,7 +2,7 @@
 using Microsoft.Win32;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.Registry.Windows;
+namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 /// <summary>
 /// Windows specific RegistryKey implementation of <see cref="IRegistryKey"/>

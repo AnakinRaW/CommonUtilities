@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Abstractions;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <summary>
 /// Organizes instances of <see cref="IVerifier"/> for file extensions.

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test;
 
 // From https://github.com/microsoft/vs-threading
 public class AwaitExtensionsTests

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
 
 /// <summary>
 /// Task to Acquire a Mutex.

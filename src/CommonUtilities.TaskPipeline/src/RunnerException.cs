@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// Exception, indication something regarding <see cref="IRunner"/> or <see cref="ITask"/> went wrong

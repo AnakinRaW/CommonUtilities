@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// Base implementation for an <see cref="IJob"/>

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
-using Sklavenwalker.CommonUtilities.TaskPipeline.Tasks;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Test.Tasks;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Test.Tasks;
 
 public class SynchronizedTaskTest
 {
@@ -104,16 +104,13 @@ public class SynchronizedTaskTest
             CallBase = true
         };
 
-        var b = new ManualResetEvent(false);
-
         task.Protected().Setup("SynchronizedInvoke", false, (CancellationToken)default)
             .Callback(() =>
             {
-                b.WaitOne();
+                Task.Delay(1000).Wait();
             });
 
         Task.Factory.StartNew(() => task.Object.Run(default), default, TaskCreationOptions.None, TaskScheduler.Default);
         Assert.Throws<TimeoutException>(() => task.Object.Wait(TimeSpan.FromMilliseconds(100)));
-        b.Set();
     }
 }

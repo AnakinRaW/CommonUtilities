@@ -4,11 +4,11 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
+using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Microsoft.Win32;
-using Sklavenwalker.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
 /// Specialized <see cref="IFileSystemService"/> which is optimized for the use in Windows

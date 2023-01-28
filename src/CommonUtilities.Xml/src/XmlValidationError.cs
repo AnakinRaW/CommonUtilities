@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.Xml;
+﻿namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <summary>
 /// Represents an XML Validation error.

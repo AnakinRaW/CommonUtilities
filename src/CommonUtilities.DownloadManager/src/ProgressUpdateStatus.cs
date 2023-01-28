@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Progress report data for downloading a file.

@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 internal class HttpClientDownloader : DownloadProviderBase
 {
@@ -118,6 +118,9 @@ internal class HttpClientDownloader : DownloadProviderBase
                 case HttpStatusCode.OK:
                     success = true;
                     return response;
+                default:
+                    _logger?.LogWarning($"Error getting response. Status Code: {response.StatusCode}");
+                    break;
             }
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
 /// <summary>
 /// Options how verification at the end of a download shall be handled.

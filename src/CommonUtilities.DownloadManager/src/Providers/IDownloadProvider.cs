@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 /// <summary>
 /// Provider which downloads a file in a specific manner.

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.AccessControl;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
 /// Service for validating file and directory paths for the Windows Operating System.

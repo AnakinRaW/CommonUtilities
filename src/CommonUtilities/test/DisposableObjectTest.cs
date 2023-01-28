@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test;
 
 public class DisposableObjectTest
 {

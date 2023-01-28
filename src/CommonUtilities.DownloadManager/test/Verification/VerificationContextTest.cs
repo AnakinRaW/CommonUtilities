@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
-using Sklavenwalker.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Verification;
 
 public class VerificationContextTest
 {
@@ -19,7 +19,7 @@ public class VerificationContextTest
     public void TestValidateCorrect(HashType type, byte[] data)
     {
         var v = new VerificationContext(data, type);
-        Assert.True(v.Verify());
+        Assert.True((bool)v.Verify());
     }
 
     [Theory]
@@ -27,7 +27,7 @@ public class VerificationContextTest
     public void TestInvalidateCorrect(HashType type, byte[] data)
     {
         var v = new VerificationContext(data, type);
-        Assert.False(v.Verify());
+        Assert.False((bool)v.Verify());
     }
 
     public static IEnumerable<object[]> ValidContextData()

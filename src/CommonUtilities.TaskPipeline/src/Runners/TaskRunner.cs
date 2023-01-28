@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Runners;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Runners;
 
 /// <summary>
 /// Runner engine, which executes all queued <see cref="ITask"/> sequentially in the order they are queued. 

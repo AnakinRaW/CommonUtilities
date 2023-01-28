@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sklavenwalker.CommonUtilities.Registry;
+namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// Platform independent <see cref="IRegistry"/> implementation which stores keys in memory only.

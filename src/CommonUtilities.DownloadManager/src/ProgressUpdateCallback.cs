@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Delegate representing a download progress report.

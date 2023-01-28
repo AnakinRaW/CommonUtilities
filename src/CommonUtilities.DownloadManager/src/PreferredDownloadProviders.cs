@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 internal class PreferredDownloadProviders
 {

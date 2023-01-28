@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
 /// <summary>
 /// Specifies the available implementations for Internet-based downloads

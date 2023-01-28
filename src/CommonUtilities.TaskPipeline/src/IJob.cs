@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// Jobs can be planned and then run one or many operations.

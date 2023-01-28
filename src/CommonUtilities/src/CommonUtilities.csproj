@@ -2,14 +2,12 @@
 
 	<PropertyGroup>
 		<Description>Shared set of common classes and utilities for all of my software.</Description>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.1.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<RootNamespace>Sklavenwalker.CommonUtilities</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	</PropertyGroup>
@@ -23,7 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.IO.Abstractions" Version="16.1.23" />
+		<PackageReference Include="System.IO.Abstractions" Version="19.1.13" />
 		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 

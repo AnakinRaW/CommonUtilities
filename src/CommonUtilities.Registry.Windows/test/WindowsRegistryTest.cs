@@ -2,7 +2,7 @@
 using Microsoft.Win32;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Registry.Windows.Test;
+namespace AnakinRaW.CommonUtilities.Registry.Windows.Test;
 
 public class WindowsRegistryKeyTest : IDisposable
 {
