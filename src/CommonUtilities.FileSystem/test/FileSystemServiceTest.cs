@@ -5,7 +5,7 @@ using Xunit;
 
 #pragma warning disable CS0162
 
-namespace Sklavenwalker.CommonUtilities.FileSystem.Test;
+namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class FileSystemServiceTest
 {

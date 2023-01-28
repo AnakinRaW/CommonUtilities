@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Test;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Test;
 
 public class ExtensionsTest
 {

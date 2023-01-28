@@ -2,13 +2,13 @@
 using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
-using Sklavenwalker.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Verification;
 
 public class HashVerifierTest
 {

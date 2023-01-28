@@ -3,7 +3,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Sklavenwalker.CommonUtilities.Xml;
+namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <inheritdoc cref="IXmlObjectParser{T}"/>
 public class XmlObjectParser<T> : IXmlObjectParser<T> where T: class

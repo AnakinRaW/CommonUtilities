@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem;
+namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <summary>
 /// Specifies how moving a directory shall behave.

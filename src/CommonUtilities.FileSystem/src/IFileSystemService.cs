@@ -4,7 +4,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem;
+namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <summary>
 /// Service for common task when interacting with the file system.

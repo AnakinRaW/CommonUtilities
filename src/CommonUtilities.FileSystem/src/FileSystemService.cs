@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.FileSystem;
+namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <inheritdoc cref="IFileSystemService"/>
 public class FileSystemService : IFileSystemService

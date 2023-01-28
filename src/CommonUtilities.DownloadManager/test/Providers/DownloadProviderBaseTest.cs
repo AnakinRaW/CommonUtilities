@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Moq;
 using Moq.Protected;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class DownloadProviderBaseTest
 {

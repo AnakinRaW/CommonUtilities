@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using Sklavenwalker.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test;
 
 public class HashingServiceTest
 {
@@ -48,7 +48,7 @@ public class HashingServiceTest
     {
         var ms = new MemoryStream();
         var hash = _hashingService.GetStreamHash(ms, type);
-        Assert.Equal(digestSize, hash.Length);
+        Assert.Equal<int>(digestSize, hash.Length);
     }
 
     [Fact]

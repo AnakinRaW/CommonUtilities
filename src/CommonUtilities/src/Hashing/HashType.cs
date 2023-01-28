@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.Hashing;
+﻿namespace AnakinRaW.CommonUtilities.Hashing;
 
 /// <summary>
 /// Supported Hashing Algorithms by the <see cref="IHashingService"/>.

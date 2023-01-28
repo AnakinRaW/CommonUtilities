@@ -8,8 +8,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<RootNamespace>Sklavenwalker.CommonUtilities.FileSystem</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.FileSystem</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.FileSystem</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.FileSystem</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 	</PropertyGroup>

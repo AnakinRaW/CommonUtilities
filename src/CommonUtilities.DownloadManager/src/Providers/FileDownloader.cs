@@ -4,7 +4,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 internal class FileDownloader : DownloadProviderBase
 {

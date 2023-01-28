@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 /// <summary>
 /// <see cref="EventArgs"/> for faulted <see cref="ITask"/>.

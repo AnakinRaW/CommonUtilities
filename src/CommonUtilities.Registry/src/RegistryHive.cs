@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.Registry;
+﻿namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// Represents the possible values for a top-level node.

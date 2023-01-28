@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities.Registry;
+namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// High-Level abstraction layer for the a Registry Key implementation.

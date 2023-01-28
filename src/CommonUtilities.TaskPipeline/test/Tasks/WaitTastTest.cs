@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Sklavenwalker.CommonUtilities.TaskPipeline.Tasks;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Test.Tasks;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Test.Tasks;
 
 public class WaitTastTest
 {

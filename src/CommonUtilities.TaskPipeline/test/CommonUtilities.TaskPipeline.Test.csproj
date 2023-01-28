@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<RootNamespace>Sklavenwalker.CommonUtilities.TaskPipeline.Test</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.TaskPipeline.Test</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.TaskPipeline.Test</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.TaskPipeline.Test</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>

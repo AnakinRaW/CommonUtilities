@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.Registry;
+﻿namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// Provides <see cref="IRegistryKey"/> objects that represent the root keys in the based on the Windows registry layout.

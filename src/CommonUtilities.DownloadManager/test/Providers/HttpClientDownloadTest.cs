@@ -4,11 +4,11 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class HttpClientDownloadTest
 {
@@ -28,7 +28,7 @@ public class HttpClientDownloadTest
         var outStream = new MemoryStream();
         var result = _provider.Download(new Uri("https://example.com/test.txt"), outStream, null,
             CancellationToken.None);
-        Assert.Equal(0, result.DownloadedSize);
+        Assert.Equal<long>(0, result.DownloadedSize);
     }
 
     [Fact]

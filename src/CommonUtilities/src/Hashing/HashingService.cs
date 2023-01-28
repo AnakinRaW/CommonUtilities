@@ -2,12 +2,10 @@
 using System.IO;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
-using Validation;
-#if NET
 using System.Threading.Tasks;
-#endif
+using Validation;
 
-namespace Sklavenwalker.CommonUtilities.Hashing;
+namespace AnakinRaW.CommonUtilities.Hashing;
 
 /// <inheritdoc cref="IHashingService"/>
 public class HashingService : IHashingService

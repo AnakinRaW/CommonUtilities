@@ -10,8 +10,8 @@
 		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<RootNamespace>Sklavenwalker.CommonUtilities.TaskPipeline</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.TaskPipeline</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.TaskPipeline</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.TaskPipeline</AssemblyName>
 	</PropertyGroup>
 	
 	<PropertyGroup>

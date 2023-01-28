@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <inheritdoc cref="IVerificationManager"/>
 public class VerificationManager : IVerificationManager

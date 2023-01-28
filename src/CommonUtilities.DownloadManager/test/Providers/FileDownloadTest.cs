@@ -4,11 +4,11 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Threading;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class FileDownloadTest
 {
@@ -32,7 +32,7 @@ public class FileDownloadTest
         var outStream = new MemoryStream();
         var result = _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
 
-        Assert.Equal(data.Length, result.DownloadedSize);
+        Assert.Equal<long>(data.Length, result.DownloadedSize);
         var copyData = Encoding.Default.GetString(outStream.ToArray());
         Assert.Equal(data, copyData);
     }

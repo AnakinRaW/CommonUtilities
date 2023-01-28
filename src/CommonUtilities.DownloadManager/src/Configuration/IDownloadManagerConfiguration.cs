@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
 /// <summary>
 /// Configures the behavior of an <see cref="IDownloadManager"/>

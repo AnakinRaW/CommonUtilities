@@ -5,11 +5,11 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Threading;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test.Providers;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
 public class WebClientDownloadTest
 {

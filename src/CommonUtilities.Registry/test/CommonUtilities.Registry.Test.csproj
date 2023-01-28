@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Test</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Test</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.Registry.Test</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.Registry.Test</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>

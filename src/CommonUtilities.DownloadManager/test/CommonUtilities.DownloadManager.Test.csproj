@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0</TargetFrameworks>
@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<RootNamespace>Sklavenwalker.CommonUtilities.DownloadManager.Test</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.DownloadManager.Test</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.DownloadManager.Test</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.DownloadManager.Test</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>

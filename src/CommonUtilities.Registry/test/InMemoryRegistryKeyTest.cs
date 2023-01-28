@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.Registry.Test;
+namespace AnakinRaW.CommonUtilities.Registry.Test;
 
 public class InMemoryRegistryKeyTest
 {

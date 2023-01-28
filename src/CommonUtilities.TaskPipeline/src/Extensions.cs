@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.TaskPipeline;
 
 internal static class Extensions
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Sklavenwalker.CommonUtilities.Registry;
+namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// Base implementation for an <inheritdoc cref="IRegistryKey"/>.

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sklavenwalker.CommonUtilities;
+namespace AnakinRaW.CommonUtilities;
 
 /// <summary>
 /// Base implementation for classes which shall implement the <see cref="IDisposable"/> interface.

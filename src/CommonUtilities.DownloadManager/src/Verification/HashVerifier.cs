@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
+using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Sklavenwalker.CommonUtilities.Hashing;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <summary>
 /// Verifies files based on their Hash.

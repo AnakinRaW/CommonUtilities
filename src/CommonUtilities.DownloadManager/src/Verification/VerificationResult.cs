@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <summary>
 /// The status of file verification.

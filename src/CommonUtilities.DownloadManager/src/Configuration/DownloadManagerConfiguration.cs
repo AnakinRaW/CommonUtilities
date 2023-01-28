@@ -1,4 +1,4 @@
-﻿namespace Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
+﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
 /// <inheritdoc cref="IDownloadManagerConfiguration"/>
 public record DownloadManagerConfiguration : IDownloadManagerConfiguration

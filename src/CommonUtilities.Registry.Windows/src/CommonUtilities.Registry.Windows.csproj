@@ -8,8 +8,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
-		<RootNamespace>Sklavenwalker.CommonUtilities.Registry.Windows</RootNamespace>
-		<AssemblyName>Sklavenwalker.CommonUtilities.Registry.Windows</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.Registry.Windows</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.Registry.Windows</AssemblyName>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 	</PropertyGroup>

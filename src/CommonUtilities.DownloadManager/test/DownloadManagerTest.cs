@@ -2,15 +2,15 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
-using Sklavenwalker.CommonUtilities.Hashing;
 using Xunit;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Test;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class DownloadManagerTest
 {

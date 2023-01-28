@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.TaskPipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
 
 /// <summary>
 /// Base implementation for an <see cref="ITask"/>

@@ -1,7 +1,7 @@
-﻿using Sklavenwalker.CommonUtilities.Hashing;
+﻿using AnakinRaW.CommonUtilities.Hashing;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
 /// <summary>
 /// Holds verification information of a downloaded file.

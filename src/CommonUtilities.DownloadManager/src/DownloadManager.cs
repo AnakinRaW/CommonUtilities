@@ -4,14 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
+using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Sklavenwalker.CommonUtilities.DownloadManager.Configuration;
-using Sklavenwalker.CommonUtilities.DownloadManager.Providers;
-using Sklavenwalker.CommonUtilities.DownloadManager.Verification;
 using Validation;
 
-namespace Sklavenwalker.CommonUtilities.DownloadManager;
+namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
 /// Download manager which supports local file system and HTTP downloads by default.
