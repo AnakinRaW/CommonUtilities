@@ -2,8 +2,6 @@
 
 	<PropertyGroup>
 		<Description>Provides a Registry implementation for CommonUtilities.Registry on the Windows operating system.</Description>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.1.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
