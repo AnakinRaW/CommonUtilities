@@ -12,9 +12,9 @@ jobs:
   build-test:
     name: Build & Test
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-      fail-fast: false
     runs-on: ${{ matrix.os }}
         
     steps:
