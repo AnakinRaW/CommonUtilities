@@ -27,13 +27,13 @@ internal class FileDownloader : DownloadProviderBase
         };
     }
 
-    private Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, ProgressUpdateCallback? progress,
+    private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var fileSystem = _serviceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
         using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
-        return StreamUtilities.CopyStreamWithProgressAsync(fileStream, outStream, progress, cancellationToken);
+        return await StreamUtilities.CopyStreamWithProgressAsync(fileStream, outStream, progress, cancellationToken);
     }
 }
