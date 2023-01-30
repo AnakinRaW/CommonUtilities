@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 public class DownloadProviderBaseTest
 {
     [Fact]
-    public void TestDownloadWithBitRate()
+    public async Task TestDownloadWithBitRate()
     {
         var provMock = new Mock<DownloadProviderBase>("File", DownloadSource.File)
         {
@@ -33,17 +33,17 @@ public class DownloadProviderBaseTest
         }
 
         provMock.Protected()
-            .Setup<DownloadSummary>("DownloadCore", ItExpr.IsAny<Uri>(), ItExpr.IsAny<Stream>(),
+            .Setup<Task<DownloadSummary>>("DownloadAsyncCore", ItExpr.IsAny<Uri>(), ItExpr.IsAny<Stream>(),
                 ItExpr.IsAny<ProgressUpdateCallback>(), ItExpr.IsAny<CancellationToken>())
             .Callback((Uri _, Stream _, ProgressUpdateCallback p, CancellationToken _) =>
             {
                 Task.Delay(100).Wait();
                 p.Invoke(new ProgressUpdateStatus(1, 2, 100));
             })
-            .Returns(result);
+            .ReturnsAsync(result);
 
         var prov = provMock.Object;
-        var actual = prov.Download(new Uri("file://C:/test.file"), new MemoryStream(), Callback, CancellationToken.None);
+        var actual = await prov.DownloadAsync(new Uri("file://C:/test.file"), new MemoryStream(), Callback, CancellationToken.None);
 
         Assert.Same(result, actual);
         Assert.True(actual.DownloadTime != default);

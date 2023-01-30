@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
+namespace AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 
 /// <summary>
 /// Verifies files based on their Hash.
 /// </summary>
-public class HashVerifier : IVerifier
+public class HashVerifier : IVerifier<HashingData>
 {
     private readonly ILogger? _logger;
     private readonly IFileSystem _fileSystem;
@@ -28,18 +28,29 @@ public class HashVerifier : IVerifier
         _hashingService = serviceProvider.GetRequiredService<IHashingService>();
     }
 
-    /// <inheritdoc/>
-    public VerificationResult Verify(Stream file, VerificationContext verificationContext)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="file"></param>
+    /// <param name="verificationContext"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public VerificationResult Verify(Stream file, IVerificationContext<HashingData> verificationContext)
     {
         Requires.NotNull(file, nameof(file));
         if (file is not FileStream fileStream)
             throw new ArgumentException("The stream does not represent a file", nameof(file));
         var path = fileStream.Name;
         return Verify(file, path, verificationContext);
-
     }
 
-    internal VerificationResult Verify(Stream file, string path, VerificationContext verificationContext)
+    /// <inheritdoc/>
+    VerificationResult IVerifier.Verify(Stream file, IVerificationContext verificationContext)
+    {
+        return Verify(file, (IVerificationContext<HashingData>)verificationContext);
+    }
+
+    internal VerificationResult Verify(Stream file, string path, IVerificationContext<HashingData> verificationContext)
     {
         if (string.IsNullOrEmpty(path) || !_fileSystem.File.Exists(path))
             throw new FileNotFoundException("Cannot verify a non-existing file.");
@@ -48,10 +59,10 @@ public class HashVerifier : IVerifier
             if (!verificationContext.Verify())
                 return VerificationResult.VerificationContextError;
 
-            if (verificationContext.HashType == HashType.None)
+            if (verificationContext.VerificationData.HashType == HashType.None)
                 return VerificationResult.Success;
 
-            return CompareHashes(file, verificationContext.HashType, verificationContext.Hash)
+            return CompareHashes(file, verificationContext.VerificationData.HashType, verificationContext.VerificationData.Hash)
                 ? VerificationResult.Success
                 : VerificationResult.VerificationFailed;
         }

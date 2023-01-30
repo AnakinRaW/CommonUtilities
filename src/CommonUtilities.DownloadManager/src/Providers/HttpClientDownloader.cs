@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
@@ -27,32 +28,30 @@ internal class HttpClientDownloader : DownloadProviderBase
         _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
-    protected override DownloadSummary DownloadCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var summary = new DownloadSummary();
-        var response = GetWebResponse(uri, ref summary, out var webRequest, cancellationToken);
+        var webRequest = CreateRequest(uri);
+        var response = await GetWebResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
         {
             if (response is not null)
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    using var responseStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                    using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
                     var contentLengthData = response.Content.Headers.ContentLength;
                     if (contentLengthData is null or 0L)
                         throw new IOException("Error: Response stream length is 0.");
 
                     var contentLength = contentLengthData.Value;
 
-                    StreamUtilities.CopyStreamWithProgress(responseStream, contentLength, outputStream, progress,
-                        cancellationToken);
-
-                    var requestRegistration = cancellationToken.Register(() => webRequest?.Dispose());
+                    var requestRegistration = cancellationToken.Register(() => webRequest.Dispose());
                     try
                     {
-                        summary.DownloadedSize = StreamUtilities.CopyStreamWithProgress(responseStream, contentLength, outputStream, progress,
-                            cancellationToken);
+                        summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream, contentLength, outputStream, progress,
+                            cancellationToken).ConfigureAwait(false);
                         return summary;
                     }
                     finally
@@ -86,7 +85,15 @@ internal class HttpClientDownloader : DownloadProviderBase
         }
     }
 
-    private HttpResponseMessage? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpRequestMessage? request,
+    private HttpRequestMessage CreateRequest(Uri uri)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
+        return request;
+    }
+
+    private async Task<HttpResponseMessage?> GetWebResponse(Uri uri, DownloadSummary summary, HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage? response = null;
@@ -100,11 +107,9 @@ internal class HttpClientDownloader : DownloadProviderBase
             var client = new HttpClient(handler)
             {
                 Timeout = TimeSpan.FromMilliseconds(120000)
-            };
-            request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
-            response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).GetAwaiter().GetResult();
+            }; 
+            
+            response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             var responseUri = response.RequestMessage?.RequestUri?.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
@@ -133,8 +138,6 @@ internal class HttpClientDownloader : DownloadProviderBase
             if (response != null && !success)
                 response.Dispose();
         }
-
-        request = null;
         return null;
     }
 }

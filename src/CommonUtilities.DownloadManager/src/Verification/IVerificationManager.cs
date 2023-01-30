@@ -34,7 +34,7 @@ public interface IVerificationManager
     /// <returns>Combined result of all used verifier instances. If none was used <see cref="VerificationResult.NotVerified"/> is returned.</returns>
     /// <exception cref="FileNotFoundException"> if <paramref name="file"/> is found.</exception>
     /// <exception cref="ArgumentException"> if <paramref name="file"/> is not a <see cref="FileStream"/>.</exception>
-    public VerificationResult Verify(Stream file, VerificationContext verificationContext);
+    public VerificationResult Verify(Stream file, IVerificationContext verificationContext);
 
     /// <summary>
     /// Verifies a given file against all registered verifiers for that file extension.
@@ -45,5 +45,5 @@ public interface IVerificationManager
     /// <param name="verificationContext">The context information to verify the file against.</param>
     /// <returns>Combined result of all used verifier instances. If none was used <see cref="VerificationResult.NotVerified"/> is returned.</returns>
     /// <exception cref="FileNotFoundException"> if <paramref name="file"/> is found.</exception>
-    public VerificationResult Verify(IFileInfo file, VerificationContext verificationContext);
+    public VerificationResult Verify(IFileInfo file, IVerificationContext verificationContext);
 }

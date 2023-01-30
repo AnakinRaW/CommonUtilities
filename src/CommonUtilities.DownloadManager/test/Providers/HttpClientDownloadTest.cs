@@ -26,19 +26,19 @@ public class HttpClientDownloadTest
     }
 
     [Fact]
-    public void TestDownloadNotFound()
+    public async Task TestDownloadNotFound()
     {
         var outStream = new MemoryStream();
-        var result = _provider.Download(new Uri("https://example.com/test.txt"), outStream, null,
+        var result = await _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null,
             CancellationToken.None);
         Assert.Equal<long>(0, result.DownloadedSize);
     }
 
     [Fact]
-    public void TestDownload()
+    public async Task TestDownload()
     {
         var outStream = new MemoryStream();
-        var result = _provider.Download(
+        var result = await _provider.DownloadAsync(
             new Uri("http://speedtest.ftp.otenet.gr/files/test100k.db"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
@@ -46,12 +46,13 @@ public class HttpClientDownloadTest
     }
 
     [Fact]
-    public void TestDownloadCancelled()
+    public async Task TestDownloadCancelled()
     {
         var outStream = new MemoryStream();
         var cts = new CancellationTokenSource();
         cts.Cancel();
-        Assert.Throws<TaskCanceledException>(() =>
-            _provider.Download(new Uri("https://example.com/test.txt"), outStream, null, cts.Token));
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() =>
+            _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null, cts.Token));
     }
 }

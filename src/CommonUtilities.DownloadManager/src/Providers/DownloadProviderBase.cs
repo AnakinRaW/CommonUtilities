@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
@@ -44,7 +45,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     }
 
     /// <inheritdoc/>
-    public DownloadSummary Download(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    public Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         return DownloadWithBitRate(uri, outputStream, progress, cancellationToken);
@@ -58,10 +59,10 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <param name="progress">Progress with already updated performance data.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    protected abstract DownloadSummary DownloadCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected abstract Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 
-    private DownloadSummary DownloadWithBitRate(
+    private async Task<DownloadSummary> DownloadWithBitRate(
         Uri uri,
         Stream outputStream,
         ProgressUpdateCallback? progress,
@@ -79,7 +80,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
                 progress(new ProgressUpdateStatus(p.BytesRead, p.TotalBytes, bitRate));
                 lastProgressUpdate = now;
             };
-        var downloadSummary = DownloadCore(uri, outputStream, wrappedProgress, cancellationToken);
+        var downloadSummary = await DownloadAsyncCore(uri, outputStream, wrappedProgress, cancellationToken).ConfigureAwait(false);
         downloadSummary.DownloadTime = DateTime.Now - start;
         downloadSummary.BitRate = 8.0 * downloadSummary.DownloadedSize / downloadSummary.DownloadTime.TotalSeconds;
         return downloadSummary;

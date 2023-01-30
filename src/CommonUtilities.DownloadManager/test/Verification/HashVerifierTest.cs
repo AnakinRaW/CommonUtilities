@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -29,7 +30,7 @@ public class HashVerifierTest
     public void TestStreamIsNotFileStream()
     {
         Assert.Throws<ArgumentException>(() =>
-            _verifier.Verify(new MemoryStream(), new VerificationContext(Array.Empty<byte>(), HashType.None)));
+            _verifier.Verify(new MemoryStream(), new HashVerificationContext(default)));
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public class HashVerifierTest
         var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
         Assert.Throws<FileNotFoundException>(() =>
-            _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.None)));
+            _verifier.Verify(stream, path, new HashVerificationContext(default)));
     }
 
     [Fact]
@@ -47,7 +48,7 @@ public class HashVerifierTest
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
         var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
-        var result = _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.MD5));
+        var result = _verifier.Verify(stream, path, new HashVerificationContext(new HashingData(HashType.MD5, Array.Empty<byte>())));
         Assert.Equal(VerificationResult.VerificationContextError, result);
     }
     
@@ -61,7 +62,7 @@ public class HashVerifierTest
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
             .Returns(new byte[] { 1 });
 
-        var result = _verifier.Verify(stream, path, new VerificationContext(Array.Empty<byte>(), HashType.None));
+        var result = _verifier.Verify(stream, path, HashVerificationContext.None);
         Assert.Equal(VerificationResult.Success, result);
     }
 
@@ -75,7 +76,7 @@ public class HashVerifierTest
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
             .Returns(new byte[]{1});
 
-        var result = _verifier.Verify(stream, path, new VerificationContext(new byte[16], HashType.MD5));
+        var result = _verifier.Verify(stream, path, new HashVerificationContext(new byte[16], HashType.MD5));
         Assert.Equal(VerificationResult.VerificationFailed, result);
     }
 
@@ -91,7 +92,7 @@ public class HashVerifierTest
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
             .Returns(hash);
 
-        var result = _verifier.Verify(stream, path, new VerificationContext(hash, HashType.MD5));
+        var result = _verifier.Verify(stream, path, new HashVerificationContext(hash, HashType.MD5));
         Assert.Equal(VerificationResult.Success, result);
     }
 
@@ -107,7 +108,7 @@ public class HashVerifierTest
         _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
             .Throws<Exception>();
 
-        var result = _verifier.Verify(stream, path, new VerificationContext(hash, HashType.MD5));
+        var result = _verifier.Verify(stream, path, new HashVerificationContext(hash, HashType.MD5));
         Assert.Equal(VerificationResult.Exception, result);
     }
 }
