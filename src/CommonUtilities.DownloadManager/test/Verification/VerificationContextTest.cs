@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 using AnakinRaW.CommonUtilities.Hashing;
 using Xunit;
 
@@ -11,23 +11,23 @@ public class VerificationContextTest
     [Fact]
     public void TestCtor()
     {
-        Assert.Throws<ArgumentNullException>(() => new VerificationContext(null, HashType.None));
+        Assert.Throws<ArgumentNullException>(() => new HashVerificationContext(null, HashType.None));
     }
 
     [Theory]
     [MemberData(nameof(ValidContextData))]
     public void TestValidateCorrect(HashType type, byte[] data)
     {
-        var v = new VerificationContext(data, type);
-        Assert.True((bool)v.Verify());
+        var v = new HashVerificationContext(data, type);
+        Assert.True(v.Verify());
     }
 
     [Theory]
     [MemberData(nameof(InvalidContextData))]
     public void TestInvalidateCorrect(HashType type, byte[] data)
     {
-        var v = new VerificationContext(data, type);
-        Assert.False((bool)v.Verify());
+        var v = new HashVerificationContext(data, type);
+        Assert.False(v.Verify());
     }
 
     public static IEnumerable<object[]> ValidContextData()

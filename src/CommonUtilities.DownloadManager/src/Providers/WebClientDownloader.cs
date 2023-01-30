@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Cache;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
@@ -27,17 +28,18 @@ internal class WebClientDownloader : DownloadProviderBase
         _logger = services.GetService<ILogger>();
     }
 
-    protected override DownloadSummary DownloadCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var summary = new DownloadSummary();
 
-        var webResponse = GetWebResponse(uri, ref summary, out var webRequest, cancellationToken);
+        var webRequest = CreateRequest(uri);
+
+        var webResponse = await GetWebResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
         {
             if (webResponse != null)
             {
-                var responseRegistration = cancellationToken.Register(() => webResponse.Close());
                 try
                 {
                     using var responseStream = webResponse.GetResponseStream();
@@ -51,9 +53,9 @@ internal class WebClientDownloader : DownloadProviderBase
                     var requestRegistration = cancellationToken.Register(() => webRequest!.Abort());
                     try
                     {
-                        summary.DownloadedSize = StreamUtilities.CopyStreamWithProgress(responseStream,
+                        summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream,
                             totalStreamLength, outputStream, progress,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
                         return summary;
                     }
                     finally
@@ -78,10 +80,6 @@ internal class WebClientDownloader : DownloadProviderBase
                         throw;
                     }
                 }
-                finally
-                {
-                    responseRegistration.Dispose();
-                }
             }
 
             return summary;
@@ -92,25 +90,28 @@ internal class WebClientDownloader : DownloadProviderBase
         }
     }
 
-    private HttpWebResponse? GetWebResponse(Uri uri, ref DownloadSummary summary, out HttpWebRequest? webRequest,
+    private static HttpWebRequest CreateRequest(Uri uri)
+    {
+        var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+        webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+        webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");
+        webRequest.KeepAlive = true;
+        webRequest.Timeout = 120000;
+
+        var requestCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+        webRequest.CachePolicy = requestCachePolicy;
+        return webRequest;
+    }
+
+    private async Task<HttpWebResponse?> GetWebResponse(Uri uri, DownloadSummary summary, HttpWebRequest webRequest,
         CancellationToken cancellationToken)
     {
         HttpWebResponse? httpWebResponse = null;
         var successful = true;
         try
         {
-            webRequest = (HttpWebRequest)WebRequest.Create(uri);
-            webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            webRequest.Headers.Add("Accept-Encoding", "gzip,deflate");
-            webRequest.KeepAlive = true;
-            webRequest.Timeout = 120000;
-
-            var requestCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
-            webRequest.CachePolicy = requestCachePolicy;
-            
-            var registerWebRequest = webRequest;
-            using (cancellationToken.Register(() => registerWebRequest.Abort()))
-                httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
+            using (cancellationToken.Register(webRequest.Abort))
+                httpWebResponse = (HttpWebResponse)await webRequest.GetResponseAsync().ConfigureAwait(false);
 
             var responseUri = httpWebResponse.ResponseUri.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&
@@ -152,10 +153,7 @@ internal class WebClientDownloader : DownloadProviderBase
             if (httpWebResponse != null && successful)
                 httpWebResponse.Close();
         }
-
-        webRequest = null;
         return null;
     }
-
 }
 #endif

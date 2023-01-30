@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
@@ -8,24 +9,24 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 public class StreamUtilitiesTest
 {
     [Fact]
-    public void TestStreamsNotDisposed()
+    public async Task TestStreamsNotDisposed()
     {
         var inputData = Array.Empty<byte>();
         var input = new MemoryStream(inputData);
         var output = new MemoryStream();
-        var bytesRead = StreamUtilities.CopyStreamWithProgress(input, output, null, CancellationToken.None);
+        var bytesRead = await StreamUtilities.CopyStreamWithProgressAsync(input, output, null, CancellationToken.None);
         Assert.Equal(0, bytesRead);
         Assert.True(output.CanWrite);
         Assert.True(output.CanRead);
     }
 
     [Fact]
-    public void TestStreamLengthAndCorrectCopy()
+    public async Task TestStreamLengthAndCorrectCopy()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
         var output = new MemoryStream();
-        var bytesRead = StreamUtilities.CopyStreamWithProgress(input, output, null, CancellationToken.None);
+        var bytesRead = await StreamUtilities.CopyStreamWithProgressAsync(input, output, null, CancellationToken.None);
         Assert.Equal(3, bytesRead);
         output.Seek(0, SeekOrigin.Begin);
         var outputData = new byte[3];
@@ -34,27 +35,27 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public void TestInputLengthTooSmall()
+    public async Task TestInputLengthTooSmall()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
         var output = new MemoryStream();
-        var bytesRead = StreamUtilities.CopyStreamWithProgress(input, 1, output, null, CancellationToken.None);
+        var bytesRead = await StreamUtilities.CopyStreamWithProgressAsync(input, 1, output, null, CancellationToken.None);
         Assert.Equal(3, bytesRead);
     }
 
     [Fact]
-    public void TestInputLengthTooLarge()
+    public async Task TestInputLengthTooLarge()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
         var output = new MemoryStream();
-        var bytesRead = StreamUtilities.CopyStreamWithProgress(input, 4, output, null, CancellationToken.None);
+        var bytesRead = await StreamUtilities.CopyStreamWithProgressAsync(input, 4, output, null, CancellationToken.None);
         Assert.Equal(3, bytesRead);
     }
 
     [Fact]
-    public void TestProgressReport()
+    public async Task TestProgressReport()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -65,12 +66,12 @@ public class StreamUtilitiesTest
         {
             bytesRead = d.BytesRead;
         }
-        StreamUtilities.CopyStreamWithProgress(input, output, Action, CancellationToken.None);
+        await StreamUtilities.CopyStreamWithProgressAsync(input, output, Action, CancellationToken.None);
         Assert.Equal(3, bytesRead);
     }
 
     [Fact]
-    public void TestCancellation()
+    public async Task TestCancellation()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -83,8 +84,8 @@ public class StreamUtilitiesTest
             bytesRead = d.BytesRead;
         }
         t.Cancel();
-        Assert.Throws<OperationCanceledException>(() =>
-            StreamUtilities.CopyStreamWithProgress(input, output, Action, t.Token));
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await StreamUtilities.CopyStreamWithProgressAsync(input, output, Action, t.Token));
         Assert.Equal(0, bytesRead);
     }
 }
