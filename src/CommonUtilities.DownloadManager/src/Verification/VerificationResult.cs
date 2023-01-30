@@ -14,7 +14,7 @@ public enum VerificationResult
     /// </summary>
     Success,
     /// <summary>
-    /// Verification failed because <see cref="VerificationContext"/> was invalid.
+    /// Verification failed because <see cref="IVerificationContext"/> was invalid.
     /// </summary>
     VerificationContextError,
     /// <summary>

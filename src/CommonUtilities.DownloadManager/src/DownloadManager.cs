@@ -66,7 +66,7 @@ public class DownloadManager : IDownloadManager {
 
     /// <inheritdoc/>
     public Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
-        VerificationContext? verificationContext = null, CancellationToken cancellationToken = default)
+        IVerificationContext? verificationContext = null, CancellationToken cancellationToken = default)
     {
         _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
         if (outputStream == null)
@@ -110,7 +110,7 @@ public class DownloadManager : IDownloadManager {
     }
 
     private async Task<DownloadSummary> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
-        ProgressUpdateCallback? progress, VerificationContext? verificationContext, CancellationToken cancellationToken)
+        ProgressUpdateCallback? progress, IVerificationContext? verificationContext, CancellationToken cancellationToken)
     {
         if (_configuration.VerificationPolicy == VerificationPolicy.Enforce && verificationContext is null)
         {

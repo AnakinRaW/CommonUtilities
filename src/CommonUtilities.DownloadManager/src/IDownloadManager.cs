@@ -31,9 +31,9 @@ public interface IDownloadManager
     /// <param name="uri">The source location of the file.</param>
     /// <param name="outputStream">The output stream where to download the file to.</param>
     /// <param name="progress">Progress callback</param>
-    /// <param name="verificationContext">The <see cref="VerificationContext"/> of the downloaded file.</param>
+    /// <param name="verificationContext">The <see cref="IVerificationContext"/> of the downloaded file.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task object producing a summary of the download operation.</returns>
     Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
-        VerificationContext? verificationContext = null, CancellationToken cancellationToken = default);
+        IVerificationContext? verificationContext = null, CancellationToken cancellationToken = default);
 }

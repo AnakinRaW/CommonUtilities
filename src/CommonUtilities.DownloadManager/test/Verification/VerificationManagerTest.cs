@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 using AnakinRaW.CommonUtilities.Hashing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -83,12 +84,12 @@ public class VerificationManagerTest
     [Fact]
     public void TestVerifyFails()
     {
-        Assert.Throws<ArgumentNullException>(() => _manager.Verify((Stream) null, new VerificationContext(Array.Empty<byte>(), HashType.None)));
-        Assert.Throws<ArgumentNullException>(() => _manager.Verify((IFileInfo) null, new VerificationContext(Array.Empty<byte>(), HashType.None)));
-        Assert.Throws<ArgumentException>(() => _manager.Verify(new MemoryStream(), new VerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<ArgumentNullException>(() => _manager.Verify((Stream) null, new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<ArgumentNullException>(() => _manager.Verify((IFileInfo) null, new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<ArgumentException>(() => _manager.Verify(new MemoryStream(), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
         
-        Assert.Throws<FileNotFoundException>(() => _manager.Verify(new FileStream("test.file", FileMode.Open), new VerificationContext(Array.Empty<byte>(), HashType.None)));
-        Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileInfo.New("test.file"), new VerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<FileNotFoundException>(() => _manager.Verify(new FileStream("test.file", FileMode.Open), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileInfo.New("test.file"), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
     }
 
     [Fact]
@@ -97,14 +98,14 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifier = new Mock<IVerifier>();
         verifier.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.Success);
 
         _manager.Verifiers["exe"] = new List<IVerifier> { verifier.Object };
 
-        var result = _manager.Verify(file, new VerificationContext(Array.Empty<byte>(), HashType.None));
+        var result = _manager.Verify(file, new HashVerificationContext(Array.Empty<byte>(), HashType.None));
         Assert.Equal(VerificationResult.NotVerified, result);
     }
 
@@ -114,7 +115,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifier = new Mock<IVerifier>();
         verifier.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Throws<Exception>();
@@ -131,7 +132,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifier = new Mock<IVerifier>();
         verifier.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.Success);
@@ -148,7 +149,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifierA = new Mock<IVerifier>();
         verifierA.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.Success);
@@ -167,7 +168,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifier = new Mock<IVerifier>();
         verifier.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.VerificationFailed);
@@ -184,7 +185,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifier = new Mock<IVerifier>();
         verifier.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.VerificationContextError);
@@ -201,7 +202,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifierA = new Mock<IVerifier>();
         verifierA.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.Success);
@@ -220,7 +221,7 @@ public class VerificationManagerTest
         _fileSystem.AddFile("test.file", new MockFileData(string.Empty));
         var file = _fileSystem.FileInfo.New("test.file");
 
-        var context = new VerificationContext(Array.Empty<byte>(), HashType.None);
+        var context = new HashVerificationContext(Array.Empty<byte>(), HashType.None);
 
         var verifierA = new Mock<IVerifier>();
         verifierA.Setup(v => v.Verify(It.IsAny<Stream>(), context)).Returns(VerificationResult.VerificationFailed);
