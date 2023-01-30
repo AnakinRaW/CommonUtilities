@@ -4,6 +4,7 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -23,14 +24,14 @@ public class FileDownloadTest
     }
 
     [Fact]
-    public void TestDownload()
+    public async Task TestDownload()
     {
         const string data = "This is some text.";
         _fileSystem.AddFile("test.file", new MockFileData(data));
         var source = _fileSystem.FileInfo.New("test.file");
 
         var outStream = new MemoryStream();
-        var result = _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
+        var result = await _provider.DownloadAsync(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
 
         Assert.Equal<long>(data.Length, result.DownloadedSize);
         var copyData = Encoding.Default.GetString(outStream.ToArray());
@@ -38,11 +39,11 @@ public class FileDownloadTest
     }
 
     [Fact]
-    public void TestDownloadFileNotFound()
+    public async Task TestDownloadFileNotFound()
     {
         var source = _fileSystem.FileInfo.New("test.file");
         var outStream = new MemoryStream();
-        Assert.Throws<FileNotFoundException>(() =>
-            _provider.Download(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None));
+        await Assert.ThrowsAsync<FileNotFoundException>(() =>
+            _provider.DownloadAsync(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None));
     }
 }

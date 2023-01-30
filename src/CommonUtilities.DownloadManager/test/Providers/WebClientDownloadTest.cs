@@ -5,6 +5,7 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -24,18 +25,18 @@ public class WebClientDownloadTest
     }
 
     [Fact]
-    public void TestDownloadNotFound()
+    public async Task TestDownloadNotFound()
     {
         var outStream = new MemoryStream();
-        Assert.Throws<WebException>(() =>
-            _provider.Download(new Uri("https://example.com/test.txt"), outStream, null, CancellationToken.None));
+        await Assert.ThrowsAsync<WebException>(() =>
+            _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null, CancellationToken.None));
     }
 
     [Fact]
-    public void TestDownload()
+    public async Task TestDownload()
     {
         var outStream = new MemoryStream();
-        var result = _provider.Download(
+        var result = await _provider.DownloadAsync(
             new Uri("http://speedtest.ftp.otenet.gr/files/test100k.db"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
@@ -43,13 +44,13 @@ public class WebClientDownloadTest
     }
 
     [Fact]
-    public void TestDownloadCancelled()
+    public async Task TestDownloadCancelled()
     {
         var outStream = new MemoryStream();
         var cts = new CancellationTokenSource();
         cts.Cancel();
-        Assert.Throws<OperationCanceledException>(() =>
-            _provider.Download(new Uri("https://example.com/test.txt"), outStream, null, cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null, cts.Token));
     }
 }
 #endif
