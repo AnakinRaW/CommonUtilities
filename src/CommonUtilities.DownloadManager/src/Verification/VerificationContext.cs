@@ -3,6 +3,90 @@ using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 
+
+/// <summary>
+/// 
+/// </summary>
+public interface IVerificationContext
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    object VerificationData { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    bool Verify();
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface IVerificationContext<out T> : IVerificationContext
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    new T VerificationData { get; }
+}
+
+
+
+
+
+/// <summary>
+/// 
+/// </summary>
+public sealed class HashVerificationContext : IVerificationContext<HashingData>
+{
+    object IVerificationContext.VerificationData => VerificationData;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public HashingData VerificationData { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public bool Verify()
+    {
+        return true;
+    }
+}
+
+/// <summary>
+/// 
+/// </summary>
+public struct HashingData
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public HashType HashType { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public byte[] Hash { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="hash"></param>
+    public HashingData(HashType type, byte[] hash)
+    {
+        HashType = type;
+        Hash = hash;
+    }
+}
+
+
 /// <summary>
 /// Holds verification information of a downloaded file.
 /// </summary>

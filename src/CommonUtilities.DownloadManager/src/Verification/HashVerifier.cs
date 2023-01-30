@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
 /// <summary>
 /// Verifies files based on their Hash.
 /// </summary>
-public class HashVerifier : IVerifier
+public class HashVerifier : IVerifier<HashingData>
 {
     private readonly ILogger? _logger;
     private readonly IFileSystem _fileSystem;
@@ -28,8 +28,20 @@ public class HashVerifier : IVerifier
         _hashingService = serviceProvider.GetRequiredService<IHashingService>();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="file"></param>
+    /// <param name="verificationContext"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public VerificationResult Verify(Stream file, IVerificationContext<HashingData> verificationContext)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
-    public VerificationResult Verify(Stream file, VerificationContext verificationContext)
+    public VerificationResult Verify(Stream file, IVerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
         if (file is not FileStream fileStream)
@@ -39,7 +51,7 @@ public class HashVerifier : IVerifier
 
     }
 
-    internal VerificationResult Verify(Stream file, string path, VerificationContext verificationContext)
+    internal VerificationResult Verify(Stream file, string path, IVerificationContext verificationContext)
     {
         if (string.IsNullOrEmpty(path) || !_fileSystem.File.Exists(path))
             throw new FileNotFoundException("Cannot verify a non-existing file.");
