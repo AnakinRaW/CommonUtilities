@@ -40,7 +40,11 @@ internal class HttpClientDownloader : DownloadProviderBase
             {
                 if (response.IsSuccessStatusCode)
                 {
+#if NET5_0_OR_GREATER
+                    await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
                     using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
                     var contentLengthData = response.Content.Headers.ContentLength;
                     if (contentLengthData is null or 0L)
                         throw new IOException("Error: Response stream length is 0.");
@@ -56,7 +60,12 @@ internal class HttpClientDownloader : DownloadProviderBase
                     }
                     finally
                     {
+#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+                        await requestRegistration.DisposeAsync();
+#else
                         requestRegistration.Dispose();
+#endif
+
                     }
                 }
                 else
