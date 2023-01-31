@@ -42,7 +42,6 @@ public class DownloadManagerIntegrationTest
 
         void ProgressMethod(ProgressUpdateStatus status)
         {
-            _helper.WriteLine(status.BytesRead.ToString());
             progressTriggered = true;
         }
     }
