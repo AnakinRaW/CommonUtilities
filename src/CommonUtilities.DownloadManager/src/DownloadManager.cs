@@ -95,7 +95,8 @@ public class DownloadManager : IDownloadManager {
         {
             var providers = GetSuitableProvider(uri);
             return Task.Run(async () =>
-                await DownloadWithRetry(providers, uri, outputStream, progress, verificationContext, cancellationToken).ConfigureAwait(false), cancellationToken);
+                await DownloadWithRetry(providers, uri, outputStream, progress, verificationContext, cancellationToken)
+                    .ConfigureAwait(false), cancellationToken);
         }
         catch (Exception ex)
         {

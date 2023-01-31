@@ -40,14 +40,18 @@ internal class HttpClientDownloader : DownloadProviderBase
             {
                 if (response.IsSuccessStatusCode)
                 {
+#if NET5_0_OR_GREATER
+                    await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
                     using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
                     var contentLengthData = response.Content.Headers.ContentLength;
                     if (contentLengthData is null or 0L)
                         throw new IOException("Error: Response stream length is 0.");
 
                     var contentLength = contentLengthData.Value;
 
-                    var requestRegistration = cancellationToken.Register(() => webRequest.Dispose());
+                    var requestRegistration = cancellationToken.Register(webRequest.Dispose);
                     try
                     {
                         summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream, contentLength, outputStream, progress,
@@ -56,7 +60,12 @@ internal class HttpClientDownloader : DownloadProviderBase
                     }
                     finally
                     {
+#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+                        await requestRegistration.DisposeAsync();
+#else
                         requestRegistration.Dispose();
+#endif
+
                     }
                 }
                 else
@@ -81,7 +90,7 @@ internal class HttpClientDownloader : DownloadProviderBase
         }
         finally
         {
-            response?.Dispose();
+           response?.Dispose();
         }
     }
 
@@ -107,9 +116,10 @@ internal class HttpClientDownloader : DownloadProviderBase
             var client = new HttpClient(handler)
             {
                 Timeout = TimeSpan.FromMilliseconds(120000)
-            }; 
+            };
             
             response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+
             var responseUri = response.RequestMessage?.RequestUri?.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
