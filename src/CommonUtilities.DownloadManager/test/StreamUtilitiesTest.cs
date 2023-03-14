@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -8,6 +9,22 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class StreamUtilitiesTest
 {
+    [Fact]
+    public void TestGetStreamPath()
+    {
+        var fullPath = Path.GetFullPath("test.txt");
+        Assert.Equal(fullPath, new FileStream("test.txt", FileMode.OpenOrCreate).Name);
+
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var file = fileSystem.FileInfo.New("test.txt");
+
+        Assert.Equal(file.FullName, file.OpenRead().Name);
+
+        Assert.Throws<ArgumentException>(() => new MemoryStream().GetPathFromStream());
+    }
+
+
     [Fact]
     public async Task TestStreamsNotDisposed()
     {
