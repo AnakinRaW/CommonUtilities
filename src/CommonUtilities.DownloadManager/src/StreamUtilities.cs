@@ -11,11 +11,12 @@ internal static class StreamUtilities
 {
     public static string GetPathFromStream(this Stream stream)
     {
-        if (stream is FileStream fileStream)
-            return fileStream.Name;
-        if (stream is FileSystemStream fileSystemStream)
-            return fileSystemStream.Name;
-        throw new InvalidOperationException("Unable to get path from non-File stream");
+        return stream switch
+        {
+            FileStream fileStream => fileStream.Name,
+            FileSystemStream fileSystemStream => fileSystemStream.Name,
+            _ => throw new ArgumentException("Unable to get path from non-File stream")
+        };
     }
 
     public static async Task<long> CopyStream(Stream inputStream, long inputLength, Stream outputStream, CancellationToken cancellationToken)
