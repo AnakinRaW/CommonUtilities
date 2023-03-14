@@ -38,9 +38,7 @@ public class HashVerifier : IVerifier<HashingData>
     public VerificationResult Verify(Stream file, IVerificationContext<HashingData> verificationContext)
     {
         Requires.NotNull(file, nameof(file));
-        if (file is not FileStream fileStream)
-            throw new ArgumentException("The stream does not represent a file", nameof(file));
-        var path = fileStream.Name;
+        var path = file.GetPathFromStream();
         return Verify(file, path, verificationContext);
     }
 
