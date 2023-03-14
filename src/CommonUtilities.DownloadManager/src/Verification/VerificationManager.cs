@@ -56,10 +56,8 @@ public class VerificationManager : IVerificationManager
     public VerificationResult Verify(Stream file, IVerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
-        if (file is not FileStream fileStream)
-            throw new ArgumentException(nameof(file));
-        var path = fileStream.Name;
-        return Verify(fileStream, path, verificationContext);
+        var path = file.GetPathFromStream();
+        return Verify(file, path, verificationContext);
     }
 
     /// <inheritdoc/>

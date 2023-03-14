@@ -89,6 +89,7 @@ public class VerificationManagerTest
         Assert.Throws<ArgumentException>(() => _manager.Verify(new MemoryStream(), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
         
         Assert.Throws<FileNotFoundException>(() => _manager.Verify(new FileStream("test.file", FileMode.Open), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
+        Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileStream.New("test.file", FileMode.Open), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
         Assert.Throws<FileNotFoundException>(() => _manager.Verify(_fileSystem.FileInfo.New("test.file"), new HashVerificationContext(Array.Empty<byte>(), HashType.None)));
     }
 

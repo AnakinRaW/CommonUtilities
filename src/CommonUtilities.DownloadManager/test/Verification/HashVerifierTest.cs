@@ -81,6 +81,21 @@ public class HashVerifierTest
     }
 
     [Fact]
+    public void TestVerificationSucceedsFileStream()
+    {
+        _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));
+        var stream = _fileSystem.FileInfo.New("test.txt").OpenRead();
+
+        var hash = new byte[16];
+
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+            .Returns(hash);
+
+        var result = _verifier.Verify(stream, new HashVerificationContext(hash, HashType.MD5));
+        Assert.Equal(VerificationResult.Success, result);
+    }
+
+    [Fact]
     public void TestVerificationSucceeds()
     {
         _fileSystem.AddFile("test.txt", new MockFileData(string.Empty));

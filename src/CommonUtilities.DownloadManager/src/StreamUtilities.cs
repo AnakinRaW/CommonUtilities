@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +9,16 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 internal static class StreamUtilities
 {
+    public static string GetPathFromStream(this Stream stream)
+    {
+        return stream switch
+        {
+            FileStream fileStream => fileStream.Name,
+            FileSystemStream fileSystemStream => fileSystemStream.Name,
+            _ => throw new ArgumentException("Unable to get path from non-File stream")
+        };
+    }
+
     public static async Task<long> CopyStream(Stream inputStream, long inputLength, Stream outputStream, CancellationToken cancellationToken)
     {
         var bufferSize = GetBufferSize(inputLength);
