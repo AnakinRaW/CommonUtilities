@@ -3,19 +3,19 @@
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// <see cref="EventArgs"/> for faulted <see cref="ITask"/>.
+/// <see cref="EventArgs"/> for faulted <see cref="IStep"/>.
 /// </summary>
-public class TaskErrorEventArgs : EventArgs
+public class StepErrorEventArgs : EventArgs
 {
     private bool _cancel;
 
     /// <summary>
-    /// The faulted Task
+    /// The faulted Step
     /// </summary>
-    public ITask Task { get; }
+    public IStep Step { get; }
 
     /// <summary>
-    /// Indicates whether the task was faulted due to cancellation. 
+    /// Indicates whether the step was faulted due to cancellation. 
     /// </summary>
     /// <remarks>Once set to <see langword="true"/>, this property cannot be set to <see langword="false"/> again.</remarks>
     public bool Cancel
@@ -26,11 +26,11 @@ public class TaskErrorEventArgs : EventArgs
 
 
     /// <summary>
-    /// Initializes a new instance of <see cref="TaskErrorEventArgs"/>.
+    /// Initializes a new instance of <see cref="StepErrorEventArgs"/>.
     /// </summary>
-    /// <param name="task">The faulted task.</param>
-    public TaskErrorEventArgs(ITask task)
+    /// <param name="step">The faulted step.</param>
+    public StepErrorEventArgs(IStep step)
     {
-        Task = task;
+        Step = step;
     }
 }

@@ -3,13 +3,13 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class TaskErrorEventArgsTest
+public class StepErrorEventArgsTest
 {
     [Fact]
     public void TestCancelProp()
     {
-        var task = new Mock<ITask>();
-        var args = new TaskErrorEventArgs(task.Object);
+        var step = new Mock<IStep>();
+        var args = new StepErrorEventArgs(step.Object);
         Assert.False(args.Cancel);
         args.Cancel = true;
         Assert.True(args.Cancel);

@@ -13,11 +13,11 @@ public class TaskRunnerTest
     public void TestRunEmpty()
     {
         var sc = new ServiceCollection();
-        var runner = new TaskRunner(sc.BuildServiceProvider());
+        var runner = new StepRunner(sc.BuildServiceProvider());
 
         runner.Run(default);
 
-        Assert.Empty(runner.Tasks);
+        Assert.Empty(runner.Steps);
         Assert.Empty(runner);
     }
 
@@ -25,7 +25,7 @@ public class TaskRunnerTest
     public void TestRunCancelled()
     {
         var sc = new ServiceCollection();
-        var runner = new TaskRunner(sc.BuildServiceProvider());
+        var runner = new StepRunner(sc.BuildServiceProvider());
 
         var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -36,19 +36,19 @@ public class TaskRunnerTest
             hasError = true;
         };
 
-        var task = new Mock<ITask>();
+        var step = new Mock<IStep>();
         var runned = false;
-        task.Setup(t => t.Run(cts.Token)).Callback(() =>
+        step.Setup(t => t.Run(cts.Token)).Callback(() =>
         {
             runned = true;
         });
 
-        runner.Queue(task.Object);
+        runner.Queue(step.Object);
         runner.Run(cts.Token);
 
         Assert.True(hasError);
         Assert.False(runned);
-        Assert.Single(runner.Tasks);
+        Assert.Single(runner.Steps);
         Assert.Single(runner);
     }
 
@@ -56,7 +56,7 @@ public class TaskRunnerTest
     public void TestRunWithError()
     {
         var sc = new ServiceCollection();
-        var runner = new TaskRunner(sc.BuildServiceProvider());
+        var runner = new StepRunner(sc.BuildServiceProvider());
 
         var hasError = false;
         runner.Error += (_, __) =>
@@ -64,14 +64,14 @@ public class TaskRunnerTest
             hasError = true;
         };
 
-        var task = new Mock<ITask>();
+        var step = new Mock<IStep>();
         var runned = false;
-        task.Setup(t => t.Run(default)).Callback(() =>
+        step.Setup(t => t.Run(default)).Callback(() =>
         {
             runned = true;
         }).Throws<Exception>();
 
-        runner.Queue(task.Object);
+        runner.Queue(step.Object);
         runner.Run(default);
 
         Assert.True(hasError);

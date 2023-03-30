@@ -15,8 +15,8 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
 
         runner.Queue(t1.Object);
         runner.Queue(t2.Object);
@@ -46,8 +46,8 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
 
         runner.Queue(t1.Object);
         runner.Queue(t2.Object);
@@ -84,8 +84,8 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
 
         runner.Queue(t1.Object);
         runner.Queue(t2.Object);
@@ -116,9 +116,9 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
-        var t3 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
+        var t3 = new Mock<IStep>();
 
         runner.Queue(t1.Object);
         runner.Queue(t2.Object);

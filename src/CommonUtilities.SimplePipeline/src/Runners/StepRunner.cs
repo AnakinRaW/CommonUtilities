@@ -11,22 +11,22 @@ using Validation;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
-/// Runner engine, which executes all queued <see cref="ITask"/> sequentially in the order they are queued. 
+/// Runner engine, which executes all queued <see cref="IStep"/> sequentially in the order they are queued. 
 /// </summary>
-public class TaskRunner : IRunner
+public class StepRunner : IRunner
 {
     /// <inheritdoc/>
-    public event EventHandler<TaskErrorEventArgs>? Error;
+    public event EventHandler<StepErrorEventArgs>? Error;
 
     /// <summary>
-    /// Modifiable list of all tasks scheduled for execution.
+    /// Modifiable list of all steps scheduled for execution.
     /// </summary>
-    protected readonly List<ITask> TaskList;
+    protected readonly List<IStep> StepList;
 
     /// <summary>
-    /// Queue of all to be performed tasks.
+    /// Queue of all to be performed steps.
     /// </summary>
-    protected ConcurrentQueue<ITask> TaskQueue { get; }
+    protected ConcurrentQueue<IStep> StepQueue { get; }
 
     /// <summary>
     /// The logger instance of this runner.
@@ -34,22 +34,22 @@ public class TaskRunner : IRunner
     protected ILogger? Logger { get; }
 
     /// <summary>
-    /// List of all tasks scheduled for execution.
+    /// List of all steps scheduled for execution.
     /// </summary>
-    /// <remarks>Tasks queued *after* <see cref="Run"/> was called, are not included.</remarks>
-    public IReadOnlyList<ITask> Tasks => new ReadOnlyCollection<ITask>(TaskList);
+    /// <remarks>Steps queued *after* <see cref="Run"/> was called, are not included.</remarks>
+    public IReadOnlyList<IStep> Steps => new ReadOnlyCollection<IStep>(StepList);
 
     internal bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// Initializes a new <see cref="TaskRunner"/> instance.
+    /// Initializes a new <see cref="StepRunner"/> instance.
     /// </summary>
     /// <param name="services"></param>
-    public TaskRunner(IServiceProvider services)
+    public StepRunner(IServiceProvider services)
     {
         Requires.NotNull(services, nameof(services));
-        TaskQueue = new ConcurrentQueue<ITask>();
-        TaskList = new List<ITask>();
+        StepQueue = new ConcurrentQueue<IStep>();
+        StepList = new List<IStep>();
         Logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
@@ -60,42 +60,42 @@ public class TaskRunner : IRunner
     }
 
     /// <inheritdoc/>
-    public void Queue(ITask activity)
+    public void Queue(IStep activity)
     {
         if (activity == null)
             throw new ArgumentNullException(nameof(activity));
-        TaskQueue.Enqueue(activity);
+        StepQueue.Enqueue(activity);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<ITask> GetEnumerator()
+    public IEnumerator<IStep> GetEnumerator()
     {
-        return TaskList.GetEnumerator();
+        return StepList.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return TaskList.GetEnumerator();
+        return StepList.GetEnumerator();
     }
 
     /// <summary>
-    /// Sequentially runs all queued tasks. Faulted tasks will raise the <see cref="Error"/> event.
+    /// Sequentially runs all queued steps. Faulted steps will raise the <see cref="Error"/> event.
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected virtual void Invoke(CancellationToken token)
     {
         var alreadyCancelled = false;
-        TaskList.AddRange(TaskQueue);
-        while (TaskQueue.TryDequeue(out var task))
+        StepList.AddRange(StepQueue);
+        while (StepQueue.TryDequeue(out var step))
         {
             try
             {
                 ThrowIfCancelled(token);
-                task.Run(token);
+                step.Run(token);
             }
-            catch (StopTaskRunnerException)
+            catch (StopRunnerException)
             {
-                Logger?.LogTrace("Stop subsequent tasks");
+                Logger?.LogTrace("Stop subsequent steps");
                 break;
             }
             catch (Exception e)
@@ -103,12 +103,12 @@ public class TaskRunner : IRunner
                 if (!alreadyCancelled)
                 {
                     if (e.IsExceptionType<OperationCanceledException>())
-                        Logger?.LogTrace($"Task {task} cancelled");
+                        Logger?.LogTrace($"Step {step} cancelled");
                     else
-                        Logger?.LogTrace(e, $"Task {task} threw an exception: {e.GetType()}: {e.Message}");
+                        Logger?.LogTrace(e, $"Step {step} threw an exception: {e.GetType()}: {e.Message}");
                 }
 
-                var error = new TaskErrorEventArgs(task)
+                var error = new StepErrorEventArgs(step)
                 {
                     Cancel = token.IsCancellationRequested || IsCancelled ||
                              e.IsExceptionType<OperationCanceledException>()
@@ -124,7 +124,7 @@ public class TaskRunner : IRunner
     /// Raises the <see cref="Error"/> event 
     /// </summary>
     /// <param name="e">The event args to use.</param>
-    protected virtual void OnError(TaskErrorEventArgs e)
+    protected virtual void OnError(StepErrorEventArgs e)
     {
         Error?.Invoke(this, e);
         if (!e.Cancel)

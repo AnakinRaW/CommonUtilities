@@ -14,10 +14,10 @@ public class ParallelRunnerTest
     public void TestWait()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelTaskRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
 
         runner.Queue(t1.Object);
         runner.Queue(t2.Object);
@@ -47,10 +47,10 @@ public class ParallelRunnerTest
     public void TestNoWait()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelTaskRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
-        var t2 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
+        var t2 = new Mock<IStep>();
 
         var b = new ManualResetEvent(false);
 
@@ -81,9 +81,9 @@ public class ParallelRunnerTest
     public void TestWaitTimeout()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelTaskRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
 
         var b = new ManualResetEvent(false);
 
@@ -105,7 +105,7 @@ public class ParallelRunnerTest
     public void TestRunWithError()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelTaskRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
         var hasError = false;
         runner.Error += (_, __) =>
@@ -113,14 +113,14 @@ public class ParallelRunnerTest
             hasError = true;
         };
 
-        var task = new Mock<ITask>();
+        var step = new Mock<IStep>();
         var runned = false;
-        task.Setup(t => t.Run(default)).Callback(() =>
+        step.Setup(t => t.Run(default)).Callback(() =>
         {
             runned = true;
         }).Throws<Exception>();
 
-        runner.Queue(task.Object);
+        runner.Queue(step.Object);
         runner.Run(default);
         runner.Wait(Timeout.InfiniteTimeSpan);
 
@@ -133,7 +133,7 @@ public class ParallelRunnerTest
     public void TestRunCancelled()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelTaskRunner(1, sc.BuildServiceProvider());
+        var runner = new ParallelRunner(1, sc.BuildServiceProvider());
 
         var cts = new CancellationTokenSource();
 
@@ -145,7 +145,7 @@ public class ParallelRunnerTest
             hasError = true;
         };
 
-        var t1 = new Mock<ITask>();
+        var t1 = new Mock<IStep>();
         var runned = false;
         t1.Setup(t => t.Run(cts.Token)).Callback(() =>
         {
@@ -153,7 +153,7 @@ public class ParallelRunnerTest
             cts.Cancel();
             b.Set();
         });
-        var t2 = new Mock<ITask>();
+        var t2 = new Mock<IStep>();
         t2.Setup(t => t.Run(cts.Token)).Callback(() =>
         {
             b.WaitOne();

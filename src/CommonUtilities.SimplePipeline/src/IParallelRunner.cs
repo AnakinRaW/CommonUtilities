@@ -8,13 +8,13 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 public interface IParallelRunner : IRunner
 {
     /// <summary>
-    /// Synchronously waits for this runner for all of its tasks to be finished. 
+    /// Synchronously waits for this runner for all of its steps to be finished. 
     /// </summary>
-    /// <exception cref="AggregateException">If any of the tasks failed with an exception.</exception>
+    /// <exception cref="AggregateException">If any of the steps failed with an exception.</exception>
     void Wait();
 
     /// <summary>
-    /// Synchronously waits for this runner for all of its tasks to be finished. 
+    /// Synchronously waits for this runner for all of its steps to be finished. 
     /// </summary>
     /// <param name="waitDuration">The time duration to wait.</param>
     /// <exception cref="TimeoutException">If <paramref name="waitDuration"/> expired.</exception>

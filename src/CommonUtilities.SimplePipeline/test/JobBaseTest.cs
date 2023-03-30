@@ -11,13 +11,13 @@ public class JobBaseTest
     [Fact]
     public void TestJobPlan()
     {
-        var job = new Mock<JobBase>
+        var job = new Mock<PipelineBase>
         {
             CallBase = true
         };
 
-        job.Object.Plan();
-        job.Object.Plan();
+        job.Object.Prepare();
+        job.Object.Prepare();
 
         job.Protected().Verify("Initialize", Times.Exactly(1));
     }
@@ -25,7 +25,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobRun()
     {
-        var job = new Mock<JobBase>
+        var job = new Mock<PipelineBase>
         {
             CallBase = true
         };
@@ -43,14 +43,14 @@ public class JobBaseTest
     [Fact]
     public void TestJobPlanRun()
     {
-        var job = new Mock<JobBase>
+        var job = new Mock<PipelineBase>
         {
             CallBase = true
         };
 
         job.Protected().Setup<bool>("PlanCore").Returns(true);
 
-        job.Object.Plan();
+        job.Object.Prepare();
         job.Object.Run();
         job.Object.Run();
 
@@ -62,7 +62,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobRunCancelled()
     {
-        var job = new Mock<JobBase>
+        var job = new Mock<PipelineBase>
         {
             CallBase = true
         };

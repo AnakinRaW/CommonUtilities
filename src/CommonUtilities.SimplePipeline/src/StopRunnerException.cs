@@ -1,5 +1,5 @@
 ﻿namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
-internal class StopTaskRunnerException : RunnerException
+internal class StopRunnerException : RunnerException
 {
 }
