@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Tasks;
 
 /// <summary>
 /// An awaitable task implementation.

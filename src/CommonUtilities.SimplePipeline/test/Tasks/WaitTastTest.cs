@@ -1,9 +1,9 @@
-﻿using AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Test.Tasks;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Tasks;
 
 public class WaitTastTest
 {

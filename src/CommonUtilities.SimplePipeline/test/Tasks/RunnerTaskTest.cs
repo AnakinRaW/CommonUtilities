@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
-using AnakinRaW.CommonUtilities.TaskPipeline.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Test.Tasks;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Tasks;
 
 public class RunnerTaskTest
 {

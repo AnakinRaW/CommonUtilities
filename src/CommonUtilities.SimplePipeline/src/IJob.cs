@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// Jobs can be planned and then run one or many operations.

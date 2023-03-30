@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 internal static class Extensions
 {

@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// Base implementation for an <see cref="IJob"/>

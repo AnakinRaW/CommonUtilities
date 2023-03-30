@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.TaskPipeline.Runners;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Test.Runners;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
 public class ParallelBlockingRunnerTest
 {
