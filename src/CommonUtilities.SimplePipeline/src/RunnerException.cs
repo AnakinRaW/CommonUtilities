@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Exception, indication something regarding <see cref="IRunner"/> or <see cref="ITask"/> went wrong
+/// Exception, indication something regarding <see cref="IRunner"/> or <see cref="IStep"/> went wrong
 /// </summary>
 [Serializable]
 public class RunnerException : Exception

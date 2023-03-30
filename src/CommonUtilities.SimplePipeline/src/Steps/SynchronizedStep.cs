@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 
-namespace AnakinRaW.CommonUtilities.SimplePipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// An awaitable task implementation.
+/// An awaitable step implementation.
 /// </summary>
-public abstract class SynchronizedTask : RunnerTask
+public abstract class SynchronizedStep : PipelineStep
 {
     /// <summary>
     /// Event gets raised if this instance failed with an <see cref="OperationCanceledException"/>.
@@ -16,16 +16,16 @@ public abstract class SynchronizedTask : RunnerTask
     private readonly ManualResetEvent _handle;
 
     /// <summary>
-    /// Initializes a new <see cref="SynchronizedTask"/>.
+    /// Initializes a new <see cref="SynchronizedStep"/>.
     /// </summary>
     /// <param name="serviceProvider"></param>
-    protected SynchronizedTask(IServiceProvider serviceProvider) : base(serviceProvider)
+    protected SynchronizedStep(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _handle = new ManualResetEvent(false);
     }
 
     /// <inheritdoc/>
-    ~SynchronizedTask()
+    ~SynchronizedStep()
     {
         Dispose(false);
     }
@@ -50,7 +50,7 @@ public abstract class SynchronizedTask : RunnerTask
     }
 
     /// <summary>
-    /// Executes this task.
+    /// Executes this step.
     /// </summary>
     /// <param name="token"></param>
     protected abstract void SynchronizedInvoke(CancellationToken token);

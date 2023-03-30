@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Description>Implements task based pipeline runners to run job synchronized or in parallel.</Description>
+		<Description>Implements pipeline runners to run steps synchronized or in parallel.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -23,7 +23,11 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile"/>
+		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
 	</ItemGroup>
 
 </Project>

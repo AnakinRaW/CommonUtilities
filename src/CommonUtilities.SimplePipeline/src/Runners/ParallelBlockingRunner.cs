@@ -10,32 +10,32 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
-/// Runner engine, which executes all queued tasks parallel. Tasks may be queued while task execution has been started.
+/// Runner engine, which executes all queued _steps parallel. Steps may be queued while step execution has been started.
 /// The execution is finished only if <see cref="Finish"/> or <see cref="FinishAndWait"/> was called explicitly.
 /// </summary>
 public sealed class ParallelBlockingRunner : IParallelRunner
 {
     /// <inheritdoc/>
-    public event EventHandler<TaskErrorEventArgs>? Error;
+    public event EventHandler<StepErrorEventArgs>? Error;
 
     private readonly ConcurrentBag<Exception> _exceptions;
-    private readonly ConcurrentBag<ITask> _pipelineTasks;
+    private readonly ConcurrentBag<IStep> _steps;
     private readonly ILogger? _logger;
     private readonly int _workerCount;
     private readonly Task[] _runnerTasks;
     private CancellationToken _cancel;
 
-    private BlockingCollection<ITask> TaskQueue { get; }
+    private BlockingCollection<IStep> StepQueue { get; }
 
     /// <summary>
-    /// Aggregates all tasks exceptions, if any happened.
+    /// Aggregates all step exceptions, if any happened.
     /// </summary>
     public AggregateException? Exception => _exceptions.Count > 0 ? new AggregateException(_exceptions) : null;
 
     internal bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// Initializes a new <see cref="ParallelTaskRunner"/> instance.
+    /// Initializes a new <see cref="ParallelRunner"/> instance.
     /// </summary>
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
@@ -46,8 +46,8 @@ public sealed class ParallelBlockingRunner : IParallelRunner
             throw new ArgumentException("invalid parallel worker count");
         _workerCount = workerCount;
         _runnerTasks = new Task[_workerCount];
-        _pipelineTasks = new ConcurrentBag<ITask>();
-        TaskQueue = new BlockingCollection<ITask>();
+        _steps = new ConcurrentBag<IStep>();
+        StepQueue = new BlockingCollection<IStep>();
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
         _exceptions = new ConcurrentBag<Exception>();
     }
@@ -78,15 +78,15 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     }
 
     /// <summary>
-    /// Signals, this instance does not expect any more tasks.
+    /// Signals, this instance does not expect any more steps.
     /// </summary>
     public void Finish()
     {
-        TaskQueue.CompleteAdding();
+        StepQueue.CompleteAdding();
     }
 
     /// <summary>
-    /// Signals, this instance does not expect any more tasks and waits for finished execution.
+    /// Signals, this instance does not expect any more steps and waits for finished execution.
     /// </summary>
     /// <param name="throwsException"></param>
     public void FinishAndWait(bool throwsException = false)
@@ -104,35 +104,35 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     }
 
     /// <inheritdoc/>
-    public void Queue(ITask task)
+    public void Queue(IStep step)
     {
-        if (task is null)
-            throw new ArgumentNullException(nameof(task));
-        TaskQueue.Add(task, CancellationToken.None);
+        if (step is null)
+            throw new ArgumentNullException(nameof(step));
+        StepQueue.Add(step, CancellationToken.None);
     }
 
     /// <inheritdoc/>
-    public IEnumerator<ITask> GetEnumerator()
+    public IEnumerator<IStep> GetEnumerator()
     {
-        return _pipelineTasks.GetEnumerator();
+        return _steps.GetEnumerator();
     }
 
     private void RunThreaded()
     {
         var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancel);
         var canceled = false;
-        foreach (var task in TaskQueue.GetConsumingEnumerable())
+        foreach (var step in StepQueue.GetConsumingEnumerable())
         {
             try
             {
                 _cancel.ThrowIfCancellationRequested();
-                _pipelineTasks.Add(task);
-                task.Run(_cancel);
+                _steps.Add(step);
+                step.Run(_cancel);
             }
-            catch (StopTaskRunnerException)
+            catch (StopRunnerException)
             {
-                _logger?.LogTrace("Stop subsequent tasks");
-                TaskQueue.CompleteAdding();
+                _logger?.LogTrace("Stop subsequent steps");
+                StepQueue.CompleteAdding();
                 break;
             }
             catch (Exception ex)
@@ -145,7 +145,7 @@ public sealed class ParallelBlockingRunner : IParallelRunner
                     else
                         _logger?.LogTrace(ex, $"Activity threw exception {ex.GetType()}: {ex.Message}");
                 }
-                var e = new TaskErrorEventArgs(task)
+                var e = new StepErrorEventArgs(step)
                 {
                     Cancel = _cancel.IsCancellationRequested || IsCancelled || ex.IsExceptionType<OperationCanceledException>()
                 };
@@ -164,7 +164,7 @@ public sealed class ParallelBlockingRunner : IParallelRunner
         return GetEnumerator();
     }
 
-    private void OnError(TaskErrorEventArgs e)
+    private void OnError(StepErrorEventArgs e)
     {
         Error?.Invoke(this, e);
         if (!e.Cancel)

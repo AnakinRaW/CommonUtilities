@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
-/// Runner engine, which executes all queued tasks parallel.
+/// Runner engine, which executes all queued steps parallel.
 /// </summary>
-public class ParallelTaskRunner: TaskRunner, IParallelRunner
+public class ParallelRunner: StepRunner, IParallelRunner
 {
     private readonly ConcurrentBag<Exception> _exceptions;
     private readonly Task[] _tasks;
@@ -21,17 +21,17 @@ public class ParallelTaskRunner: TaskRunner, IParallelRunner
     public int WorkerCount { get; }
 
     /// <summary>
-    /// Aggregates all tasks exceptions, if any happened.
+    /// Aggregates all step exceptions, if any happened.
     /// </summary>
     public AggregateException? Exception => _exceptions.Count > 0 ? new AggregateException(_exceptions) : null;
 
     /// <summary>
-    /// Initializes a new <see cref="ParallelTaskRunner"/> instance.
+    /// Initializes a new <see cref="ParallelRunner"/> instance.
     /// </summary>
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentOutOfRangeException">If the number of workers is below 1.</exception>
-    public ParallelTaskRunner(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
+    public ParallelRunner(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         if (workerCount < 1)
             throw new ArgumentOutOfRangeException(nameof(workerCount));
@@ -57,13 +57,13 @@ public class ParallelTaskRunner: TaskRunner, IParallelRunner
     }
 
     /// <summary>
-    /// Runs all scheduled tasks on the thread-pool. 
+    /// Runs all scheduled steps on the thread-pool. 
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected override void Invoke(CancellationToken token)
     {
         ThrowIfCancelled(token);
-        TaskList.AddRange(TaskQueue);
+        StepList.AddRange(StepQueue);
         _cancel = token;
         for (var index = 0; index < WorkerCount; ++index) 
             _tasks[index] = Task.Run(InvokeThreaded, default);
@@ -73,12 +73,12 @@ public class ParallelTaskRunner: TaskRunner, IParallelRunner
     {
         var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancel);
         var canceled = false;
-        while (TaskQueue.TryDequeue(out var task))
+        while (StepQueue.TryDequeue(out var step))
         {
             try
             {
                 ThrowIfCancelled(_cancel);
-                task.Run(_cancel);
+                step.Run(_cancel);
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ public class ParallelTaskRunner: TaskRunner, IParallelRunner
                     else
                         Logger?.LogTrace(ex, $"Activity threw exception {ex.GetType()}: {ex.Message}");
                 }
-                var e = new TaskErrorEventArgs(task)
+                var e = new StepErrorEventArgs(step)
                 {
                     Cancel = _cancel.IsCancellationRequested || IsCancelled || ex.IsExceptionType<OperationCanceledException>()
                 };

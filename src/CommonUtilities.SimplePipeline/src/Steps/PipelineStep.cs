@@ -5,22 +5,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
 
-namespace AnakinRaW.CommonUtilities.SimplePipeline.Tasks;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// Base implementation for an <see cref="ITask"/>
+/// Base implementation for an <see cref="IStep"/>
 /// </summary>
-public abstract class RunnerTask : ITask
+public abstract class PipelineStep : IStep
 {
     internal bool IsDisposed { get; private set; }
 
     /// <summary>
-    /// The service provider of this task.
+    /// The service provider of this step.
     /// </summary>
     protected IServiceProvider Services { get; }
 
     /// <summary>
-    /// The logger of this task.
+    /// The logger of this step.
     /// </summary>
     protected ILogger? Logger { get; }
 
@@ -30,10 +30,10 @@ public abstract class RunnerTask : ITask
     public Exception? Error { get; internal set; }
 
     /// <summary>
-    /// Initializes a new <see cref="RunnerTask"/> instance.
+    /// Initializes a new <see cref="PipelineStep"/> instance.
     /// </summary>
     /// <param name="serviceProvider">The service provider.</param>
-    protected RunnerTask(IServiceProvider serviceProvider)
+    protected PipelineStep(IServiceProvider serviceProvider)
     {
         Requires.NotNull(serviceProvider, nameof(serviceProvider));
         Services = serviceProvider;
@@ -41,7 +41,7 @@ public abstract class RunnerTask : ITask
     }
 
     /// <inheritdoc/>
-    ~RunnerTask()
+    ~PipelineStep()
     {
         Dispose(false);
     }
@@ -67,7 +67,7 @@ public abstract class RunnerTask : ITask
             Error = ex.InnerException;
             throw;
         }
-        catch (StopTaskRunnerException)
+        catch (StopRunnerException)
         {
             throw;
         }
@@ -98,7 +98,7 @@ public abstract class RunnerTask : ITask
     }
 
     /// <summary>
-    /// Executes this task. 
+    /// Executes this step. 
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected abstract void RunCore(CancellationToken token);
