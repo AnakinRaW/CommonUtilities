@@ -43,11 +43,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.Registry.Wi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.DownloadManager.Test", "src\CommonUtilities.DownloadManager\test\CommonUtilities.DownloadManager.Test.csproj", "{B67F61B6-489C-4036-9380-8B8DB45AB295}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.TaskPipeline", "CommonUtilities.TaskPipeline", "{9D9B958B-7495-4614-8D0D-47587C8FEBC4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtilities.SimplePipeline", "CommonUtilities.SimplePipeline", "{9D9B958B-7495-4614-8D0D-47587C8FEBC4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.TaskPipeline", "src\CommonUtilities.TaskPipeline\src\CommonUtilities.TaskPipeline.csproj", "{283BBAA8-482D-4DB5-9707-3F325D2AE41F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.SimplePipeline", "src\CommonUtilities.SimplePipeline\src\CommonUtilities.SimplePipeline.csproj", "{283BBAA8-482D-4DB5-9707-3F325D2AE41F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.TaskPipeline.Test", "src\CommonUtilities.TaskPipeline\test\CommonUtilities.TaskPipeline.Test.csproj", "{C8BF3F01-B1D5-4C29-9164-6DC7B9744589}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.SimplePipeline.Test", "src\CommonUtilities.SimplePipeline\test\CommonUtilities.SimplePipeline.Test.csproj", "{C8BF3F01-B1D5-4C29-9164-6DC7B9744589}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

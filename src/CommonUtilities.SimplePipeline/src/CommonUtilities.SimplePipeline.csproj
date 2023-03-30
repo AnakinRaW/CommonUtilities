@@ -8,8 +8,8 @@
 		<TargetFrameworks>netstandard2.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<RootNamespace>AnakinRaW.CommonUtilities.TaskPipeline</RootNamespace>
-		<AssemblyName>AnakinRaW.CommonUtilities.TaskPipeline</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.SimplePipeline</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline</AssemblyName>
 	</PropertyGroup>
 	
 	<PropertyGroup>
