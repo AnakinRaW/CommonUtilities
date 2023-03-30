@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Test;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
 public class ExtensionsTest
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// Exception, indication something regarding <see cref="IRunner"/> or <see cref="ITask"/> went wrong

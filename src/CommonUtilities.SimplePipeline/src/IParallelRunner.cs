@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline;
+namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// Specialized <see cref="IRunner"/> which allows 

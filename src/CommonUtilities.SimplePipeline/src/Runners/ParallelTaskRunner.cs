@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Runners;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
 /// Runner engine, which executes all queued tasks parallel.

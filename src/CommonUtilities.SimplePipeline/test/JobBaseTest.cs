@@ -4,7 +4,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.TaskPipeline.Test;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
 public class JobBaseTest
 {
