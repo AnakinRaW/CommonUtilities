@@ -5,11 +5,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<RootNamespace>AnakinRaW.CommonUtilities.TaskPipeline</RootNamespace>
-		<AssemblyName>AnakinRaW.CommonUtilities.TaskPipeline</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.SimplePipeline</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline</AssemblyName>
 	</PropertyGroup>
 	
 	<PropertyGroup>
@@ -21,10 +21,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Threading.AccessControl" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-		<PackageReference Include="Validation" Version="2.5.51" />
+		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile"/>
 	</ItemGroup>
 
 </Project>

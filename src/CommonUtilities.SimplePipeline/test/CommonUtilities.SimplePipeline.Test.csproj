@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<RootNamespace>AnakinRaW.CommonUtilities.TaskPipeline.Test</RootNamespace>
-		<AssemblyName>AnakinRaW.CommonUtilities.TaskPipeline.Test</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.SimplePipeline.Test</RootNamespace>
+		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline.Test</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\src\CommonUtilities.TaskPipeline.csproj" />
+	  <ProjectReference Include="..\src\CommonUtilities.SimplePipeline.csproj" />
 	</ItemGroup>
 
 </Project>
