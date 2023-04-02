@@ -4,7 +4,7 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// A pipeline can be planned and then runs one or many operations.
+/// A pipeline can run multiple operations in sequence or simultaneously, based on how it was prepared.
 /// </summary>
 public interface IPipeline : IDisposable
 {
@@ -18,8 +18,10 @@ public interface IPipeline : IDisposable
     bool Prepare();
 
     /// <summary>
-    /// Runs this pipeline.
+    /// Runs pipeline.
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
+    /// <exception cref="OperationCanceledException">If <see cref="token"/> was requested for cancellation.</exception>
+    /// <exception cref="StepFailureException">The pipeline may throw this exception if one or many steps failed.</exception>
     void Run(CancellationToken token = default);
 }
