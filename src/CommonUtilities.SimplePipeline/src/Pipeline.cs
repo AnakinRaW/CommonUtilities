@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// Base implementation for an <see cref="IPipeline"/>
 /// </summary>
-public abstract class PipelineBase : DisposableObject, IPipeline
+public abstract class Pipeline : DisposableObject, IPipeline
 {
     private bool? _prepareSuccessful;
 
@@ -22,6 +22,8 @@ public abstract class PipelineBase : DisposableObject, IPipeline
     /// <inheritdoc/>
     public void Run(CancellationToken token = default)
     {
+        if (IsDisposed)
+            throw new ObjectDisposedException("Pipeline already disposed");
         token.ThrowIfCancellationRequested();
         if (!Prepare())
             return;

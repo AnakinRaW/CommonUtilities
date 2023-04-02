@@ -11,7 +11,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobPlan()
     {
-        var job = new Mock<PipelineBase>
+        var job = new Mock<Pipeline>
         {
             CallBase = true
         };
@@ -25,7 +25,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobRun()
     {
-        var job = new Mock<PipelineBase>
+        var job = new Mock<Pipeline>
         {
             CallBase = true
         };
@@ -43,7 +43,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobPlanRun()
     {
-        var job = new Mock<PipelineBase>
+        var job = new Mock<Pipeline>
         {
             CallBase = true
         };
@@ -62,7 +62,7 @@ public class JobBaseTest
     [Fact]
     public void TestJobRunCancelled()
     {
-        var job = new Mock<PipelineBase>
+        var job = new Mock<Pipeline>
         {
             CallBase = true
         };
