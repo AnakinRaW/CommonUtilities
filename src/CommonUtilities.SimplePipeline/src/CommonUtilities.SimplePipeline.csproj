@@ -24,10 +24,12 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
+
+		<PackageReference Include="AnakinRaW.CommonUtilities" Version="4.0.2" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 	  <ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
-	</ItemGroup>
+	</ItemGroup>-->
 
 </Project>
