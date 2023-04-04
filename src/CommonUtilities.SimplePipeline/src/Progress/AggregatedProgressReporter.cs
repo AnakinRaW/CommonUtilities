@@ -1,34 +1,49 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 
-public abstract class AggregatedProgressReporter<T> : IStepProgressReporter where T : new()
+public abstract class AggregatedProgressReporter<TInfo> : AggregatedProgressReporter<IProgressStep, TInfo>  where TInfo : new()
+{
+    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter) : base(progressReporter)
+    {
+    }
+
+    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter, IEqualityComparer<IProgressStep> stepComparer) 
+        : base(progressReporter, stepComparer)
+    {
+    }
+}
+
+public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressReporter
+    where TStep : class, IProgressStep where TInfo : new()
 {
     protected abstract ProgressType Type { get; }
 
-    private readonly IProgressReporter<T> _progressReporter;
+    private readonly IProgressReporter<TInfo> _progressReporter;
 
-    private readonly HashSet<IProgressStep> _progressSteps;
+    private readonly HashSet<TStep> _progressSteps;
 
     protected long TotalSize { get; private set; }
 
     protected int TotalStepCount => _progressSteps.Count;
 
-    protected AggregatedProgressReporter(IProgressReporter<T> progressReporter) :
-        this(progressReporter, EqualityComparer<IProgressStep>.Default)
+    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter) : 
+        this(progressReporter, EqualityComparer<TStep>.Default)
     {
     }
 
     protected AggregatedProgressReporter(
-        IProgressReporter<T> progressReporter,
-        IEqualityComparer<IProgressStep> stepComparer)
+        IProgressReporter<TInfo> progressReporter,
+        IEqualityComparer<TStep> stepComparer)
     {
-        _progressSteps = new HashSet<IProgressStep>(stepComparer);
+        _progressSteps = new HashSet<TStep>(stepComparer);
         _progressReporter = progressReporter;
     }
 
-    internal void Initialize(IEnumerable<IProgressStep> progressSteps)
+    public void Initialize(IEnumerable<TStep> progressSteps)
     {
         foreach (var task in progressSteps)
         {
@@ -37,14 +52,32 @@ public abstract class AggregatedProgressReporter<T> : IStepProgressReporter wher
         }
     }
 
-    public void Report(IProgressStep step, double progress)
+    public void Report(TStep step, double progress)
     {
         Requires.NotNull(step, nameof(step));
 
         if (!_progressSteps.Contains(step))
             return;
 
-        var actualProgressInfo = new T();
+        ReportInternal(step, progress);
+    }
+
+    void IStepProgressReporter.Report(IProgressStep step, double progress)
+    {
+        Requires.NotNull(step, nameof(step));
+
+        if (!_progressSteps.Contains(step))
+            return;
+
+        if (step is not TStep tStep)
+            throw new InvalidCastException($"Cannot cast step '{step.GetType().FullName}' to {typeof(TStep).FullName}");
+
+        ReportInternal(tStep, progress);
+    }
+
+    private void ReportInternal(TStep step, double progress)
+    {
+        var actualProgressInfo = new TInfo();
         var currentProgress = 0.0;
 
         if (TotalSize > 0)
@@ -53,7 +86,7 @@ public abstract class AggregatedProgressReporter<T> : IStepProgressReporter wher
         _progressReporter.Report(GetProgressText(step), currentProgress, Type, actualProgressInfo);
     }
 
-    protected abstract string GetProgressText(IProgressStep step);
+    protected abstract string GetProgressText(TStep step);
 
-    protected abstract double CalculateAggregatedProgress(IProgressStep task, double progress, ref T progressInfo);
+    protected abstract double CalculateAggregatedProgress(TStep task, double progress, ref TInfo progressInfo);
 }

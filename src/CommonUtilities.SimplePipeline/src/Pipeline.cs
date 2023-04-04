@@ -13,9 +13,11 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// <inheritdoc/>
     public bool Prepare()
     {
+        if (IsDisposed)
+            throw new ObjectDisposedException("Pipeline already disposed");
         if (_prepareSuccessful.HasValue)
             return _prepareSuccessful.Value;
-        _prepareSuccessful = PlanCore();
+        _prepareSuccessful = PrepareCore();
         return _prepareSuccessful.Value;
     }
 
@@ -31,10 +33,10 @@ public abstract class Pipeline : DisposableObject, IPipeline
     }
 
     /// <summary>
-    /// Performs the actual planning of this instance.
+    /// Performs the actual preparation of this instance.
     /// </summary>
     /// <returns><see langword="true"/> if the planning was successful; <see langword="false"/> otherwise.</returns>
-    protected abstract bool PlanCore();
+    protected abstract bool PrepareCore();
 
     /// <summary>
     /// Implements the run logic of this instance.
