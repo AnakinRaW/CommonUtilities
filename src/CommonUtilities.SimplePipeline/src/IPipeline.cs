@@ -21,7 +21,7 @@ public interface IPipeline : IDisposable
     /// Runs pipeline.
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
-    /// <exception cref="OperationCanceledException">If <see cref="token"/> was requested for cancellation.</exception>
+    /// <exception cref="OperationCanceledException">If <paramref name="token"/> was requested for cancellation.</exception>
     /// <exception cref="StepFailureException">The pipeline may throw this exception if one or many steps failed.</exception>
     void Run(CancellationToken token = default);
 }

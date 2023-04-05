@@ -15,29 +15,29 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned2 = true;
+            ran2 = true;
         });
 
 
         runner.Run(default);
         Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromSeconds(2)));
 
-        Assert.True(runned1);
-        Assert.True(runned2);
+        Assert.True(ran1);
+        Assert.True(ran2);
     }
 
     [Fact]
@@ -46,21 +46,21 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned2 = true;
+            ran2 = true;
         });
 
 
@@ -74,8 +74,8 @@ public class ParallelBlockingRunnerTest
 
         runner.Wait();
 
-        Assert.True(runned1);
-        Assert.True(runned2);
+        Assert.True(ran1);
+        Assert.True(ran2);
     }
 
     [Fact]
@@ -84,21 +84,21 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned2 = true;
+            ran2 = true;
         });
 
 
@@ -106,8 +106,8 @@ public class ParallelBlockingRunnerTest
 
         runner.FinishAndWait();
 
-        Assert.True(runned1);
-        Assert.True(runned2);
+        Assert.True(ran1);
+        Assert.True(ran2);
     }
 
     [Fact]
@@ -116,28 +116,28 @@ public class ParallelBlockingRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
-        var t3 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
+        var s3 = new Mock<IStep>();
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned2 = true;
+            ran2 = true;
         });
 
-        var runned3 = false;
-        t3.Setup(t => t.Run(default)).Callback(() =>
+        var ran3 = false;
+        s3.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned3 = true;
+            ran3 = true;
         });
 
 
@@ -145,15 +145,15 @@ public class ParallelBlockingRunnerTest
 
         Task.Run(() =>
         {
-            runner.Queue(t3.Object);
+            runner.Queue(s3.Object);
             Task.Delay(1000);
             runner.Finish();
         });
 
         runner.Wait();
 
-        Assert.True(runned1);
-        Assert.True(runned2);
-        Assert.True(runned3);
+        Assert.True(ran1);
+        Assert.True(ran2);
+        Assert.True(ran3);
     }
 }

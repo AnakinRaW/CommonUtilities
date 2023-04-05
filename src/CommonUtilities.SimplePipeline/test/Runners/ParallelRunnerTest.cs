@@ -16,31 +16,31 @@ public class ParallelRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
             Task.Delay(1000);
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
             Task.Delay(1000);
-            runned2 = true;
+            ran2 = true;
         });
 
 
         runner.Run(default);
         runner.Wait();
 
-        Assert.True(runned1);
-        Assert.True(runned2);
+        Assert.True(ran1);
+        Assert.True(ran2);
     }
 
     [Fact]
@@ -49,31 +49,31 @@ public class ParallelRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
-        var t2 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
 
         var b = new ManualResetEvent(false);
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.Queue(s1.Object);
+        runner.Queue(s2.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
             b.WaitOne();
-            runned1 = true;
+            ran1 = true;
         });
-        var runned2 = false;
-        t2.Setup(t => t.Run(default)).Callback(() =>
+        var ran2 = false;
+        s2.Setup(t => t.Run(default)).Callback(() =>
         {
             b.WaitOne();
-            runned2 = true;
+            ran2 = true;
         });
 
 
         runner.Run(default);
-        Assert.False(runned1);
-        Assert.False(runned2);
+        Assert.False(ran1);
+        Assert.False(ran2);
         b.Set();
     }
 
@@ -83,17 +83,17 @@ public class ParallelRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var t1 = new Mock<IStep>();
+        var s1 = new Mock<IStep>();
 
         var b = new ManualResetEvent(false);
 
-        runner.Queue(t1.Object);
+        runner.Queue(s1.Object);
 
-        var runned1 = false;
-        t1.Setup(t => t.Run(default)).Callback(() =>
+        var ran1 = false;
+        s1.Setup(t => t.Run(default)).Callback(() =>
         {
             b.WaitOne();
-            runned1 = true;
+            ran1 = true;
         });
 
         runner.Run(default);
@@ -114,10 +114,10 @@ public class ParallelRunnerTest
         };
 
         var step = new Mock<IStep>();
-        var runned = false;
+        var ran = false;
         step.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned = true;
+            ran = true;
         }).Throws<Exception>();
 
         runner.Queue(step.Object);
@@ -125,7 +125,7 @@ public class ParallelRunnerTest
         runner.Wait(Timeout.InfiniteTimeSpan);
 
         Assert.True(hasError);
-        Assert.True(runned);
+        Assert.True(ran);
         Assert.NotNull(runner.Exception);
     }
 
@@ -146,10 +146,10 @@ public class ParallelRunnerTest
         };
 
         var t1 = new Mock<IStep>();
-        var runned = false;
+        var ran = false;
         t1.Setup(t => t.Run(cts.Token)).Callback(() =>
         {
-            runned = true;
+            ran = true;
             cts.Cancel();
             b.Set();
         });
@@ -165,7 +165,7 @@ public class ParallelRunnerTest
         runner.Wait(Timeout.InfiniteTimeSpan);
 
         Assert.True(hasError);
-        Assert.True(runned);
+        Assert.True(ran);
         Assert.True(runner.IsCancelled);
     }
 }
