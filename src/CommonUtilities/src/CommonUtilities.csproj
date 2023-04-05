@@ -22,7 +22,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="System.IO.Abstractions" Version="19.2.4" />
-		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
+		<PackageReference Include="Validation" Version="2.5.51" />
 	</ItemGroup>
 
 </Project>
