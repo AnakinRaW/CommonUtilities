@@ -37,17 +37,17 @@ public class TaskRunnerTest
         };
 
         var step = new Mock<IStep>();
-        var runned = false;
+        var ran = false;
         step.Setup(t => t.Run(cts.Token)).Callback(() =>
         {
-            runned = true;
+            ran = true;
         });
 
         runner.Queue(step.Object);
         runner.Run(cts.Token);
 
         Assert.True(hasError);
-        Assert.False(runned);
+        Assert.False(ran);
         Assert.Single(runner.Steps);
         Assert.Single(runner);
     }
@@ -65,16 +65,16 @@ public class TaskRunnerTest
         };
 
         var step = new Mock<IStep>();
-        var runned = false;
+        var ran = false;
         step.Setup(t => t.Run(default)).Callback(() =>
         {
-            runned = true;
+            ran = true;
         }).Throws<Exception>();
 
         runner.Queue(step.Object);
         runner.Run(default);
 
         Assert.True(hasError);
-        Assert.True(runned);
+        Assert.True(ran);
     }
 }
