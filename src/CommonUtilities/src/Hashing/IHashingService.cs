@@ -27,11 +27,10 @@ public interface IHashingService
     /// </summary>
     /// <param name="stream">The target stream</param>
     /// <param name="hashType">The hash algorithm.</param>
-    /// <param name="keepOpen">When set to <see langword="true"/> the input stream will not get disposed after the operation finished; otherwise <paramref name="stream"/> will get disposed.</param>
     /// <returns>The hash code of the stream</returns>
     /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
     /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
-    byte[] GetStreamHash(Stream stream, HashType hashType, bool keepOpen = false);
+    byte[] GetStreamHash(Stream stream, HashType hashType);
 
 
 #if NET

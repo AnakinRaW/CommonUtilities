@@ -74,7 +74,7 @@ public class HashVerifier : IVerifier<HashingData>
     private bool CompareHashes(Stream fileStream, HashType hashType, byte[] expected)
     {
         fileStream.Seek(0L, SeekOrigin.Begin);
-        var actualHash = _hashingService.GetStreamHash(fileStream, hashType, true);
+        var actualHash = _hashingService.GetStreamHash(fileStream, hashType);
         return actualHash.AsSpan().SequenceEqual(expected);
     }
 }

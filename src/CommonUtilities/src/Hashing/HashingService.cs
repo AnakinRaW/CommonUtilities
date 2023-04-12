@@ -19,31 +19,25 @@ public class HashingService : IHashingService
 
         using var stream =
             file.FileSystem.FileStream.New(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return GetStreamHash(stream, hashType, true);
+        return GetStreamHash(stream, hashType);
     }
 
     /// <inheritdoc/>
-    public byte[] GetStreamHash(Stream stream, HashType hashType, bool keepOpen = false)
+    public byte[] GetStreamHash(Stream stream, HashType hashType)
     {
         Requires.NotNull(stream, nameof(stream));
-        return HashFileInternal(stream, GetAlgorithm(hashType), keepOpen);
+        return HashFileInternal(stream, GetAlgorithm(hashType));
     }
 
-    private static byte[] HashFileInternal(Stream inputStream, HashAlgorithm algorithm, bool keepOpen)
+    private static byte[] HashFileInternal(Stream inputStream, HashAlgorithm algorithm)
     {
         if (!inputStream.CanRead)
             throw new InvalidOperationException("Cannot hash unreadable stream");
+        if (!inputStream.CanSeek)
+            throw new InvalidOperationException("Cannot hash stream.");
         inputStream.Position = 0;
-        try
-        {
-            using (algorithm)
-                return algorithm.ComputeHash(inputStream);
-        }
-        finally
-        {
-            if (!keepOpen)
-                inputStream.Dispose();
-        }
+        using (algorithm)
+            return algorithm.ComputeHash(inputStream);
     }
 
     private static HashAlgorithm GetAlgorithm(HashType hashType)
