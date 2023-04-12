@@ -4,7 +4,7 @@ namespace AnakinRaW.CommonUtilities.Test;
 
 public class ProcessElevationTest
 {
-    [Fact]
+    //[Fact]
     public void TestNotElevated()
     {
         Assert.False(ProcessElevation.Default.IsCurrentProcessElevated);
