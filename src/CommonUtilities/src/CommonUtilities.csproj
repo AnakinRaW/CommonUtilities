@@ -11,7 +11,7 @@
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	</PropertyGroup>
-
+	
 	<PropertyGroup>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -21,8 +21,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.IO.Abstractions" Version="19.2.4" />
+		<PackageReference Include="System.IO.Abstractions" Version="19.2.9" />
 		<PackageReference Include="Validation" Version="2.5.51" />
+		<PackageReference Include="Vanara.PInvoke.Security" Version="3.4.13" />
 	</ItemGroup>
 
 </Project>

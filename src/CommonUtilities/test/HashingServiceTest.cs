@@ -23,18 +23,10 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public void TestStreamClosed()
+    public void TestStreamStaysOpen()
     {
         var ms = new MemoryStream();
         _hashingService.GetStreamHash(ms, HashType.MD5);
-        Assert.Throws<ObjectDisposedException>(() => ms.Position = 0);
-    }
-
-    [Fact]
-    public void TestStreamKeepOpen()
-    {
-        var ms = new MemoryStream();
-        _hashingService.GetStreamHash(ms, HashType.MD5, true);
         ms.Position = 0;
     }
 

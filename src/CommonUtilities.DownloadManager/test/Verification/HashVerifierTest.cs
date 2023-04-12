@@ -59,7 +59,7 @@ public class HashVerifierTest
         var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
-        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>()))
             .Returns(new byte[] { 1 });
 
         var result = _verifier.Verify(stream, path, HashVerificationContext.None);
@@ -73,7 +73,7 @@ public class HashVerifierTest
         var path = _fileSystem.FileInfo.New("test.txt").FullName;
         var stream = new MemoryStream();
 
-        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>()))
             .Returns(new byte[]{1});
 
         var result = _verifier.Verify(stream, path, new HashVerificationContext(new byte[16], HashType.MD5));
@@ -88,7 +88,7 @@ public class HashVerifierTest
 
         var hash = new byte[16];
 
-        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>()))
             .Returns(hash);
 
         var result = _verifier.Verify(stream, new HashVerificationContext(hash, HashType.MD5));
@@ -104,7 +104,7 @@ public class HashVerifierTest
 
         var hash = new byte[16];
 
-        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>()))
             .Returns(hash);
 
         var result = _verifier.Verify(stream, path, new HashVerificationContext(hash, HashType.MD5));
@@ -120,7 +120,7 @@ public class HashVerifierTest
 
         var hash = new byte[16];
 
-        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>(), It.IsAny<bool>()))
+        _hashing.Setup(h => h.GetStreamHash(stream, It.IsAny<HashType>()))
             .Throws<Exception>();
 
         var result = _verifier.Verify(stream, path, new HashVerificationContext(hash, HashType.MD5));
