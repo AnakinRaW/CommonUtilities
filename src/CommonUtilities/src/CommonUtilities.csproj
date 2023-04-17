@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>Shared set of common classes and utilities for all of my software.</Description>
@@ -21,7 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.IO.Abstractions" Version="19.2.9" />
+		<PackageReference Include="System.IO.Abstractions" Version="19.2.11" />
 		<PackageReference Include="Validation" Version="2.5.51" />
 		<PackageReference Include="Vanara.PInvoke.Security" Version="3.4.13" />
 	</ItemGroup>
