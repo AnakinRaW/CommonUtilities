@@ -5,7 +5,7 @@ namespace AnakinRaW.CommonUtilities.Verification;
 /// <summary>
 /// The result of a data verification.
 /// </summary>
-public readonly struct VerificationResult : IEquatable<VerificationResult>
+public sealed class VerificationResult : IEquatable<VerificationResult>
 {
     /// <summary>
     /// Represents a verification result that indicates the data was not verified.
@@ -59,15 +59,17 @@ public readonly struct VerificationResult : IEquatable<VerificationResult>
     }
 
     /// <inheritdoc/>
-    public bool Equals(VerificationResult other)
+    public bool Equals(VerificationResult? other)
     {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
         return Status == other.Status;
     }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return obj is VerificationResult other && Equals(other);
+        return ReferenceEquals(this, obj) || obj is VerificationResult other && Equals(other);
     }
 
     /// <inheritdoc/>
