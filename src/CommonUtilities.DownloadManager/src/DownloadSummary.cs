@@ -1,5 +1,5 @@
 ﻿using System;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Verification;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
@@ -42,7 +42,7 @@ public class DownloadSummary
     /// Creates an empty <see cref="DownloadSummary"/>
     /// </summary>
     public DownloadSummary()
-        : this(string.Empty, 0L, 0.0, TimeSpan.Zero, default)
+        : this(string.Empty, 0L, 0.0, TimeSpan.Zero, VerificationResult.NotVerified)
     {
     }
 

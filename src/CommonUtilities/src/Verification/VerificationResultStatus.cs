@@ -1,13 +1,14 @@
-﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Verification;
+﻿namespace AnakinRaW.CommonUtilities.Verification;
 
 /// <summary>
-/// The status of file verification.
+/// The status of verification.
 /// </summary>
-public enum VerificationResult
+public enum VerificationResultStatus
 {
     /// <summary>
     /// Verification was not processed.
     /// </summary>
+    /// <remarks>This status shall only be used for the <see cref="IVerificationManager"/>.</remarks>
     NotVerified,
     /// <summary>
     /// Verification was successful.

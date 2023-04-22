@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 using AnakinRaW.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.Verification;
+using AnakinRaW.CommonUtilities.Verification.Hash;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -297,7 +297,7 @@ public class DownloadManagerTest
 
     [Fact]
     public async Task TestDownloadVerificationEnforce()
-    { 
+    {
         var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
@@ -312,8 +312,8 @@ public class DownloadManagerTest
                 VerificationPolicy = VerificationPolicy.Enforce
             });
 
-        var validContext = new HashVerificationContext(new byte[] { }, HashType.None);
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        var validContext = new HashVerificationContext(HashType.None, new byte[] { });
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
 
 
         var manager = CreateDownloadManager();
@@ -349,8 +349,8 @@ public class DownloadManagerTest
                 VerificationPolicy = VerificationPolicy.SkipWhenNoContextOrBroken
             });
 
-        var validContext = new HashVerificationContext(new byte[] { }, HashType.None);
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        var validContext = new HashVerificationContext(HashType.None, new byte[] { });
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
 
 
         var manager = CreateDownloadManager();
@@ -358,10 +358,10 @@ public class DownloadManagerTest
 
         await manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None);
         _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
-            .Returns(VerificationResult.VerificationContextError);
+            .Returns(VerificationResult.InvalidContext);
         await manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None);
         _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
-            .Returns(VerificationResult.VerificationFailed);
+            .Returns(VerificationResult.Failed);
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(new Uri("file://"), output, null, validContext, CancellationToken.None));
     }
@@ -383,7 +383,7 @@ public class DownloadManagerTest
                 VerificationPolicy = VerificationPolicy.Optional
             });
 
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
 
 
         var manager = CreateDownloadManager();
