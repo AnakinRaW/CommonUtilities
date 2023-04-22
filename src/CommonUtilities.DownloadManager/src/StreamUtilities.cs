@@ -1,29 +1,41 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 internal static class StreamUtilities
 {
-    public static long CopyStream(Stream inputStream, long inputLength, Stream outputStream, CancellationToken cancellationToken)
+    public static string GetPathFromStream(this Stream stream)
+    {
+        return stream switch
+        {
+            FileStream fileStream => fileStream.Name,
+            FileSystemStream fileSystemStream => fileSystemStream.Name,
+            _ => throw new ArgumentException("Unable to get path from non-File stream")
+        };
+    }
+
+    public static async Task<long> CopyStream(Stream inputStream, long inputLength, Stream outputStream, CancellationToken cancellationToken)
     {
         var bufferSize = GetBufferSize(inputLength);
-        inputStream.CopyToAsync(outputStream, bufferSize, cancellationToken).Wait(cancellationToken);
+        await inputStream.CopyToAsync(outputStream, bufferSize, cancellationToken);
         return outputStream.Length;
     }
 
-    public static long CopyStreamWithProgress(Stream inputStream, Stream outputStream,
+    public static Task<long> CopyStreamWithProgressAsync(Stream inputStream, Stream outputStream,
         ProgressUpdateCallback? progress, CancellationToken cancellationToken)
     {
-        return CopyStreamWithProgress(inputStream, inputStream.Length, outputStream, progress, cancellationToken);
+        return CopyStreamWithProgressAsync(inputStream, inputStream.Length, outputStream, progress, cancellationToken);
     }
 
-    public static long CopyStreamWithProgress(Stream inputStream, long inputLength, Stream outputStream, ProgressUpdateCallback? progress, CancellationToken cancellationToken)
+    public static async Task<long> CopyStreamWithProgressAsync(Stream inputStream, long inputLength, Stream outputStream, ProgressUpdateCallback? progress, CancellationToken cancellationToken)
     {
         if (progress == null)
-            return CopyStream(inputStream, inputLength, outputStream, cancellationToken);
+            return await CopyStream(inputStream, inputLength, outputStream, cancellationToken);
         
         var totalBytesRead = 0L;
         var bufferSize = GetBufferSize(inputLength);
@@ -32,13 +44,11 @@ internal static class StreamUtilities
         {
             while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var bytesRead = inputStream.Read(buffer, 0, buffer.Length);
-                cancellationToken.ThrowIfCancellationRequested();
+                var bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
                 if (bytesRead <= 0)
                     break;
                 totalBytesRead += bytesRead;
-                outputStream.Write(buffer, 0, bytesRead);
+                await outputStream.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
                 if (inputLength < totalBytesRead)
                     inputLength = totalBytesRead;
                 progress?.Invoke(new ProgressUpdateStatus(totalBytesRead, inputLength, 0));

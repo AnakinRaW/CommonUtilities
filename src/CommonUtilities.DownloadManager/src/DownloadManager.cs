@@ -47,7 +47,7 @@ public class DownloadManager : IDownloadManager {
 #if !NET6_0_OR_GREATER
             case InternetClient.WebClient:
                 AddDownloadProvider(new WebClientDownloader(serviceProvider));
-                break;  
+                break;
 #endif
             default:
                 throw new ArgumentOutOfRangeException();
@@ -66,7 +66,7 @@ public class DownloadManager : IDownloadManager {
 
     /// <inheritdoc/>
     public Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
-        VerificationContext? verificationContext = null, CancellationToken cancellationToken = default)
+        IVerificationContext? verificationContext = null, CancellationToken cancellationToken = default)
     {
         _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
         if (outputStream == null)
@@ -93,10 +93,10 @@ public class DownloadManager : IDownloadManager {
 
         try
         {
-            var providers = GetSuitableProvider(_allProviders, uri);
-            return Task.Factory.StartNew(() => DownloadWithRetry(providers, uri, outputStream, progress,
-                    verificationContext, cancellationToken), cancellationToken,
-                TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            var providers = GetSuitableProvider(uri);
+            return Task.Run(async () =>
+                await DownloadWithRetry(providers, uri, outputStream, progress, verificationContext, cancellationToken)
+                    .ConfigureAwait(false), cancellationToken);
         }
         catch (Exception ex)
         {
@@ -110,8 +110,8 @@ public class DownloadManager : IDownloadManager {
         _allProviders.Clear();
     }
 
-    private DownloadSummary DownloadWithRetry(IDownloadProvider[] providers, Uri uri, Stream outputStream,
-        ProgressUpdateCallback? progress, VerificationContext? verificationContext, CancellationToken cancellationToken)
+    private async Task<DownloadSummary> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
+        ProgressUpdateCallback? progress, IVerificationContext? verificationContext, CancellationToken cancellationToken)
     {
         if (_configuration.VerificationPolicy == VerificationPolicy.Enforce && verificationContext is null)
         {
@@ -129,11 +129,11 @@ public class DownloadManager : IDownloadManager {
             try
             {
                 _logger?.LogTrace($"Attempting download '{uri.AbsoluteUri}' using provider '{provider.Name}'");
-                var summary = provider.Download(uri, outputStream,
+                var summary = await provider.DownloadAsync(uri, outputStream,
                     status =>
                     {
                         progress?.Invoke(new ProgressUpdateStatus(provider.Name, status.BytesRead, status.TotalBytes, status.BitRate));
-                    }, cancellationToken);
+                    }, cancellationToken).ConfigureAwait(false);
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
                 {
                     var exception = new Exception($"Empty file downloaded on '{uri}'.");
@@ -201,15 +201,15 @@ public class DownloadManager : IDownloadManager {
         return null!;
     }
 
-    private IDownloadProvider[] GetSuitableProvider(IEnumerable<IDownloadProvider> providers, Uri uri)
+    private IList<IDownloadProvider> GetSuitableProvider(Uri uri)
     {
         var source = uri.IsFile || uri.IsUnc ? DownloadSource.File : DownloadSource.Internet;
-        var array = providers.Where(e => e.IsSupported(source)).ToArray();
-        if (array.Length == 0)
+        var supportedProviders = _allProviders.Where(e => e.IsSupported(source)).ToList();
+        if (!supportedProviders.Any())
         {
             _logger?.LogTrace("Unable to select suitable download provider.");
             throw new DownloadProviderNotFoundException("Can not download. No suitable download provider found.");
         }
-        return _preferredDownloadProviders.GetProvidersInPriorityOrder(array).ToArray();
+        return _preferredDownloadProviders.GetProvidersInPriorityOrder(supportedProviders);
     }
 }

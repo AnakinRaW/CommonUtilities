@@ -53,17 +53,15 @@ public class VerificationManager : IVerificationManager
     }
 
     /// <inheritdoc/>
-    public VerificationResult Verify(Stream file, VerificationContext verificationContext)
+    public VerificationResult Verify(Stream file, IVerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
-        if (file is not FileStream fileStream)
-            throw new ArgumentException(nameof(file));
-        var path = fileStream.Name;
-        return Verify(fileStream, path, verificationContext);
+        var path = file.GetPathFromStream();
+        return Verify(file, path, verificationContext);
     }
 
     /// <inheritdoc/>
-    public VerificationResult Verify(IFileInfo file, VerificationContext verificationContext)
+    public VerificationResult Verify(IFileInfo file, IVerificationContext verificationContext)
     {
         Requires.NotNull(file, nameof(file));
         var stream = file.OpenRead();
@@ -71,7 +69,7 @@ public class VerificationManager : IVerificationManager
         return Verify(stream, path, verificationContext);
     }
 
-    private VerificationResult Verify(Stream stream, string path, VerificationContext verificationContext)
+    private VerificationResult Verify(Stream stream, string path, IVerificationContext verificationContext)
     {
         Requires.NotNullOrEmpty(path, nameof(path));
         var result = VerificationResult.NotVerified;

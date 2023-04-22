@@ -10,12 +10,12 @@ public enum VerificationPolicy
     /// </summary>
     Skip,
     /// <summary>
-    /// Verification will be skipped if no <see cref="Verification.VerificationContext"/> is provided
-    /// or the <see cref="Verification.VerificationContext"/> has invalid data.
+    /// Verification will be skipped if no <see cref="Verification.IVerificationContext"/> is provided
+    /// or the <see cref="Verification.IVerificationContext"/> has invalid data.
     /// </summary>
     SkipWhenNoContextOrBroken,
     /// <summary>
-    /// Verification will be skipped if no <see cref="Verification.VerificationContext"/> is provided.
+    /// Verification will be skipped if no <see cref="Verification.IVerificationContext"/> is provided.
     /// </summary>
     Optional,
     /// <summary>
