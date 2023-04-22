@@ -36,7 +36,7 @@ public class DownloadManager : IDownloadManager {
     {
         Requires.NotNull(serviceProvider, nameof(serviceProvider));
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _configuration = serviceProvider.GetService<IDownloadManagerConfiguration>() ??
+        _configuration = serviceProvider.GetService<IDownloadManagerConfigurationProvider>()?.GetConfiguration() ??
                          DownloadManagerConfiguration.Default;
         _verifier = serviceProvider.GetRequiredService<IVerificationManager>();
         switch (_configuration.InternetClient)
