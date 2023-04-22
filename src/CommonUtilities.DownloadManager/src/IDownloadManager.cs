@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Verification;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 

@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification.HashVerification;
 using AnakinRaW.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.Verification;
+using AnakinRaW.CommonUtilities.Verification.Hash;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -16,21 +16,24 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 public class DownloadManagerTest
 {
     private readonly Mock<IVerificationManager> _verificationManager;
-    private readonly DownloadManagerConfiguration _configuration;
+    private readonly Mock<IDownloadManagerConfigurationProvider> _configProvider;
+
+    private readonly IServiceProvider _serviceProvider;
 
     public DownloadManagerTest()
     {
         _verificationManager = new Mock<IVerificationManager>();
-        _configuration = DownloadManagerConfiguration.Default;
-    }
-
-    private DownloadManager CreateManager(IDownloadManagerConfiguration configuration = null)
-    {
-        configuration ??= _configuration;
+        _configProvider = new Mock<IDownloadManagerConfigurationProvider>();
         var sc = new ServiceCollection();
         sc.AddSingleton(_ => _verificationManager.Object);
-        sc.AddSingleton(_ => configuration);
-        var manager = new DownloadManager(sc.BuildServiceProvider());
+        sc.AddSingleton(_ => _configProvider.Object);
+
+        _serviceProvider = sc.BuildServiceProvider();
+    }
+
+    protected DownloadManager CreateDownloadManager()
+    {
+        var manager = new DownloadManager(_serviceProvider);
         manager.RemoveAllEngines();
         return manager;
     }
@@ -38,11 +41,9 @@ public class DownloadManagerTest
     [Fact]
     public void TestAddProviders()
     {
+        var manager = CreateDownloadManager();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
-
-        var manager = CreateManager();
-
         Assert.Empty(manager.Providers);
         manager.AddDownloadProvider(p.Object);
         Assert.Single(manager.Providers);
@@ -56,8 +57,7 @@ public class DownloadManagerTest
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
 
-        var manager = CreateManager();
-
+        var manager = CreateDownloadManager();
         manager.AddDownloadProvider(p.Object);
 
         var output = new MemoryStream();
@@ -82,8 +82,7 @@ public class DownloadManagerTest
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
 
-        var manager = CreateManager();
-
+        var manager = CreateDownloadManager();
         manager.AddDownloadProvider(p.Object);
         var output = new MemoryStream();
         await Assert.ThrowsAsync<ArgumentException>(async () =>
@@ -91,14 +90,13 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownloadEmpty()
+    public async Task TestDownloadEmptyThrows()
     {
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
 
-        var config = _configuration with { AllowEmptyFileDownload = true };
-        var manager = CreateManager(config);
+        var manager = CreateDownloadManager();
 
         manager.AddDownloadProvider(p.Object);
         var output = new MemoryStream();
@@ -107,6 +105,24 @@ public class DownloadManagerTest
 
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadSummary()));
+    }
+
+    [Fact]
+    public async Task TestDownloadEmptyAllowed()
+    {
+        var output = new MemoryStream();
+        var p = new Mock<IDownloadProvider>();
+        p.Setup(x => x.Name).Returns("A");
+        p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+            .Returns(Task.FromResult(new DownloadSummary()));
+
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(() => DownloadManagerConfiguration.Default with { AllowEmptyFileDownload = true });
+
+        var manager = CreateDownloadManager();
+
+        manager.AddDownloadProvider(p.Object);
 
         var summary = await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None);
         Assert.Equal("A", summary.DownloadProvider);
@@ -115,18 +131,10 @@ public class DownloadManagerTest
     [Fact]
     public async Task TestDownload()
     {
+        var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-
-        var config = _configuration with { AllowEmptyFileDownload = true };
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(p.Object);
-        var output = new MemoryStream();
-        output.WriteByte(1);
-
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
@@ -134,26 +142,40 @@ public class DownloadManagerTest
             })
             .Returns(Task.FromResult(new DownloadSummary()));
 
-        
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with { AllowEmptyFileDownload = true });
+
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(p.Object);
+       
+        output.WriteByte(1);
         await manager.DownloadAsync(new Uri("file://test.txt"), output, null, null, CancellationToken.None);
 
         var outData = new byte[2];
         output.Seek(0, SeekOrigin.Begin);
-        output.Read(outData, 0, (int)output.Length);
-        Assert.Equal(new byte[]{1, 2}, outData);
+        var _ = await output.ReadAsync(outData, 0, (int)output.Length);
+        Assert.Equal(new byte[] { 1, 2 }, outData);
     }
 
     [Fact]
     public async Task TesProgress()
     {
+        var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+            .Callback<Uri, Stream, ProgressUpdateCallback, CancellationToken>((_, stream, callback, _) =>
+            {
+                stream.WriteByte(1);
+                callback(new ProgressUpdateStatus(1, 1, 0));
+            })
+            .Returns(Task.FromResult(new DownloadSummary()));
 
-        var manager = CreateManager();
-
+        var manager = CreateDownloadManager();
         manager.AddDownloadProvider(p.Object);
-        var output = new MemoryStream();
+        
 
         var called = false;
 
@@ -165,14 +187,6 @@ public class DownloadManagerTest
             called = true;
         }
 
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
-            .Callback<Uri, Stream, ProgressUpdateCallback, CancellationToken>((_, stream, callback, _) =>
-            {
-                stream.WriteByte(1);
-                callback(new ProgressUpdateStatus(1, 1, 0));
-            })
-            .Returns(Task.FromResult(new DownloadSummary()));
-
         await manager.DownloadAsync(new Uri("file://test.txt"), output, Action, null, CancellationToken.None);
         Assert.True(called);
     }
@@ -180,17 +194,10 @@ public class DownloadManagerTest
     [Fact]
     public async Task TestDownloadFailed()
     {
+        var output = new MemoryStream();
         var providerA = new Mock<IDownloadProvider>();
         providerA.Setup(x => x.Name).Returns("A");
         providerA.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-        var config = _configuration with { AllowEmptyFileDownload = true };
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(providerA.Object);
-        var output = new MemoryStream();
-        output.WriteByte(1);
-
         providerA.Setup(x =>
                 x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
@@ -198,6 +205,15 @@ public class DownloadManagerTest
                 output.WriteByte(2);
             })
             .Throws<AccessViolationException>();
+
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with { AllowEmptyFileDownload = true });
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(providerA.Object);
+       
+        output.WriteByte(1);
+
 
         var ex = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(new Uri("file://test.txt"), output, null, null, CancellationToken.None));
@@ -210,21 +226,10 @@ public class DownloadManagerTest
     [Fact]
     public async Task TestDownloadWithRetry()
     {
+        var output = new MemoryStream();
         var providerA = new Mock<IDownloadProvider>();
         providerA.Setup(x => x.Name).Returns("A");
         providerA.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-        var providerB = new Mock<IDownloadProvider>();
-        providerB.Setup(x => x.Name).Returns("B");
-        providerB.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-        var config = _configuration with { AllowEmptyFileDownload = true, DownloadRetryDelay = 200};
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(providerA.Object);
-        manager.AddDownloadProvider(providerB.Object);
-        var output = new MemoryStream();
-        output.WriteByte(1);
-
         providerA.Setup(x =>
                 x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
@@ -233,6 +238,9 @@ public class DownloadManagerTest
             })
             .Throws<Exception>();
 
+        var providerB = new Mock<IDownloadProvider>();
+        providerB.Setup(x => x.Name).Returns("B");
+        providerB.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
         providerB.Setup(x =>
                 x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
@@ -242,74 +250,118 @@ public class DownloadManagerTest
             })
             .Returns(Task.FromResult(new DownloadSummary()));
 
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with
+            {
+                AllowEmptyFileDownload = true,
+                DownloadRetryDelay = 200
+            });
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(providerA.Object);
+        manager.AddDownloadProvider(providerB.Object);
+
+       
+        output.WriteByte(1);
+
         var summary = await manager.DownloadAsync(new Uri("file://test.txt"), output, null, null, CancellationToken.None);
         Assert.Equal("B", summary.DownloadProvider);
 
         var outData = new byte[3];
         output.Seek(0, SeekOrigin.Begin);
-        output.Read(outData, 0, (int)output.Length);
+        var _ = await output.ReadAsync(outData, 0, (int)output.Length);
         Assert.Equal(new byte[] { 1, 3, 4 }, outData);
+    }
+
+
+    [Fact]
+    public async Task TestDownloadVerificationDefault()
+    {
+        var output = new MemoryStream();
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with
+            {
+                AllowEmptyFileDownload = true,
+            });
+
+        var p = new Mock<IDownloadProvider>();
+        p.Setup(x => x.Name).Returns("A");
+        p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(p.Object);
+
+        await Assert.ThrowsAsync<DownloadFailedException>(async () =>
+            await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
     }
 
     [Fact]
     public async Task TestDownloadVerificationEnforce()
     {
+        var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-        var config = _configuration with { AllowEmptyFileDownload = true, VerificationPolicy = VerificationPolicy.Enforce };
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(p.Object);
-        var output = new MemoryStream();
-
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadSummary()));
 
-        var validContext = new HashVerificationContext(new byte[] { }, HashType.None);
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with
+            {
+                AllowEmptyFileDownload = true,
+                VerificationPolicy = VerificationPolicy.Enforce
+            });
 
-        await Assert.ThrowsAsync<VerificationFailedException>(() =>
-            manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
-        await Assert.ThrowsAsync<DownloadFailedException>(() =>
-            manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None));
-        _verificationManager.Setup(m => m.Verify(output, It.IsAny<HashVerificationContext>()))
+        var validContext = new HashVerificationContext(HashType.None, new byte[] { });
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
+
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(p.Object);
+
+        await Assert.ThrowsAsync<VerificationFailedException>(async () =>
+            await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
+        await Assert.ThrowsAsync<DownloadFailedException>(async () =>
+            await manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None));
+        _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
             .Returns(VerificationResult.NotVerified);
-        await Assert.ThrowsAsync<DownloadFailedException>( () =>
-            manager.DownloadAsync(new Uri("file://"), output, null, validContext, CancellationToken.None));
-        _verificationManager.Setup(m => m.Verify(output, It.IsAny<HashVerificationContext>()))
+        await Assert.ThrowsAsync<DownloadFailedException>(async () =>
+            await manager.DownloadAsync(new Uri("file://"), output, null, validContext, CancellationToken.None));
+        _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
             .Returns(VerificationResult.Success);
         await manager.DownloadAsync(new Uri("file://"), output, null, validContext, CancellationToken.None);
     }
 
     [Fact]
-    public async Task TestDownloadVerificationSkipWhenNoContextOrBroken()
+    public async Task TestDownloadVerificationSkipWhenNoneOrBroken()
     {
+        var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-        var config = _configuration with { AllowEmptyFileDownload = true, VerificationPolicy = VerificationPolicy.SkipWhenNoContextOrBroken };
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(p.Object);
-        var output = new MemoryStream();
-        await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
-
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadSummary()));
 
-        var validContext = new HashVerificationContext(new byte[] { }, HashType.None);
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with
+            {
+                AllowEmptyFileDownload = true,
+                VerificationPolicy = VerificationPolicy.SkipWhenNoContextOrBroken
+            });
+
+        var validContext = new HashVerificationContext(HashType.None, new byte[] { });
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
+
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(p.Object);
 
         await manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None);
-        _verificationManager.Setup(m => m.Verify(output, It.IsAny<HashVerificationContext>()))
-            .Returns(VerificationResult.VerificationContextError);
+        _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
+            .Returns(VerificationResult.InvalidContext);
         await manager.DownloadAsync(new Uri("file://"), output, null, invalidContext, CancellationToken.None);
-        _verificationManager.Setup(m => m.Verify(output, It.IsAny<HashVerificationContext>()))
-            .Returns(VerificationResult.VerificationFailed);
+        _verificationManager.Setup(m => m.Verify(output, It.IsAny<IVerificationContext>()))
+            .Returns(VerificationResult.Failed);
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(new Uri("file://"), output, null, validContext, CancellationToken.None));
     }
@@ -317,23 +369,25 @@ public class DownloadManagerTest
     [Fact]
     public async Task TestDownloadVerificationOptional()
     {
+        var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadSource.File)).Returns(true);
-
-        var config = _configuration with { AllowEmptyFileDownload = true, VerificationPolicy = VerificationPolicy.Optional };
-        var manager = CreateManager(config);
-
-        manager.AddDownloadProvider(p.Object);
-        var output = new MemoryStream();
-        await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
-
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadSummary()));
 
-        var validContext = new HashVerificationContext(new byte[] { }, HashType.None);
-        var invalidContext = new HashVerificationContext(new byte[] { }, HashType.MD5);
+        _configProvider.Setup(c => c.GetConfiguration())
+            .Returns(DownloadManagerConfiguration.Default with
+            {
+                AllowEmptyFileDownload = true,
+                VerificationPolicy = VerificationPolicy.Optional
+            });
+
+        var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });
+
+
+        var manager = CreateDownloadManager();
+        manager.AddDownloadProvider(p.Object);
 
         await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None);
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>

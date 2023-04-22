@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using AnakinRaW.CommonUtilities.DownloadManager.Verification;
+using AnakinRaW.CommonUtilities.Verification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Validation;
@@ -36,7 +36,7 @@ public class DownloadManager : IDownloadManager {
     {
         Requires.NotNull(serviceProvider, nameof(serviceProvider));
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _configuration = serviceProvider.GetService<IDownloadManagerConfiguration>() ??
+        _configuration = serviceProvider.GetService<IDownloadManagerConfigurationProvider>()?.GetConfiguration() ??
                          DownloadManagerConfiguration.Default;
         _verifier = serviceProvider.GetRequiredService<IVerificationManager>();
         switch (_configuration.InternetClient)
@@ -115,8 +115,7 @@ public class DownloadManager : IDownloadManager {
     {
         if (_configuration.VerificationPolicy == VerificationPolicy.Enforce && verificationContext is null)
         {
-            var exception = new VerificationFailedException(VerificationResult.VerificationContextError,
-                "No verification context available to verify the download.");
+            var exception = new VerificationFailedException("No verification context available to verify the download.");
             _logger?.LogError(exception, exception.Message);
             throw exception;
         }
@@ -148,10 +147,10 @@ public class DownloadManager : IDownloadManager {
                     {
                         var verificationResult = _verifier.Verify(outputStream, verificationContext);
                         summary.ValidationResult = verificationResult;
-                        if (verificationResult != VerificationResult.Success)
+                        if (verificationResult.Status != VerificationResultStatus.Success)
                         {
-                            var exception = new VerificationFailedException(verificationResult,
-                                $"Verification on downloaded file '{uri.AbsoluteUri}' was not successful.");
+                            var exception = new VerificationFailedException(
+                                $"Verification on downloaded file '{uri.AbsoluteUri}' was not successful: {verificationResult.Status}");
                             _logger?.LogError(exception, exception.Message);
                             throw exception;
                         }
@@ -159,8 +158,7 @@ public class DownloadManager : IDownloadManager {
                     else
                     {
                         if (_configuration.VerificationPolicy is VerificationPolicy.Optional or VerificationPolicy.Enforce)
-                            throw new VerificationFailedException(VerificationResult.VerificationContextError,
-                                "Download is missing or has an invalid VerificationContext");
+                            throw new VerificationFailedException("Download is missing or has an invalid VerificationContext");
                         _logger?.LogTrace("Skipping validation because verification context of is not valid.");
                     }
                 }
