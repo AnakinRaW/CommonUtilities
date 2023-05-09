@@ -2,7 +2,7 @@
 
 namespace AnakinRaW.CommonUtilities;
 
-internal sealed class ProcessElevationLinux
+internal static class ProcessElevationLinux
 {
     // ReSharper disable once IdentifierTypo
     [DllImport("libc", SetLastError = true)]

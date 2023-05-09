@@ -1,36 +1,36 @@
-﻿using System;
-using System.Diagnostics;
-#if !NET6_0
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+#if NET6_0
+using System;
+#else
 using Vanara.PInvoke;
 #endif
 
 namespace AnakinRaW.CommonUtilities;
 
 /// <summary>
-/// Provides information about the current process, such as its file path and process ID.
+/// Provides information about the current process.
 /// </summary>
-public readonly struct CurrentProcessInfo
+internal sealed class CurrentProcessInfo : ICurrentProcessInfo
 {
     /// <summary>
     /// Gets an instance of <see cref="CurrentProcessInfo"/> representing the current process.
     /// </summary>
     public static readonly CurrentProcessInfo Current = new();
 
-    /// <summary>
-    /// Gets the file path of the current process, or null if the path could not be determined.
-    /// </summary>
-    public readonly string? ProcessFilePath;
+    /// <inheritdoc/>
+    public bool IsElevated { get; }
 
-    /// <summary>
-    /// Gets the ID of the current process.
-    /// </summary>
-    public readonly int Id;
+    /// <inheritdoc/>
+    public string? ProcessFilePath { get; }
+
+    /// <inheritdoc/>
+    public int Id { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CurrentProcessInfo"/> struct representing the current process.
     /// </summary>
-    public CurrentProcessInfo()
+    private CurrentProcessInfo()
     {
         var p = Process.GetCurrentProcess();
         Id = p.Id;
@@ -41,8 +41,34 @@ public readonly struct CurrentProcessInfo
             ? Kernel32.GetModuleFileName(HINSTANCE.NULL)
             : Process.GetCurrentProcess().MainModule.FileName;
 #endif
-        if (string.IsNullOrEmpty(processPath))
-            throw new InvalidOperationException("Unable to get current process path");
-        ProcessFilePath = processPath!;
+
+        ProcessFilePath = processPath;
+
+        IsElevated = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? ProcessElevationWindows.IsProcessElevated()
+            : ProcessElevationLinux.IsElevated();
+    }
+}
+
+
+/// <summary>
+/// Provides access to information about the current process.
+/// </summary>
+public interface ICurrentProcessInfoProvider
+{
+    /// <summary>
+    /// Gets the current process information.
+    /// </summary>
+    /// <returns>An <see cref="ICurrentProcessInfo"/> instance that contains information about the current process.</returns>
+    public ICurrentProcessInfo GetCurrentProcessInfo();
+}
+
+/// <inheritdoc/>
+public sealed class CurrentProcessInfoProvider : ICurrentProcessInfoProvider
+{
+    /// <inheritdoc/>
+    public ICurrentProcessInfo GetCurrentProcessInfo()
+    {
+        return CurrentProcessInfo.Current;
     }
 }
