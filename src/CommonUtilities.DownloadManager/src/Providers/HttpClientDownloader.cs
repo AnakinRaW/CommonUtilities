@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,9 +18,8 @@ internal class HttpClientDownloader : DownloadProviderBase
 
     static HttpClientDownloader()
     {
-        if (ServicePointManager.SecurityProtocol == 0)
-            return;
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        if (ServicePointManager.SecurityProtocol != 0)
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
     public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadSource.Internet)
@@ -42,6 +42,8 @@ internal class HttpClientDownloader : DownloadProviderBase
                 {
 #if NET5_0_OR_GREATER
                     await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#elif NETSTANDARD2_1
+                    await using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #else
                     using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
@@ -111,7 +113,8 @@ internal class HttpClientDownloader : DownloadProviderBase
         {
             var handler = new HttpClientHandler
             {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                SslProtocols = SslProtocols.None
             };
             var client = new HttpClient(handler)
             {

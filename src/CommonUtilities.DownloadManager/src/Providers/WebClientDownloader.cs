@@ -17,9 +17,9 @@ internal class WebClientDownloader : DownloadProviderBase
 
     static WebClientDownloader()
     {
-        if (ServicePointManager.SecurityProtocol == 0)
-            return;
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        if (ServicePointManager.SecurityProtocol != 0)
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        ServicePointManager.DefaultConnectionLimit = 5;
     }
 
     public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadSource.Internet)
