@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.FileSystem.Windows</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.FileSystem.Windows</AssemblyName>
 		<Nullable>enable</Nullable>
@@ -21,13 +21,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-		<PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile"/>
+		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
 	</ItemGroup>
-
+	
 </Project>

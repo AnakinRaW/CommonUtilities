@@ -10,10 +10,11 @@
 	<PropertyGroup>
 		<RootNamespace>AnakinRaW.CommonUtilities.Test</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.Test</AssemblyName>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GitHubActionsTestLogger" Version="2.0.1">
+		<PackageReference Include="GitHubActionsTestLogger" Version="2.1.0">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -21,7 +22,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
 		<PackageReference Include="Moq" Version="4.18.4" />
-		<PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="19.2.16" />
+		<PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="19.2.22" />
 		<PackageReference Include="xunit" Version="2.4.2" />
 		<PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -37,5 +38,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\src\CommonUtilities.csproj" />
 	</ItemGroup>
-
+	
 </Project>
