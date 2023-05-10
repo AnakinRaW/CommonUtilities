@@ -1,12 +1,12 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-#if NET6_0
+﻿#if NET6_0
 using System;
 #else
 using Vanara.PInvoke;
 #endif
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
-namespace AnakinRaW.CommonUtilities.Process;
+namespace AnakinRaW.CommonUtilities;
 
 /// <summary>
 /// Provides information about the current process.
