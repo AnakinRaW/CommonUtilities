@@ -6,7 +6,7 @@ using System;
 using Vanara.PInvoke;
 #endif
 
-namespace AnakinRaW.CommonUtilities;
+namespace AnakinRaW.CommonUtilities.Process;
 
 /// <summary>
 /// Provides information about the current process.
