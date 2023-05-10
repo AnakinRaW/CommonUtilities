@@ -1,5 +1,4 @@
-﻿using AnakinRaW.CommonUtilities.Process;
-using Xunit;
+﻿using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
 
