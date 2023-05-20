@@ -37,7 +37,7 @@ public abstract class PipelineStep : IStep
     {
         Requires.NotNull(serviceProvider, nameof(serviceProvider));
         Services = serviceProvider;
-        Logger = serviceProvider.GetService<ILogger>();
+        Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
     /// <inheritdoc/>
