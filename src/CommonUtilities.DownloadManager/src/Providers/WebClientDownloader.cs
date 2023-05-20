@@ -25,7 +25,7 @@ internal class WebClientDownloader : DownloadProviderBase
     public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadSource.Internet)
     {
         Requires.NotNull(services, nameof(services));
-        _logger = services.GetService<ILogger>();
+        _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
     protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
