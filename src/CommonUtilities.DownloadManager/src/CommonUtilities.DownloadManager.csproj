@@ -38,5 +38,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
 	</ItemGroup>
-
+	
 </Project>
