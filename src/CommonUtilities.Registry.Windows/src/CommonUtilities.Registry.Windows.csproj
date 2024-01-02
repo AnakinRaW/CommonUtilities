@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
+		<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.Registry.Windows</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.Registry.Windows</AssemblyName>
 		<Nullable>enable</Nullable>

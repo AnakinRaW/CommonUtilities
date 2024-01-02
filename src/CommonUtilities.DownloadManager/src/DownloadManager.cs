@@ -44,7 +44,7 @@ public class DownloadManager : IDownloadManager {
             case InternetClient.HttpClient:
                 AddDownloadProvider(new HttpClientDownloader(serviceProvider));
                 break;
-#if !NET6_0_OR_GREATER
+#if !NET
             case InternetClient.WebClient:
                 AddDownloadProvider(new WebClientDownloader(serviceProvider));
                 break;

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
+#if NET
 using System.Threading.Tasks;
+#endif
+
 
 
 namespace AnakinRaW.CommonUtilities.Hashing;
@@ -34,15 +37,15 @@ public interface IHashingService
 
 
 #if NET
-        /// <summary>
-        /// Calculates a hash code of a given file asynchronously.
-        /// </summary>
-        /// <param name="file">The file to get the hash code for.</param>
-        /// <param name="hashType">The hash algorithm</param>
-        /// <returns>The hash code of the file.</returns>
-        /// <exception cref="FileNotFoundException">If the file does not exist.</exception>
-        /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
-        /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
-        Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType);
+    /// <summary>
+    /// Calculates a hash code of a given file asynchronously.
+    /// </summary>
+    /// <param name="file">The file to get the hash code for.</param>
+    /// <param name="hashType">The hash algorithm</param>
+    /// <returns>The hash code of the file.</returns>
+    /// <exception cref="FileNotFoundException">If the file does not exist.</exception>
+    /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
+    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
+    Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType);
 #endif
 }

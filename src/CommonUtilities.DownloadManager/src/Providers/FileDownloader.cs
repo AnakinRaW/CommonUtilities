@@ -33,7 +33,7 @@ internal class FileDownloader : DownloadProviderBase
         var fileSystem = _serviceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
-#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1 || NET
         await using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
 #else
         using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);

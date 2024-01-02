@@ -54,23 +54,23 @@ public class HashingService : IHashingService
     }
 
 #if NET
-        /// <inheritdoc/>
-        public Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType)
-        {
-            Requires.NotNull(file, nameof(file));
-            if (!file.Exists)
-                throw new FileNotFoundException(nameof(file));
-            return HashFileInternalAsync(file, GetAlgorithm(hashType));
-        }
+    /// <inheritdoc/>
+    public Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType)
+    {
+        Requires.NotNull(file, nameof(file));
+        if (!file.Exists)
+            throw new FileNotFoundException(nameof(file));
+        return HashFileInternalAsync(file, GetAlgorithm(hashType));
+    }
 
-        private static Task<byte[]> HashFileInternalAsync(IFileInfo file, HashAlgorithm algorithm)
+    private static Task<byte[]> HashFileInternalAsync(IFileInfo file, HashAlgorithm algorithm)
+    {
+        using (algorithm)
         {
-            using (algorithm)
-            {
-                using var fs = file.OpenRead();
-                fs.Position = 0;
-                return algorithm.ComputeHashAsync(fs);
-            }
+            using var fs = file.OpenRead();
+            fs.Position = 0;
+            return algorithm.ComputeHashAsync(fs);
         }
+    }
 #endif
 }
