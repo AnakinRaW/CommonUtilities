@@ -27,5 +27,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.Registry\src\CommonUtilities.Registry.csproj" />
 	</ItemGroup>
-	
+
 </Project>

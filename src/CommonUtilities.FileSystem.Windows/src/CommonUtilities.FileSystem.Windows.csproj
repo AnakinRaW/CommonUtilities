@@ -27,5 +27,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
 	</ItemGroup>
-	
+
 </Project>
