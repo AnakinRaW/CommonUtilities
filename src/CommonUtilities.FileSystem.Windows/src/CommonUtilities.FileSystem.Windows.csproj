@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
+		<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.FileSystem.Windows</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.FileSystem.Windows</AssemblyName>
 		<Nullable>enable</Nullable>
@@ -27,5 +27,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
 	</ItemGroup>
-	
+
 </Project>

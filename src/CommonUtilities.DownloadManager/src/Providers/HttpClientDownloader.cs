@@ -40,7 +40,7 @@ internal class HttpClientDownloader : DownloadProviderBase
             {
                 if (response.IsSuccessStatusCode)
                 {
-#if NET5_0_OR_GREATER
+#if NET
                     await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 #else
                     using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
