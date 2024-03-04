@@ -13,19 +13,8 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 /// <summary>
 /// Specialized <see cref="IFileSystemService"/> which is optimized for the use in Windows
 /// </summary>
-public class WindowsFileSystemService : FileSystemService
+public class WindowsFileExtensions
 {
-    /// <inheritdoc/>
-    public WindowsFileSystemService(IFileSystem fileSystem) : base(fileSystem)
-    {
-    }
-
-    /// <inheritdoc/>
-    public WindowsFileSystemService() : this(new System.IO.Abstractions.FileSystem())
-    {
-    }
-
-
     /// <summary>
     /// Schedules deletion of a file or recursive deletion of a directory after next system restart.
     /// </summary>

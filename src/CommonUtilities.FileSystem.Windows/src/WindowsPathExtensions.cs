@@ -13,7 +13,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 /// <summary>
 /// Service for validating file and directory paths for the Windows Operating System.
 /// </summary>
-public class WindowsPathService : IWindowsPathService
+public static class WindowsPathExtensions
 {
     private static readonly Regex RegexInvalidName =
         new("^(COM\\d|CLOCK\\$|LPT\\d|AUX|NUL|CON|PRN|(.*[\\ud800-\\udfff]+.*))$", RegexOptions.IgnoreCase);
@@ -31,26 +31,11 @@ public class WindowsPathService : IWindowsPathService
         InvalidNameChars = Path.GetInvalidFileNameChars().Concat("/?:&\\*#%;").ToArray();
 
     private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
-   
-    private readonly IFileSystem _fileSystem;
 
-    /// <summary>
-    /// Initializes a new instance with a given <see cref="IFileSystem"/>.
-    /// </summary>
-    /// <param name="fileSystem">The file system associated to this instance.</param>
-    /// <exception cref="PlatformNotSupportedException">If object is created on a non-Windows system.</exception>
-    public WindowsPathService(IFileSystem fileSystem)
+    private static void ThrowIfWrongPlatform()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new PlatformNotSupportedException("Only available on Windows");
-        _fileSystem = fileSystem;
-    }
-
-    /// <summary>
-    /// Initializes a new instance with the default <see cref="FileSystem"/> implementation.
-    /// </summary>
-    public WindowsPathService() : this(new System.IO.Abstractions.FileSystem())
-    {
     }
 
     /// <summary>
@@ -59,7 +44,7 @@ public class WindowsPathService : IWindowsPathService
     /// <param name="location">The location the get the <see cref="DriveType"/> for.</param>
     /// <returns>The drive kind.</returns>
     /// <exception cref="InvalidOperationException">If the <paramref name="location"/> is not absolute.</exception>
-    public DriveType GetDriveType(string location)
+    public static DriveType GetDriveType(this IPath _, string location)
     {
         if (!_fileSystem.Path.IsPathRooted(location))
             throw new InvalidOperationException("location not an absolute path.");
@@ -75,7 +60,7 @@ public class WindowsPathService : IWindowsPathService
     /// </summary>
     /// <param name="fileName">The candidate name to validate.</param>
     /// <returns><see langword="true"/> if the <paramref name="fileName"/> is valid; <see langword="false"/> otherwise.</returns>
-    public bool IsValidFileName(string fileName)
+    public static bool IsValidFileName(this IPath path _, string fileName)
     {
         return !string.IsNullOrWhiteSpace(fileName) &&
                !RegexInvalidName.IsMatch(fileName) &&
@@ -116,7 +101,7 @@ public class WindowsPathService : IWindowsPathService
     /// <param name="accessRights">The requested rights.</param>
     /// <returns></returns>
     /// <exception cref="DirectoryNotFoundException">If <paramref name="path"/> does not exists.</exception>
-    public bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
+    public static bool UserHasDirectoryAccessRights(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
     {
         bool isInRoleWithAccess;
         var di = _fileSystem.DirectoryInfo.New(path);

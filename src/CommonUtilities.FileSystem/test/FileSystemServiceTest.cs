@@ -1,21 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
-#pragma warning disable CS0162
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class FileSystemServiceTest
 {
-    private readonly FileSystemService _service;
     private readonly MockFileSystem _fileSystem;
 
     public FileSystemServiceTest()
     {
         _fileSystem = new MockFileSystem();
-        _service = new FileSystemService(_fileSystem);
     }
 
     [Theory]
@@ -30,25 +28,17 @@ public class FileSystemServiceTest
         Assert.True(size == 0);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestCreateTempFolder_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         var dir = _service.CreateTemporaryFolderInTempWithRetry();
         Assert.NotNull(dir);
         Assert.StartsWith("C:\\temp\\", dir!.FullName, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public void TestCreateTempFolder_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         var dir = _service.CreateTemporaryFolderInTempWithRetry();
         Assert.NotNull(dir);
         Assert.StartsWith("/temp/", dir!.FullName, StringComparison.InvariantCultureIgnoreCase);
@@ -96,13 +86,9 @@ public class FileSystemServiceTest
         Assert.True(_fileSystem.FileExists("D:\\test.txt"));
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestMoveDir_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         var dirToMove = _fileSystem.DirectoryInfo.New("C:\\test");
         Assert.Throws<DirectoryNotFoundException>(() => _service.MoveDirectory(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
@@ -129,13 +115,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("D:\\test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public void TestMoveDir_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         var dirToMove = _fileSystem.DirectoryInfo.New("/test");
         Assert.Throws<DirectoryNotFoundException>(() => _service.MoveDirectory(dirToMove, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
         _fileSystem.AddFile("/test/1.txt", new MockFileData("1"));
@@ -162,13 +144,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("/test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public async void TestMoveDirAsync_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         var dirToMove = _fileSystem.DirectoryInfo.New("C:\\test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
             await _service.MoveDirectoryAsync(dirToMove, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
@@ -195,13 +173,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("D:\\test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public async void TestMoveDirAsync_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         var dirToMove = _fileSystem.DirectoryInfo.New("/test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
             await _service.MoveDirectoryAsync(dirToMove, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
@@ -228,13 +202,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("/test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestCopyDir_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         var dirToCopy = _fileSystem.DirectoryInfo.New("C:\\test");
         Assert.Throws<DirectoryNotFoundException>(() => _service.CopyDirectory(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
         _fileSystem.AddFile("C:\\test\\1.txt", new MockFileData("1"));
@@ -259,13 +229,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("D:\\test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public void TestCopyDir_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         var dirToCopy = _fileSystem.DirectoryInfo.New("/test");
         Assert.Throws<DirectoryNotFoundException>(() => _service.CopyDirectory(dirToCopy, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
         _fileSystem.AddFile("/test/1.txt", new MockFileData("1"));
@@ -290,13 +256,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("/test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public async void TestCopyDirAsync_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         var dirToCopy = _fileSystem.DirectoryInfo.New("C:\\test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
             await _service.CopyDirectoryAsync(dirToCopy, "C:\\test1", null, DirectoryOverwriteOption.NoOverwrite));
@@ -320,13 +282,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("D:\\test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public async void TestCopyDirAsync_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         var dirToCopy = _fileSystem.DirectoryInfo.New("/test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
             await _service.CopyDirectoryAsync(dirToCopy, "/test1", null, DirectoryOverwriteOption.NoOverwrite));
@@ -351,13 +309,9 @@ public class FileSystemServiceTest
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("/test1").GetFiles("*").Length);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestDeleteFileTemp_Windows()
     {
-#if NET
-            if (!OperatingSystem.IsWindows())
-                return;
-#endif
         _fileSystem.AddFile("C:\\text.txt", new MockFileData(string.Empty));
         _fileSystem.AddFile("C:\\temp\\text.txt", new MockFileData(string.Empty));
         _fileSystem.AddFile("C:\\temp\\test\\text.txt", new MockFileData(string.Empty));
@@ -378,13 +332,9 @@ public class FileSystemServiceTest
         Assert.False(file3.Exists);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
     public void TestDeleteFileTemp_Linux()
     {
-#if NET
-            if (OperatingSystem.IsWindows())
-#endif
-        return;
         _fileSystem.AddFile("/text.txt", new MockFileData(string.Empty));
         _fileSystem.AddFile("/temp/text.txt", new MockFileData(string.Empty));
         _fileSystem.AddFile("/temp/test/text.txt", new MockFileData(string.Empty));
@@ -446,4 +396,3 @@ public class FileSystemServiceTest
         Assert.False(dir2.Exists);
     }
 }
-#pragma warning restore CS0162

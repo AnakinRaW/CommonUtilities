@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks Condition="!$([MSBuild]::IsOsUnixLike())">$(TargetFrameworks);net48</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>		
+		<IsPackable>false</IsPackable>
+		<IsTestProject>false</IsTestProject>
+		<PackageId>AnakinRaW.CommonUtilities.Testing</PackageId>
+		<AssemblyName>AnakinRaW.CommonUtilities.Testing</AssemblyName>
+		<RootNamespace>AnakinRaW.CommonUtilities.Testing</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="C:\Projekte\CommonUtilities\README.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="6.0.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="xunit" Version="2.5.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+</Project>
