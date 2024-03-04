@@ -24,4 +24,8 @@
 		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Update="SauceControl.InheritDoc" Version="2.0.1" />
+	</ItemGroup>
+
 </Project>

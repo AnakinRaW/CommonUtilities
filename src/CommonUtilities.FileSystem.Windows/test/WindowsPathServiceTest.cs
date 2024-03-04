@@ -8,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
 
 public class WindowsPathServiceTest
 {
-    private readonly WindowsPathService? _service;
+    private readonly WindowsPathService _service;
 
     public WindowsPathServiceTest()
     {

@@ -10,16 +10,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <Product>.NET Common Utilities</Product>
-    <Copyright>Copyright © AnakinRaW 2023</Copyright>
+    <Copyright>Copyright © AnakinRaW 2024</Copyright>
     <Authors>AnakinRaW</Authors>
     <Owners>AnakinRaW</Owners>
     <PackageProjectUrl>https://github.com/AnakinRaW/CommonUtilities</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly Condition="'$(Configuration)' == 'Release'">True</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)AnakinOSS.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
