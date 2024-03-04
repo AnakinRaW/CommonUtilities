@@ -6,7 +6,6 @@ using AnakinRaW.CommonUtilities.Verification.Empty;
 using AnakinRaW.CommonUtilities.Verification.Hash;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Verification;
 
@@ -40,15 +39,19 @@ public class VerificationManager : IVerificationManager
     /// <inheritdoc/>
     public void RegisterVerifier<T>(IVerifier<T> verifier) where T : IVerificationContext
     {
-        Requires.NotNull(verifier, nameof(verifier));
+        if (verifier == null) 
+            throw new ArgumentNullException(nameof(verifier));
         var contextType = typeof(T);
         RegisterVerifier(contextType, verifier);
     }
 
     private void RegisterVerifier(Type verificationContextType, IVerifier verifier)
     {
-        Requires.NotNull(verificationContextType, nameof(verificationContextType));
-        Requires.NotNull(verifier, nameof(verifier));
+        if (verificationContextType == null) 
+            throw new ArgumentNullException(nameof(verificationContextType));
+        if (verifier == null) 
+            throw new ArgumentNullException(nameof(verifier));
+
         if (!verificationContextType.IsAssignableTo(typeof(IVerificationContext)))
             throw new InvalidCastException($"{verificationContextType.FullName} does not implement {nameof(IVerificationContext)}");
         if (!Verifiers.TryGetValue(verificationContextType, out var verifiers))
@@ -60,7 +63,9 @@ public class VerificationManager : IVerificationManager
     /// <inheritdoc/>
     public void RemoveVerifier(IVerifier verifier)
     {
-        Requires.NotNull(verifier, nameof(verifier));
+        if (verifier == null) 
+            throw new ArgumentNullException(nameof(verifier));
+
         foreach (var verifiers in Verifiers.Values) 
             verifiers.RemoveAll(v => v == verifier);
     }
@@ -68,14 +73,16 @@ public class VerificationManager : IVerificationManager
     /// <inheritdoc/>
     public VerificationResult Verify(Stream file, IVerificationContext verificationContext)
     {
-        Requires.NotNull(file, nameof(file));
+        if (file == null) 
+            throw new ArgumentNullException(nameof(file));
         return VerifyCore(file, verificationContext);
     }
 
     /// <inheritdoc/>
     public VerificationResult Verify(IFileInfo file, IVerificationContext verificationContext)
     {
-        Requires.NotNull(file, nameof(file));
+        if (file == null) 
+            throw new ArgumentNullException(nameof(file));
         using var stream = file.OpenRead();
         return VerifyCore(stream, verificationContext);
     }

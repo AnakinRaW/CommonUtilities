@@ -3,27 +3,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Microsoft.Win32;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
+internal static class ThrowHelper
+{
+    public static void ThrowIfNotWindows()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new PlatformNotSupportedException("Only available on Windows.");
+    }
+}
+
 /// <summary>
-/// Specialized <see cref="IFileSystemService"/> which is optimized for the use in Windows
+/// Provides extension methods to the file system on Windows.
 /// </summary>
-public class WindowsFileExtensions
+public static class WindowsFileSystemExtensions
 {
     /// <summary>
     /// Schedules deletion of a file or recursive deletion of a directory after next system restart.
     /// </summary>
     /// <param name="fsInfo"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public bool DeleteAfterReboot(IFileSystemInfo fsInfo)
+    public static bool DeleteAfterReboot(this IFileSystemInfo fsInfo)
     {
-        Requires.NotNull(fsInfo, nameof(fsInfo));
+        ThrowHelper.ThrowIfNotWindows();
+        if (fsInfo == null) 
+            throw new ArgumentNullException(nameof(fsInfo));
         if (!fsInfo.Exists)
             return true;
         return fsInfo switch
@@ -34,7 +44,7 @@ public class WindowsFileExtensions
         };
     }
 
-    private bool RecursivelyDeleteDirectoryOnReboot(IDirectoryInfo source)
+    private static bool RecursivelyDeleteDirectoryOnReboot(IDirectoryInfo source)
     {
         var success = true;
         foreach (var directory in source.GetDirectories())
@@ -89,16 +99,18 @@ public class WindowsFileExtensions
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
-    public bool DeleteFileWithRetry(IFileInfo file, out bool rebootRequired, bool rebootOk = false, int retryCount = 2,
+    public static bool DeleteWithRetry(this IFileInfo file, out bool rebootRequired, bool rebootOk = false, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
-        Requires.NotNull(file, nameof(file));
+        ThrowHelper.ThrowIfNotWindows();
+        if (file == null) 
+            throw new ArgumentNullException(nameof(file));
         if (!file.Exists)
         {
             rebootRequired = false;
             return true;
         }
-        var success = ExecuteFileActionWithRetry(retryCount, retryDelay, file.Delete, !rebootOk, (ex, attempt) =>
+        var success = FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay, file.Delete, !rebootOk, (ex, attempt) =>
         {
             if (ex is UnauthorizedAccessException)
             {
@@ -106,7 +118,7 @@ public class WindowsFileExtensions
                 {
                     if (file.Attributes.HasFlag(FileAttributes.ReadOnly))
                     {
-                        RemoveAttributes(file, FileAttributes.ReadOnly);
+                        file.RemoveAttributes(FileAttributes.ReadOnly);
                         errorAction?.Invoke(ex, attempt);
                         return true;
                     }
@@ -138,18 +150,18 @@ public class WindowsFileExtensions
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
-    public bool DeleteDirectoryWithRetry(IDirectoryInfo directory, out bool rebootRequired, bool rebootOk = false,
+    public static bool DeleteWithRetry(this IDirectoryInfo directory, out bool rebootRequired, bool rebootOk = false,
         bool recursive = true, int retryCount = 2, int retryDelay = 500,
         Func<Exception, int, bool>? errorAction = null)
     {
-        Requires.NotNull(directory, nameof(directory));
+        ThrowHelper.ThrowIfNotWindows();
         if (!directory.Exists)
         {
             rebootRequired = false;
             return true;
         }
 
-        var success = ExecuteFileActionWithRetry(retryCount, retryDelay, () => directory.Delete(recursive), !rebootOk, errorAction);
+        var success = FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay, () => directory.Delete(recursive), !rebootOk, errorAction);
         if (success || !rebootOk)
         {
             rebootRequired = false;

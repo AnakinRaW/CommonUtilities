@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Hashing;
 
@@ -13,10 +12,8 @@ public class HashingService : IHashingService
     /// <inheritdoc/>
     public byte[] GetFileHash(IFileInfo file, HashType hashType)
     {
-        Requires.NotNull(file, nameof(file));
-        if (!file.Exists)
-            throw new FileNotFoundException(nameof(file));
-
+        if (file == null)
+            throw new ArgumentNullException(nameof(file));
         using var stream =
             file.FileSystem.FileStream.New(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
         return GetStreamHash(stream, hashType);
@@ -25,7 +22,9 @@ public class HashingService : IHashingService
     /// <inheritdoc/>
     public byte[] GetStreamHash(Stream stream, HashType hashType)
     {
-        Requires.NotNull(stream, nameof(stream));
+        if (stream == null) 
+            throw new ArgumentNullException(nameof(stream));
+
         return HashFileInternal(stream, GetAlgorithm(hashType));
     }
 
@@ -57,9 +56,8 @@ public class HashingService : IHashingService
     /// <inheritdoc/>
     public Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType)
     {
-        Requires.NotNull(file, nameof(file));
-        if (!file.Exists)
-            throw new FileNotFoundException(nameof(file));
+        if (file == null) 
+            throw new ArgumentNullException(nameof(file));
         return HashFileInternalAsync(file, GetAlgorithm(hashType));
     }
 

@@ -11,17 +11,19 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 // and https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Common/PathUtil/PathUtility.cs
 // and https://github.com/dotnet/runtime
 /// <summary>
-/// Provides extensions for path manipulation.
+/// Provides extension methods for the <see cref="IPath"/> class.
 /// </summary>
 public static class PathExtensions
 {
     private const string ThisDirectory = ".";
     private const string ParentRelativeDirectory = "..";
-    private const char VolumeSeparatorChar = ':';
 
+    private static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
     private static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
     private static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
     private static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
+
+    private static readonly char[] PathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
     private static readonly bool IsUnixLikePlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -181,8 +183,9 @@ public static class PathExtensions
 
 
     /// <summary>
-    /// Returns a relative path from a path to given root
-    /// or <paramref name="path"/> if <paramref name="path"/> is not rooted.
+    /// Returns a relative path from a path to given root or <paramref name="path"/> if <paramref name="path"/> is not rooted.
+    /// In contrast to .NET's Path.IsRelativeTo this method allows <paramref name="path"/> to be non-absolute.
+    /// In that case <paramref name="path"/> is returned.
     /// </summary>
     /// <param name="fsPath">The file system's path instance.</param>
     /// <param name="root">The root path the result should be relative to. This path is always considered to be a directory.</param>
@@ -318,33 +321,69 @@ public static class PathExtensions
             : x == y;
     }
 
-    // TODO: Use GetFullPath!
+    /// <summary>
+    /// Determines whether a specified candidate path is a real child path to a specified base path.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="basePath">The base path-</param>
+    /// <param name="candidate">The relative path candidate.</param>
+    /// <returns><see langword="true"/> if <paramref name="candidate"/> is a child path to <paramref name="basePath"/>; otherwise, <see langword="false"/>.</returns>
     public static bool IsChildOf(this IPath _, string basePath, string candidate)
     {
-        if (basePath is null) 
-            throw new ArgumentNullException(nameof(basePath));
-        if (candidate is null) 
-            throw new ArgumentNullException(nameof(candidate));
-        var comparison = IsFileSystemCaseInsensitive.Value
-            ? StringComparison.OrdinalIgnoreCase
-            : StringComparison.Ordinal;
-        return candidate.StartsWith(basePath, comparison);
+        var fullBase = _.GetFullPath(basePath);
+        var fullCandidate = _.GetFullPath(candidate);
+
+        return fullBase.Length > 0
+               && candidate.Length > fullBase.Length
+               && PathsEqual(fullCandidate, fullBase, fullBase.Length)
+               && (IsAnyDirectorySeparator(fullBase[fullBase.Length - 1]) || IsAnyDirectorySeparator(fullCandidate[fullBase.Length]));
     }
 
+#if !NET && !NETSTANDARD2_1_OR_GREATER
 
-    public static bool IsAbsolute(this IPath _, string path)
+    /// <summary>
+    /// Returns <see langword="true"/> if the path specified is absolute. This method does no
+    /// validation of the path.
+    /// </summary>
+    /// <remarks>
+    /// Handles paths that use the alternate directory separator.  It is a frequent mistake to
+    /// assume that rooted paths (Path.IsPathRooted) are not relative. This isn't the case.
+    /// "C:a" is drive relative- meaning that it will be resolved against the current directory
+    /// for C: (rooted, but relative). "C:\a" is rooted and not relative (the current directory
+    /// will not be used to modify the path).
+    /// </remarks>
+    /// <param name="_"></param>
+    /// <param name="path">A file path.</param>
+    /// <returns><see langword="true"/> if the path is fixed to a specific drive or UNC path; <see langword="false"/> if the path is relative to the current drive or working directory.</returns>
+    public static bool IsPathFullyQualified(this IPath _, string path)
     {
-#if NET || NETSTANDARD2_1_OR_GREATER
-        return _.IsPathFullyQualified(path);
-#else
+        if (path == null) 
+            throw new ArgumentNullException(nameof(path));
 
         if (IsUnixLikePlatform)
             return _.IsPathRooted(path);
+        
+        if (path.Length < 2)
+            return false;
 
-        var pathPath = path.AsSpan();
+        if (IsAnyDirectorySeparator(path[0]))
+            return path[1] == '?' || IsAnyDirectorySeparator(path[1]);
 
-
+        return path.Length >= 3
+               && path[1] == VolumeSeparatorChar
+               && IsAnyDirectorySeparator(path[2])
+               && IsValidDriveChar(path[0]);
+    }
 #endif
+
+    internal static bool IsValidDriveChar(char value)
+    {
+        return (uint)((value | 0x20) - 'a') <= 'z' - 'a';
+    }
+
+    private static bool IsForce(this UnifyCasingKind casing)
+    {
+        return casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.UpperCaseForce;
     }
 
 
@@ -402,11 +441,4 @@ public static class PathExtensions
     }
 #pragma warning restore IO0003
 #pragma warning restore IO0006
-
-    private static bool IsForce(this UnifyCasingKind casing)
-    {
-        if (casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.UpperCaseForce)
-            return true;
-        return false;
-    }
 }

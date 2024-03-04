@@ -32,25 +32,21 @@ public static class WindowsPathExtensions
 
     private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
 
-    private static void ThrowIfWrongPlatform()
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            throw new PlatformNotSupportedException("Only available on Windows");
-    }
-
     /// <summary>
     /// Gets the <see cref="DriveType"/> of a given absolute path.
     /// </summary>
+    /// <param name="_"></param>
     /// <param name="location">The location the get the <see cref="DriveType"/> for.</param>
     /// <returns>The drive kind.</returns>
     /// <exception cref="InvalidOperationException">If the <paramref name="location"/> is not absolute.</exception>
     public static DriveType GetDriveType(this IPath _, string location)
     {
-        if (!_fileSystem.Path.IsPathRooted(location))
+        ThrowHelper.ThrowIfNotWindows();
+        if (!_.IsPathRooted(location))
             throw new InvalidOperationException("location not an absolute path.");
-        var pathRoot = _fileSystem.Path.GetPathRoot(location)!;
-        if (pathRoot[pathRoot.Length - 1] != _fileSystem.Path.DirectorySeparatorChar)
-            pathRoot += _fileSystem.Path.DirectorySeparatorChar.ToString();
+        var pathRoot = _.GetPathRoot(location)!;
+        if (pathRoot[pathRoot.Length - 1] != _.DirectorySeparatorChar)
+            pathRoot += _.DirectorySeparatorChar.ToString();
         return (DriveType)Kernel32.GetDriveTypeW(pathRoot);
     }
 
@@ -58,10 +54,12 @@ public static class WindowsPathExtensions
     /// Checks if a given string is valid as an file name.
     /// <remarks><paramref name="fileName"/> must be without the desired file extension.</remarks>
     /// </summary>
+    /// <param name="_"></param>
     /// <param name="fileName">The candidate name to validate.</param>
     /// <returns><see langword="true"/> if the <paramref name="fileName"/> is valid; <see langword="false"/> otherwise.</returns>
-    public static bool IsValidFileName(this IPath path _, string fileName)
+    public static bool IsValidFileName(this IPath _, string fileName)
     {
+        ThrowHelper.ThrowIfNotWindows();
         return !string.IsNullOrWhiteSpace(fileName) &&
                !RegexInvalidName.IsMatch(fileName) &&
                !RegexNoRelativePathingName.IsMatch(fileName) &&
@@ -72,44 +70,47 @@ public static class WindowsPathExtensions
     /// Checks whether a given string is valid as an absolute directory path.
     /// <remarks>This implementation internally uses <see cref="Path.GetDirectoryName(string)"/>. So mind trailing slashes for the <paramref name="path"/>.</remarks>
     /// </summary>
+    /// <param name="_"></param>
     /// <param name="path">the candidate directory path to validate.</param>
     /// <returns><see langword="true"/> if the <paramref name="path"/> is valid; <see langword="false"/> otherwise.</returns>
     /// <exception cref="InvalidOperationException">If the <paramref name="path"/> is not absolute.</exception>
-    public bool IsValidAbsolutePath(string path)
+    public static bool IsValidAbsolutePath(this IPath _, string path)
     {
-        if (!_fileSystem.Path.IsPathRooted(path))
+        if (!_.IsPathFullyQualified(path))
             throw new InvalidOperationException("path not absolute.");
-        return IsValidPath(path, true);
+        return IsValidPath(_, path, true);
     }
 
     /// <summary>
     /// Checks whether a given string is valid as an directory path.
     /// <remarks>This implementation internally uses <see cref="Path.GetDirectoryName(string)"/>. So mind trailing slashes for the <paramref name="path"/>.</remarks>
     /// </summary>
+    /// <param name="_"></param>
     /// <param name="path">the candidate directory path to validate.</param>
     /// <returns><see langword="true"/> if the <paramref name="path"/> is valid; <see langword="false"/> otherwise.</returns>
-    public bool IsValidPath(string path)
+    public static bool IsValidPath(this IPath _, string path)
     {
-        return IsValidPath(path, false);
+        ThrowHelper.ThrowIfNotWindows();
+        return IsValidPath(_, path, false);
     }
 
     // Based on: https://stackoverflow.com/questions/1410127/c-sharp-test-if-user-has-write-access-to-a-folder
     /// <summary>
     /// Checks whether the current executing user that the requested rights on a given location.
     /// </summary>
-    /// <param name="path">The directory to check rights on.</param>
+    /// <param name="directoryInfo">The directory to check rights on.</param>
     /// <param name="accessRights">The requested rights.</param>
     /// <returns></returns>
-    /// <exception cref="DirectoryNotFoundException">If <paramref name="path"/> does not exists.</exception>
+    /// <exception cref="DirectoryNotFoundException">If <paramref name="directoryInfo"/> does not exists.</exception>
     public static bool UserHasDirectoryAccessRights(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
     {
+        ThrowHelper.ThrowIfNotWindows();
         bool isInRoleWithAccess;
-        var di = _fileSystem.DirectoryInfo.New(path);
         try
         {
-            if (!di.Exists)
-                throw new DirectoryNotFoundException($"Unable to find {di.FullName}");
-            isInRoleWithAccess = TestAccessRightsOnWindows(di, accessRights);
+            if (!directoryInfo.Exists)
+                throw new DirectoryNotFoundException($"Unable to find {directoryInfo.FullName}");
+            isInRoleWithAccess = TestAccessRightsOnWindows(directoryInfo, accessRights);
         }
         catch (UnauthorizedAccessException)
         {
@@ -119,13 +120,13 @@ public static class WindowsPathExtensions
         return isInRoleWithAccess;
     }
         
-    private bool IsValidPath(string path, bool forceAbsolute)
+    private static bool IsValidPath(IPath fsPath, string path, bool forceAbsolute)
     {
         if (!IsPathValidAndNotEmpty(path, forceAbsolute))
             return false;
         try
         {
-            path = _fileSystem.Path.GetDirectoryName(path)!;
+            path = fsPath.GetDirectoryName(path)!;
             if (!string.IsNullOrEmpty(path))
             {
                 if (RegexInvalidPath.IsMatch(path))
@@ -180,7 +181,6 @@ public static class WindowsPathExtensions
                 }
             }
         }
-
         return false;
     }
 }

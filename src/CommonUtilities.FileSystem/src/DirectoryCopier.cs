@@ -11,13 +11,13 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 
 internal class DirectoryCopier
 {
-    private readonly FileSystemService _service;
+    private readonly IFileSystem _fileSystem;
     private readonly IProgress<double>? _progress;
     private int MaximumConcurrency { get; }
 
-    public DirectoryCopier(FileSystemService service, IProgress<double>? progress, int maximumConcurrency = 1)
+    public DirectoryCopier(IFileSystem fileSystem, IProgress<double>? progress, int maximumConcurrency = 1)
     {
-        _service = service;
+        _fileSystem = fileSystem;
         _progress = progress;
         MaximumConcurrency = maximumConcurrency;
         if (MaximumConcurrency <= 0)
@@ -40,7 +40,7 @@ internal class DirectoryCopier
 
     public async Task CopyDirectoryAsync(IDirectoryInfo source, string destination, bool isMove, CancellationToken cancellationToken)
     {
-        _service.FileSystem.Directory.CreateDirectory(destination);
+        _fileSystem.Directory.CreateDirectory(destination);
         var fileCount = 0;
         using BlockingCollection<CopyInformation> queue = new();
         List<Task> taskList = new(MaximumConcurrency)
@@ -52,6 +52,7 @@ internal class DirectoryCopier
             var task = Task.Run(() => RunCopyTask(source, destination, queue, ref fileCount), cancellationToken);
             taskList.Add(task);
         }
+
         await Task.WhenAll(taskList);
     }
 
@@ -74,8 +75,7 @@ internal class DirectoryCopier
     }
 
 
-    private void RunCopyTask(IDirectoryInfo source, string destination,
-        BlockingCollection<CopyInformation> queue, ref int fileCount)
+    private void RunCopyTask(IDirectoryInfo source, string destination, BlockingCollection<CopyInformation> queue, ref int fileCount)
     {
         foreach (var copyInfo in queue.GetConsumingEnumerable())
             CopyFile(source, copyInfo, destination, queue.Count, ref fileCount);
@@ -86,7 +86,7 @@ internal class DirectoryCopier
     {
         var fileToCopy = copyInfo.File;
         var localFilePath = fileToCopy.FullName.Substring(source.FullName.Length + 1);
-        var newFilePath = _service.FileSystem.Path.Combine(destination, localFilePath);
+        var newFilePath = _fileSystem.Path.Combine(destination, localFilePath);
         CreateDirectoryOfFile(newFilePath);
         var currentProgress = (totalFileCount - remainingFileCount) / totalFileCount;
         if (copyInfo.IsMove && InvokeMoveOperation(fileToCopy, newFilePath))
@@ -105,7 +105,7 @@ internal class DirectoryCopier
     {
         try
         {
-            _service.CopyFileWithRetry(sourcePath, destinationPath);
+            sourcePath.CopyWithRetry(destinationPath);
             return true;
         }
         catch (Exception)
@@ -118,7 +118,7 @@ internal class DirectoryCopier
     {
         try
         {
-            _service.DeleteFileWithRetry(sourcePath);
+            sourcePath.DeleteWithRetry();
         }
         catch
         {
@@ -130,7 +130,7 @@ internal class DirectoryCopier
     {
         try
         {
-            _service.MoveFileWithRetry(sourcePath, destinationPath);
+            sourcePath.MoveWithRetry(destinationPath);
             return true;
         }
         catch (Exception)
@@ -141,10 +141,10 @@ internal class DirectoryCopier
 
     private void CreateDirectoryOfFile(string filePath)
     {
-        var directoryPath = _service.FileSystem.Path.GetDirectoryName(filePath);
+        var directoryPath = _fileSystem.Path.GetDirectoryName(filePath);
         if (string.IsNullOrEmpty(directoryPath))
             return;
-        _service.FileSystem.Directory.CreateDirectory(directoryPath!);
+        _fileSystem.Directory.CreateDirectory(directoryPath!);
     }
 
     private struct CopyInformation

@@ -2,7 +2,6 @@
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Verification;
 
@@ -28,7 +27,8 @@ public abstract class VerifierBase<T> : IVerifier<T> where T : IVerificationCont
     /// <param name="serviceProvider">The service provider.</param>
     protected VerifierBase(IServiceProvider serviceProvider)
     {
-        Requires.NotNull(serviceProvider, nameof(serviceProvider));
+        if (serviceProvider == null) 
+            throw new ArgumentNullException(nameof(serviceProvider));
         Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
         ServiceProvider = serviceProvider;
     }
@@ -36,8 +36,8 @@ public abstract class VerifierBase<T> : IVerifier<T> where T : IVerificationCont
     /// <inheritdoc/>
     public VerificationResult Verify(Stream data, T verificationContext)
     {
-        Requires.NotNull(data, nameof(data));
-        Requires.NotNullAllowStructs(verificationContext, nameof(verificationContext));
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
         try
         {
             if (!verificationContext.Verify())
