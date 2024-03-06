@@ -41,32 +41,16 @@ public static class DirectoryExtensions
                 fs.Directory.Delete(destination, true);
         }
         var destinationFullPath = fs.Path.GetFullPath(destination);
-        if (source.FullName.Equals(destinationFullPath))
+        var sourceFullPath = source.FileSystem.Path.GetFullPath(source.FullName);
+
+        if (PathExtensions.PathsEqual(sourceFullPath, destinationFullPath))
             return false;
+
         progress?.Report(0.0);
         new DirectoryCopier(fs, progress).CopyDirectory(source, destination, true);
         var deleteSuccess = source.DeleteWithRetry();
         progress?.Report(1.0);
         return deleteSuccess;
-    }
-
-    /// <summary>
-    /// Tries to move a directory to a new location. In contrast to <see cref="IDirectoryInfo.MoveTo"/>, this method works across drives.
-    /// </summary>
-    /// <remarks>The overwrite functionality may cause data losses of the destination if the operation fails. </remarks>
-    /// <param name="source">The source directory.</param>
-    /// <param name="destination">The new location.</param>
-    /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
-    /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
-    /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
-    /// <exception cref="IOException">If <paramref name="destination"/> already exists
-    /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
-    /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-    public static void MoveToWithRetry(this IDirectoryInfo source, string destination,
-        DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite,
-        int retryCount = 2, int retryDelay = 500)
-    {
-        FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay, () => source.MoveToEx(destination, null, overwrite));
     }
 
     /// <summary>
@@ -104,8 +88,11 @@ public static class DirectoryExtensions
         }
 
         var destinationFullPath = fs.Path.GetFullPath(destination);
-        if (source.FullName.Equals(destinationFullPath))
+        var sourceFullPath = source.FileSystem.Path.GetFullPath(source.FullName);
+
+        if (PathExtensions.PathsEqual(sourceFullPath, destinationFullPath))
             return false;
+
         progress?.Report(0.0);
         await new DirectoryCopier(fs, progress, workerCount).CopyDirectoryAsync(source, destination, true, cancellationToken);
         var deleteSuccess = DeleteWithRetry(source);
@@ -144,28 +131,7 @@ public static class DirectoryExtensions
         new DirectoryCopier(fs, progress).CopyDirectory(source, destination, false);
         progress?.Report(1.0);
     }
-
-    /// <summary>
-    ///  Tries to copy a directory to a new location.
-    /// </summary>
-    /// <param name="source">The source directory.</param>
-    /// <param name="destination">The new location.</param>
-    /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
-    /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
-    /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
-    /// <exception cref="IOException">If <paramref name="destination"/> already exists
-    /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
-    /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-    /// <exception cref="IOException">If <paramref name="destination"/> already exists
-    /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
-    public static void CopyWithRetry(this IDirectoryInfo source, string destination,
-        DirectoryOverwriteOption overwrite = DirectoryOverwriteOption.NoOverwrite,
-        int retryCount = 2, int retryDelay = 500)
-    {
-        FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay,
-            () => source.Copy(destination, null, overwrite));
-    }
-
+    
     /// <summary>
     /// Copies a directory asynchronously.
     /// </summary>

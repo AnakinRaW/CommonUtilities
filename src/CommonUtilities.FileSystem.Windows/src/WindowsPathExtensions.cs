@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
-using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
+using Vanara.PInvoke;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
@@ -27,8 +26,7 @@ public static class WindowsPathExtensions
     private static readonly Regex RegexSimplePath =
         new("^(([A-Z]:\\\\.*)|(\\\\\\\\.+\\\\.*))$", RegexOptions.IgnoreCase);
 
-    private static readonly char[]
-        InvalidNameChars = Path.GetInvalidFileNameChars().Concat("/?:&\\*#%;").ToArray();
+    private static readonly char[] InvalidNameChars = Path.GetInvalidFileNameChars();
 
     private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
 
@@ -38,48 +36,97 @@ public static class WindowsPathExtensions
     /// <param name="_"></param>
     /// <param name="location">The location the get the <see cref="DriveType"/> for.</param>
     /// <returns>The drive kind.</returns>
-    /// <exception cref="InvalidOperationException">If the <paramref name="location"/> is not absolute.</exception>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static DriveType GetDriveType(this IPath _, string location)
     {
         ThrowHelper.ThrowIfNotWindows();
-        if (!_.IsPathRooted(location))
-            throw new InvalidOperationException("location not an absolute path.");
+        location = _.GetFullPath(location);
         var pathRoot = _.GetPathRoot(location)!;
         if (pathRoot[pathRoot.Length - 1] != _.DirectorySeparatorChar)
             pathRoot += _.DirectorySeparatorChar.ToString();
-        return (DriveType)Kernel32.GetDriveTypeW(pathRoot);
+        return (DriveType)Kernel32.GetDriveType(pathRoot);
     }
 
     /// <summary>
-    /// Checks if a given string is valid as an file name.
-    /// <remarks><paramref name="fileName"/> must be without the desired file extension.</remarks>
+    /// Checks whether a file name is valid on Windows.
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="fileName">The candidate name to validate.</param>
-    /// <returns><see langword="true"/> if the <paramref name="fileName"/> is valid; <see langword="false"/> otherwise.</returns>
-    public static bool IsValidFileName(this IPath _, string fileName)
+    /// <param name="fileName">The file name to validate.</param>
+    /// <returns><see langword="true"/> if the file name is valid; Otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+    public static FileNameValidationResult IsValidFileName(this IPath _, string fileName)
     {
         ThrowHelper.ThrowIfNotWindows();
-        return !string.IsNullOrWhiteSpace(fileName) &&
-               !RegexInvalidName.IsMatch(fileName) &&
-               !RegexNoRelativePathingName.IsMatch(fileName) &&
-               fileName.IndexOfAny(InvalidNameChars) < 0;
+
+        if (string.IsNullOrEmpty(fileName))
+            return FileNameValidationResult.NullOrEmpty;
+
+        var fileNameSpan = fileName.AsSpan();
+
+        if (!EdgesValid(fileNameSpan, out var whiteSpaceError))
+            return whiteSpaceError ? FileNameValidationResult.LeadingOrTrailingWhiteSpace : FileNameValidationResult.TrailingPeriod;
+
+        if (ContainsInvalidChars(fileNameSpan))
+            return FileNameValidationResult.InvalidCharacter;
+
+        if (RegexInvalidName.IsMatch(fileName))
+            return FileNameValidationResult.WindowsReserved;
+
+        return FileNameValidationResult.Valid;
     }
 
-    /// <summary>
-    /// Checks whether a given string is valid as an absolute directory path.
-    /// <remarks>This implementation internally uses <see cref="Path.GetDirectoryName(string)"/>. So mind trailing slashes for the <paramref name="path"/>.</remarks>
-    /// </summary>
-    /// <param name="_"></param>
-    /// <param name="path">the candidate directory path to validate.</param>
-    /// <returns><see langword="true"/> if the <paramref name="path"/> is valid; <see langword="false"/> otherwise.</returns>
-    /// <exception cref="InvalidOperationException">If the <paramref name="path"/> is not absolute.</exception>
-    public static bool IsValidAbsolutePath(this IPath _, string path)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ContainsInvalidChars(ReadOnlySpan<char> value)
     {
-        if (!_.IsPathFullyQualified(path))
-            throw new InvalidOperationException("path not absolute.");
-        return IsValidPath(_, path, true);
+        foreach (var t in value)
+            if (IsInvalidFileCharacter(t))
+                return true;
+
+        return false;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInvalidFileCharacter(char c)
+    { 
+        // Additional check for invalid Windows file name characters
+        foreach (var charToCheck in InvalidNameChars)
+        {
+            if (charToCheck == c)
+                return true;
+        }
+        return false;
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool EdgesValid(ReadOnlySpan<char> value, out bool whiteSpace)
+    {
+        whiteSpace = false;
+
+        if (value[0] is '\x0020')
+        {
+            whiteSpace = true;
+            return false;
+        }
+
+#if NET
+        var lastChar = value[^1];
+#else
+        var lastChar = value[value.Length - 1];
+#endif
+        if (lastChar is '\x0020')
+        {
+            whiteSpace = true;
+            return false;
+        }
+
+        if (lastChar is '.')
+            return false;
+
+        return true;
+    }
+
+
 
     /// <summary>
     /// Checks whether a given string is valid as an directory path.
@@ -88,6 +135,7 @@ public static class WindowsPathExtensions
     /// <param name="_"></param>
     /// <param name="path">the candidate directory path to validate.</param>
     /// <returns><see langword="true"/> if the <paramref name="path"/> is valid; <see langword="false"/> otherwise.</returns>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static bool IsValidPath(this IPath _, string path)
     {
         ThrowHelper.ThrowIfNotWindows();
@@ -102,6 +150,7 @@ public static class WindowsPathExtensions
     /// <param name="accessRights">The requested rights.</param>
     /// <returns></returns>
     /// <exception cref="DirectoryNotFoundException">If <paramref name="directoryInfo"/> does not exists.</exception>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static bool UserHasDirectoryAccessRights(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
     {
         ThrowHelper.ThrowIfNotWindows();
@@ -183,4 +232,35 @@ public static class WindowsPathExtensions
         }
         return false;
     }
+}
+
+/// <summary>
+/// Indicates the status of a file name validation.
+/// </summary>
+public enum FileNameValidationResult
+{
+    /// <summary>
+    /// The file name is valid.
+    /// </summary>
+    Valid,
+    /// <summary>
+    /// The file name is either <see langword="null"/> or empty.
+    /// </summary>
+    NullOrEmpty,
+    /// <summary>
+    /// The file name contains an illegal character.
+    /// </summary>
+    InvalidCharacter,
+    /// <summary>
+    /// The file name starts or ends with a white space (\u0020) character.
+    /// </summary>
+    LeadingOrTrailingWhiteSpace,
+    /// <summary>
+    /// The file name ends with a period ('.') character.
+    /// </summary>
+    TrailingPeriod,
+    /// <summary>
+    /// The file name is reserved by windows (such as 'CON') and thus cannot be used.
+    /// </summary>
+    WindowsReserved
 }

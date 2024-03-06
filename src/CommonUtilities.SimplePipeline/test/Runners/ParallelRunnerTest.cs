@@ -89,11 +89,9 @@ public class ParallelRunnerTest
 
         runner.Queue(s1.Object);
 
-        var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
         {
             b.WaitOne();
-            ran1 = true;
         });
 
         runner.Run(default);
@@ -108,7 +106,7 @@ public class ParallelRunnerTest
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
         var hasError = false;
-        runner.Error += (_, __) =>
+        runner.Error += (_, _) =>
         {
             hasError = true;
         };
@@ -140,7 +138,7 @@ public class ParallelRunnerTest
         var b = new ManualResetEvent(false);
 
         var hasError = false;
-        runner.Error += (_, __) =>
+        runner.Error += (_, _) =>
         {
             hasError = true;
         };

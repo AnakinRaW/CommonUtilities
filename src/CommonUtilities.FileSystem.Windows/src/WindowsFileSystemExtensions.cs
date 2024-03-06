@@ -3,21 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Microsoft.Win32;
-
+using Vanara.PInvoke;
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
-
-internal static class ThrowHelper
-{
-    public static void ThrowIfNotWindows()
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            throw new PlatformNotSupportedException("Only available on Windows.");
-    }
-}
 
 /// <summary>
 /// Provides extension methods to the file system on Windows.
@@ -27,8 +16,9 @@ public static class WindowsFileSystemExtensions
     /// <summary>
     /// Schedules deletion of a file or recursive deletion of a directory after next system restart.
     /// </summary>
-    /// <param name="fsInfo"></param>
-    /// <returns></returns>
+    /// <param name="fsInfo">The file or directory to delete after reboot</param>
+    /// <returns> <see langword="true"/> if file or directory was successfully scheduled for deletion or was already deleted; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static bool DeleteAfterReboot(this IFileSystemInfo fsInfo)
     {
         ThrowHelper.ThrowIfNotWindows();
@@ -57,7 +47,7 @@ public static class WindowsFileSystemExtensions
 
     private static bool ScheduleDeletionAfterReboot(string source)
     {
-        const MoveFileFlags flags = MoveFileFlags.MoveFileDelayUntilReboot | MoveFileFlags.MoveFileWriteThrough;
+        const Kernel32.MOVEFILE flags = Kernel32.MOVEFILE.MOVEFILE_DELAY_UNTIL_REBOOT | Kernel32.MOVEFILE.MOVEFILE_WRITE_THROUGH;
         var flag = Kernel32.MoveFileEx(source, null, flags);
         return flag || AddPendingFileRename(source, null);
     }
@@ -97,8 +87,9 @@ public static class WindowsFileSystemExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-    /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
+    /// <returns><see langword="false"/> if the operation failed; Otherwise, <see langword="true"/>.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static bool DeleteWithRetry(this IFileInfo file, out bool rebootRequired, bool rebootOk = false, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
@@ -150,6 +141,7 @@ public static class WindowsFileSystemExtensions
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
+    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
     public static bool DeleteWithRetry(this IDirectoryInfo directory, out bool rebootRequired, bool rebootOk = false,
         bool recursive = true, int retryCount = 2, int retryDelay = 500,
         Func<Exception, int, bool>? errorAction = null)

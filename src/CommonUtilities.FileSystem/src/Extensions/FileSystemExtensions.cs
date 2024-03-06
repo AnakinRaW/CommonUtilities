@@ -10,21 +10,30 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 public static class FileSystemExtensions
 {
     /// <summary>
-    /// Tries to create a new file and returns an open stream to the created file. An existing file will be overwritten.
+    /// Tries to create a new file and returns an open <see cref="FileSystemStream"/> to the created file, or <see langword="null"/> if the file could not be created.
+    /// An existing file will be overwritten.
     /// </summary>
     /// <param name="fs"></param>
     /// <param name="path">The file's location.</param>
+    /// <param name="fileAccess">A bitwise combination of the enumeration values that determines how the file can be accessed by the <see cref="FileSystemStream"/> object.</param>
+    /// <param name="fileShare">A bitwise combination of the enumeration values that determines how the file will be shared by processes.</param>
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <returns>Open file stream or <see langword="null"/> if the file could not be created.</returns>
-    public static FileSystemStream? CreateFileWithRetry(this IFileSystem fs, string path, int retryCount = 2, int retryDelay = 500)
+    public static FileSystemStream? CreateFileWithRetry(
+        this IFileSystem fs, 
+        string path, 
+        FileAccess fileAccess = FileAccess.ReadWrite,
+        FileShare fileShare = FileShare.None,
+        int retryCount = 2,
+        int retryDelay = 500)
     {
         if (fs == null) 
             throw new ArgumentNullException(nameof(fs));
 
         FileSystemStream? stream = null;
         FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay,
-            () => stream = fs.FileStream.New(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None));
+            () => stream = fs.FileStream.New(path, FileMode.Create, fileAccess, fileShare));
         return stream;
     }
 

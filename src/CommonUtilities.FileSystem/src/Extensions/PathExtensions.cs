@@ -15,13 +15,16 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 /// </summary>
 public static class PathExtensions
 {
+    private const string UncExtendedPathPrefix = @"\\?\UNC\";
+    private const int DevicePrefixLength = 4;
+
     private const string ThisDirectory = ".";
     private const string ParentRelativeDirectory = "..";
 
-    private static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
-    private static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
-    private static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
-    private static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
+    internal static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
+    internal static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
+    internal static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
+    internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
 
     private static readonly char[] PathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
@@ -147,7 +150,7 @@ public static class PathExtensions
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAnyDirectorySeparator(char c)
+    internal static bool IsAnyDirectorySeparator(char c)
     {
         return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
     }
@@ -184,16 +187,13 @@ public static class PathExtensions
 
     /// <summary>
     /// Returns a relative path from a path to given root or <paramref name="path"/> if <paramref name="path"/> is not rooted.
-    /// In contrast to .NET's Path.IsRelativeTo this method allows <paramref name="path"/> to be non-absolute.
-    /// In that case <paramref name="path"/> is returned.
+    /// In contrast to .NET's <c>Path.GetRelativePath(string, string)</c>, if <paramref name="path"/> is not rooted this method returns <paramref name="path"/>.
+    /// For any rooted path the behavior is the same.
     /// </summary>
     /// <param name="fsPath">The file system's path instance.</param>
     /// <param name="root">The root path the result should be relative to. This path is always considered to be a directory.</param>
     /// <param name="path">The destination path.</param>
     /// <returns>The relative path, or path if the paths don't share the same root.</returns>
-    /// <remarks>This method behaves differently to .NET Core <c>Path.GetRelativePath(string, string)</c>
-    /// if <paramref name="path"/> is not rooted.
-    /// </remarks>
     public static string GetRelativePathEx(this IPath fsPath, string root, string path)
     {
         var endsWithTrailingPathSeparator = HasTrailingPathSeparatorInternal(path.AsSpan());
@@ -260,7 +260,7 @@ public static class PathExtensions
         return relativePath;
     }
 
-    private static bool HasTrailingPathSeparatorInternal(ReadOnlySpan<char> value)
+    internal static bool HasTrailingPathSeparatorInternal(ReadOnlySpan<char> value)
     {
         if (value.Length == 0)
             return false;
@@ -279,7 +279,7 @@ public static class PathExtensions
         return pathParts;
     }
 
-    private static bool PathsEqual(string path1, string path2)
+    internal static bool PathsEqual(string path1, string path2)
     {
         return PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));
     }
@@ -334,12 +334,12 @@ public static class PathExtensions
         var fullCandidate = _.GetFullPath(candidate);
 
         return fullBase.Length > 0
-               && candidate.Length > fullBase.Length
+               && fullCandidate.Length > fullBase.Length
                && PathsEqual(fullCandidate, fullBase, fullBase.Length)
                && (IsAnyDirectorySeparator(fullBase[fullBase.Length - 1]) || IsAnyDirectorySeparator(fullCandidate[fullBase.Length]));
     }
 
-#if !NET && !NETSTANDARD2_1_OR_GREATER
+#if !NET && !NETsta
 
     /// <summary>
     /// Returns <see langword="true"/> if the path specified is absolute. This method does no
@@ -355,14 +355,14 @@ public static class PathExtensions
     /// <param name="_"></param>
     /// <param name="path">A file path.</param>
     /// <returns><see langword="true"/> if the path is fixed to a specific drive or UNC path; <see langword="false"/> if the path is relative to the current drive or working directory.</returns>
-    public static bool IsPathFullyQualified(this IPath _, string path)
+    public static bool IsPathFullyQualified(this IPath _, ReadOnlySpan<char> path)
     {
-        if (path == null) 
-            throw new ArgumentNullException(nameof(path));
-
         if (IsUnixLikePlatform)
-            return _.IsPathRooted(path);
-        
+        {
+            // While this case should not get reached, we add a safeguard and fallback to the .NET routine.
+            return _.IsPathRooted(path.ToString());
+        }
+
         if (path.Length < 2)
             return false;
 
@@ -374,7 +374,31 @@ public static class PathExtensions
                && IsAnyDirectorySeparator(path[2])
                && IsValidDriveChar(path[0]);
     }
+
+    /// <summary>
+    /// Returns <see langword="true"/> if the path specified is absolute. This method does no
+    /// validation of the path.
+    /// </summary>
+    /// <remarks>
+    /// Handles paths that use the alternate directory separator.  It is a frequent mistake to
+    /// assume that rooted paths (Path.IsPathRooted) are not relative. This isn't the case.
+    /// "C:a" is drive relative-meaning that it will be resolved against the current directory
+    /// for C: (rooted, but relative). "C:\a" is rooted and not relative (the current directory
+    /// will not be used to modify the path).
+    /// </remarks>
+    /// <param name="_"></param>
+    /// <param name="path">A file path.</param>
+    /// <returns><see langword="true"/> if the path is fixed to a specific drive or UNC path; <see langword="false"/> if the path is relative to the current drive or working directory.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/>is <see langword="null"/>.</exception>
+    public static bool IsPathFullyQualified(this IPath _, string path)
+    {
+        if (path == null) 
+            throw new ArgumentNullException(nameof(path));
+        return IsPathFullyQualified(_, path.AsSpan());
+    }
+
 #endif
+
 
     internal static bool IsValidDriveChar(char value)
     {
@@ -441,4 +465,5 @@ public static class PathExtensions
     }
 #pragma warning restore IO0003
 #pragma warning restore IO0006
+
 }
