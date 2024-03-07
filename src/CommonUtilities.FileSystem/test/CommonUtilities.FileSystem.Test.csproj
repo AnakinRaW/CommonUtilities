@@ -45,8 +45,4 @@
 		<ProjectReference Include="..\src\Commonutilities.FileSystem.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <PackageReference Update="SauceControl.InheritDoc" Version="2.0.1" />
-	</ItemGroup>
-
 </Project>

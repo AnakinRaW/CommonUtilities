@@ -4,8 +4,9 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
+using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Microsoft.Win32;
-using Vanara.PInvoke;
+
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
@@ -47,7 +48,7 @@ public static class WindowsFileSystemExtensions
 
     private static bool ScheduleDeletionAfterReboot(string source)
     {
-        const Kernel32.MOVEFILE flags = Kernel32.MOVEFILE.MOVEFILE_DELAY_UNTIL_REBOOT | Kernel32.MOVEFILE.MOVEFILE_WRITE_THROUGH;
+        const Kernel32.MoveFile flags = Kernel32.MoveFile.DelayUntilReboot | Kernel32.MoveFile.WriteThrough;
         var flag = Kernel32.MoveFileEx(source, null, flags);
         return flag || AddPendingFileRename(source, null);
     }

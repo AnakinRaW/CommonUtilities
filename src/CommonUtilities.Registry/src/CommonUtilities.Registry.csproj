@@ -20,8 +20,4 @@
 		<InheritDocEnabled>true</InheritDocEnabled>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Update="SauceControl.InheritDoc" Version="2.0.1" />
-	</ItemGroup>
-
 </Project>

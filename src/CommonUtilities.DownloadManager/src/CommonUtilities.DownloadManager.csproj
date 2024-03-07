@@ -39,9 +39,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities\src\CommonUtilities.csproj" />
 	</ItemGroup>
-	
-	<ItemGroup>
-	  <PackageReference Update="SauceControl.InheritDoc" Version="2.0.1" />
-	</ItemGroup>
-	
+
 </Project>

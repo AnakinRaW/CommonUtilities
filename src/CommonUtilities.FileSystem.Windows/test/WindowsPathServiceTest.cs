@@ -1,154 +1,108 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.IO;
 using System.Security.AccessControl;
+using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
 
 public class WindowsPathServiceTest
 {
-    private readonly WindowsPathService _service;
+    private readonly MockFileSystem _fileSystem = new();
 
-    public WindowsPathServiceTest()
+    [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
+    [InlineData("123")]
+    [InlineData("123.txt")]
+    [InlineData("123..txt")]
+    [InlineData("fileNameWithCase")]
+    [InlineData("fileNameWith_underscore")]
+    [InlineData("fileNameWith-hyphen")]
+    [InlineData(".test")]
+    [InlineData("LPT12")]
+    [InlineData("COM12")]
+    [InlineData("NUL.txt")] // Though it's not recommend by MS, it's actually allowed to use this name in explorer
+    [InlineData("nameWithNonASCII_ö")]
+    [InlineData("\u0160")]
+    public void Test_IsValidFileName_ValidNames(string input)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-        _service = new WindowsPathService();
+        Assert.Equal(FileNameValidationResult.Valid, _fileSystem.Path!.IsValidFileName(input));
     }
 
-    [Theory]
-    [InlineData(".....")]
-    [InlineData("con")]
-    [InlineData("PRN")]
-    [InlineData("AUX")]
-    [InlineData("NUL")]
-    [InlineData("COM0")]
-    [InlineData("COM1")]
-    [InlineData("COM2")]
-    [InlineData("COM3")]
-    [InlineData("COM4")]
-    [InlineData("COM5")]
-    [InlineData("COM6")]
-    [InlineData("COM7")]
-    [InlineData("COM8")]
-    [InlineData("COM9")]
-    [InlineData("lpt0")]
-    [InlineData("lpt1")]
-    [InlineData("lpt2")]
-    [InlineData("lpt3")]
-    [InlineData("lpt4")]
-    [InlineData("lpt5")]
-    [InlineData("lpt6")]
-    [InlineData("lpt7")]
-    [InlineData("lpt8")]
-    [InlineData("lpt9")]
-    [InlineData("#123")]
-    [InlineData("\\file")]
-    public void TestInvalidFileName(string input)
+
+    [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
+    [InlineData(null, FileNameValidationResult.NullOrEmpty)]
+    [InlineData("", FileNameValidationResult.NullOrEmpty)]
+    [InlineData("     ", FileNameValidationResult.LeadingOrTrailingWhiteSpace)]
+    [InlineData("\0", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("123\0", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("123\t", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("123\r", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("123\n", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("nameWithTrailingSpace ", FileNameValidationResult.LeadingOrTrailingWhiteSpace)]
+    [InlineData("   nameWithLeadingSpace", FileNameValidationResult.LeadingOrTrailingWhiteSpace)]
+    [InlineData("my\\path", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("my/path", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_<", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_>", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_|", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_:", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_*", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("illegalChar_?", FileNameValidationResult.InvalidCharacter)]
+    [InlineData(".", FileNameValidationResult.TrailingPeriod)]
+    [InlineData("..", FileNameValidationResult.TrailingPeriod)]
+    [InlineData("test....", FileNameValidationResult.TrailingPeriod)]
+    [InlineData("test..", FileNameValidationResult.TrailingPeriod)]
+    [InlineData("test.", FileNameValidationResult.TrailingPeriod)]
+    [InlineData("con", FileNameValidationResult.WindowsReserved)]
+    [InlineData("PRN", FileNameValidationResult.WindowsReserved)]
+    [InlineData("AUX", FileNameValidationResult.WindowsReserved)]
+    [InlineData("NUL", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM0", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM1", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM2", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM3", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM4", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM5", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM6", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM7", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM8", FileNameValidationResult.WindowsReserved)]
+    [InlineData("COM9", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt0", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt1", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt2", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt3", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt4", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt5", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt6", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt7", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt8", FileNameValidationResult.WindowsReserved)]
+    [InlineData("lpt9", FileNameValidationResult.WindowsReserved)]
+    [InlineData("\\file", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("/file", FileNameValidationResult.InvalidCharacter)]
+    [InlineData("|file", FileNameValidationResult.InvalidCharacter)]
+    public void Test_IsValidFileName_InvalidNames(string input, FileNameValidationResult expected)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.False(_service!.IsValidFileName(input));
+        Assert.Equal(expected, _fileSystem.Path!.IsValidFileName(input));
     }
 
-    [Theory]
-    [InlineData("abc")]
-    [InlineData(".abc")]
-    [InlineData(".con")]
-    public void TestValidFileName(string input)
+    [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
+    [InlineData(null, FileSystemRights.Read, true)]
+    [InlineData(null, FileSystemRights.Write, true)]
+    [InlineData("C:\\", FileSystemRights.Read, true)]
+    [InlineData("C:\\System Volume Information", FileSystemRights.Read, false)]
+    [InlineData("C:\\System Volume Information", FileSystemRights.Write, false)]
+    public void Test_UserHasDirectoryAccessRights(string input, FileSystemRights rights, bool expected)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.True(_service!.IsValidFileName(input));
+        var fs = new System.IO.Abstractions.FileSystem();
+        input ??= fs.Path.GetTempPath();
+        var dir = fs.DirectoryInfo.New(input);
+        Assert.Equal(expected, dir.UserHasDirectoryAccessRights(rights));
     }
 
-    [Theory]
-    [InlineData("C:\\")]
-    [InlineData("C:\\Data")]
-    [InlineData("C:\\Data\\")]
-    [InlineData("\\\\network\\")]
-    [InlineData("\\\\network\\path")]
-    public void TestValidAbsolutePath(string input)
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
+    public void Test_UserHasDirectoryAccessRights_Throws()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.True(_service!.IsValidAbsolutePath(input));
-        Assert.True(_service.IsValidPath(input));
-    }
-
-        
-    [Theory]
-    [InlineData("lpt22")]
-    [InlineData(".abc")]
-    public void TestValidPath(string input)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.Throws<InvalidOperationException>(() => _service!.IsValidAbsolutePath(input));
-    }
-
-    [Theory]
-    [InlineData("C:\\con\\")]
-    [InlineData("C:\\con\\sub")]
-    [InlineData("C:\\AUX\\")]
-    [InlineData("C:\\PRN\\")]
-    [InlineData("C:\\NUL\\")]
-    [InlineData("C:\\COM0\\")]
-    [InlineData("C:\\COM1\\")]
-    [InlineData("C:\\COM2\\")]
-    [InlineData("C:\\COM3\\")]
-    [InlineData("C:\\COM4\\")]
-    [InlineData("C:\\COM5\\")]
-    [InlineData("C:\\COM6\\")]
-    [InlineData("C:\\COM7\\")]
-    [InlineData("C:\\COM8\\")]
-    [InlineData("C:\\COM9\\")]
-    [InlineData("C:\\lpt0\\")]
-    [InlineData("C:\\lpt1\\")]
-    [InlineData("C:\\lpt2\\")]
-    [InlineData("C:\\lpt3\\")]
-    [InlineData("C:\\lpt4\\")]
-    [InlineData("C:\\lpt5\\")]
-    [InlineData("C:\\lpt6\\")]
-    [InlineData("C:\\lpt7\\")]
-    [InlineData("C:\\lpt8\\")]
-    [InlineData("C:\\lpt9\\")]
-    public void TestInvalidPath(string input)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.False(_service!.IsValidAbsolutePath(input));
-        Assert.False(_service.IsValidPath(input));
-    }
-
-    [Theory]
-    [InlineData("C:\\Test", DriveType.Fixed)]
-    //[InlineData("E:\\Test", DriveType.CDRom)]
-    [InlineData("X:\\Test", DriveType.NoRootDirectory)]
-    public void TestDriveType(string input, DriveType type)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.Equal(type, _service!.GetDriveType(input));
-    }
-
-    [Theory]
-    [InlineData("Test")]
-    public void TestDriveTypeThrows(string input)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.Throws<InvalidOperationException>(() => _service!.GetDriveType(input));
-    }
-
-    [Theory]
-    [InlineData("C:\\", true)]
-    [InlineData("C:\\System Volume Information", false)]
-    public void TestAccessRights(string input, bool expected)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-        Assert.Equal(expected, _service!.UserHasDirectoryAccessRights(input, FileSystemRights.Read));
+        var fs = new System.IO.Abstractions.FileSystem();
+        Assert.Throws<DirectoryNotFoundException>(() => fs.DirectoryInfo.New("C:\\doesNotExists\\").UserHasDirectoryAccessRights(FileSystemRights.Read));
     }
 }

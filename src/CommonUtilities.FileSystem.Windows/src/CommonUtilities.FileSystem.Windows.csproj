@@ -11,7 +11,7 @@
 		<Nullable>enable</Nullable>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 	</PropertyGroup>
-	
+
 	<PropertyGroup>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -22,10 +22,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.FileSystem\src\Commonutilities.FileSystem.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="SauceControl.InheritDoc" Version="2.0.1" />
 	</ItemGroup>
 
 </Project>
