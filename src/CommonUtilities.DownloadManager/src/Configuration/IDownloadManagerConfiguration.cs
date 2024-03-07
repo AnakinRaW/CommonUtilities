@@ -22,7 +22,7 @@ public interface IDownloadManagerConfiguration
     /// <summary>
     /// Specifies how verification after the download shall be handled.
     /// </summary>
-    VerificationPolicy VerificationPolicy { get; }
+    ValidationPolicy ValidationPolicy { get; }
 
     /// <summary>
     /// The <see cref="Configuration.InternetClient"/> implementation which shall get used.

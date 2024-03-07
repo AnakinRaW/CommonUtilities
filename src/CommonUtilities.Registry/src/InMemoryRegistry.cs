@@ -36,7 +36,8 @@ public class InMemoryRegistry : IRegistry
     public IRegistryKey OpenBaseKey(RegistryHive hive, RegistryView view)
     {
         var rootKey = _rootKeys.Where(kv => kv.Key.Item1 == view && kv.Key.Item2 == hive).Select(kvp => kvp.Value).FirstOrDefault();
-        if (rootKey == null) throw new InvalidOperationException($"Cannot find {view} root key for hive '{hive}'");
+        if (rootKey is null) 
+            throw new InvalidOperationException($"Cannot find {view} root key for hive '{hive}'");
         return rootKey;
     }
 }

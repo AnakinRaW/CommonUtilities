@@ -7,15 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class FileDownloader : DownloadProviderBase
+internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadSource.File)
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public FileDownloader(IServiceProvider serviceProvider) : base("File", DownloadSource.File)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
@@ -30,7 +23,7 @@ internal class FileDownloader : DownloadProviderBase
     private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var fileSystem = _serviceProvider.GetRequiredService<IFileSystem>();
+        var fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
 #if NETSTANDARD2_1 || NET

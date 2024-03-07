@@ -3,7 +3,7 @@
 /// <summary>
 /// Options how verification at the end of a download shall be handled.
 /// </summary>
-public enum VerificationPolicy
+public enum ValidationPolicy
 {
     /// <summary>
     /// Verification will always be skipped.

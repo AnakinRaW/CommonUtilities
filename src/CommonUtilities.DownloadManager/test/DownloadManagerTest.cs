@@ -309,7 +309,7 @@ public class DownloadManagerTest
             .Returns(DownloadManagerConfiguration.Default with
             {
                 AllowEmptyFileDownload = true,
-                VerificationPolicy = VerificationPolicy.Enforce
+                ValidationPolicy = ValidationPolicy.Enforce
             });
 
         var validContext = new HashVerificationContext(HashType.None, new byte[] { });
@@ -346,7 +346,7 @@ public class DownloadManagerTest
             .Returns(DownloadManagerConfiguration.Default with
             {
                 AllowEmptyFileDownload = true,
-                VerificationPolicy = VerificationPolicy.SkipWhenNoContextOrBroken
+                ValidationPolicy = ValidationPolicy.SkipWhenNoContextOrBroken
             });
 
         var validContext = new HashVerificationContext(HashType.None, new byte[] { });
@@ -380,7 +380,7 @@ public class DownloadManagerTest
             .Returns(DownloadManagerConfiguration.Default with
             {
                 AllowEmptyFileDownload = true,
-                VerificationPolicy = VerificationPolicy.Optional
+                ValidationPolicy = ValidationPolicy.Optional
             });
 
         var invalidContext = new HashVerificationContext(HashType.MD5, new byte[] { });

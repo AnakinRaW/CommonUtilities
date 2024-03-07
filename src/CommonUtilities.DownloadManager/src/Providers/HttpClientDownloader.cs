@@ -94,7 +94,7 @@ internal class HttpClientDownloader : DownloadProviderBase
         }
     }
 
-    private HttpRequestMessage CreateRequest(Uri uri)
+    private static HttpRequestMessage CreateRequest(Uri uri)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));

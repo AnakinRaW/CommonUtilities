@@ -113,7 +113,7 @@ public class DownloadManager : IDownloadManager {
     private async Task<DownloadSummary> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
         ProgressUpdateCallback? progress, IVerificationContext? verificationContext, CancellationToken cancellationToken)
     {
-        if (_configuration.VerificationPolicy == VerificationPolicy.Enforce && verificationContext is null)
+        if (_configuration.ValidationPolicy == ValidationPolicy.Enforce && verificationContext is null)
         {
             var exception = new VerificationFailedException("No verification context available to verify the download.");
             _logger?.LogError(exception, exception.Message);
@@ -140,7 +140,7 @@ public class DownloadManager : IDownloadManager {
                     throw exception;
                 }
 
-                if (_configuration.VerificationPolicy != VerificationPolicy.Skip && verificationContext is not null)
+                if (_configuration.ValidationPolicy != ValidationPolicy.Skip && verificationContext is not null)
                 {
                     var valid = verificationContext.Verify();
                     if (valid)
@@ -157,7 +157,7 @@ public class DownloadManager : IDownloadManager {
                     }
                     else
                     {
-                        if (_configuration.VerificationPolicy is VerificationPolicy.Optional or VerificationPolicy.Enforce)
+                        if (_configuration.ValidationPolicy is ValidationPolicy.Optional or ValidationPolicy.Enforce)
                             throw new VerificationFailedException("Download is missing or has an invalid VerificationContext");
                         _logger?.LogTrace("Skipping validation because verification context of is not valid.");
                     }

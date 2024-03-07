@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 #endif
 
 
-
 namespace AnakinRaW.CommonUtilities.Hashing;
 
 /// <summary>

@@ -18,7 +18,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     public string Name { get; }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadProvider"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadProviderBase"/> class.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
@@ -27,7 +27,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadProvider"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadProviderBase"/> class.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
