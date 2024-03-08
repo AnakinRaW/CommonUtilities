@@ -45,7 +45,12 @@ public static class PathExtensions
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static string Normalize(this IPath _, string path, PathNormalizeOptions options)
     {
-        ThrowHelper.ThrowIfNullOrEmpty(path);
+        if (string.IsNullOrEmpty(path))
+        {
+            if (path is null)
+                throw new ArgumentNullException(path);
+            throw new ArgumentException("The value cannot be an empty string.", path);
+        }
 
         // Only do for DirectorySeparatorKind.System, cause for other kinds it will be done at the very end anyway.
         if (options.UnifySlashes && options.SeparatorKind == DirectorySeparatorKind.System)

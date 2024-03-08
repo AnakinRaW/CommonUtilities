@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -8,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetRelativePathExTest
 {
-    private readonly IFileSystem _fileSystem = new MockFileSystem();
+    private readonly MockFileSystem _fileSystem = new MockFileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData(@"C:\", @"C:\", @".")]
@@ -77,6 +76,7 @@ public class GetRelativePathExTest
     [InlineData(@"C:\a", @"D:a", @"D:\a")]
     public void Test_GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
     {
+        _fileSystem.WithDrive("C:").WithDrive("D:");
         _fileSystem.Initialize().WithSubdirectory("C:\\current");
         _fileSystem.Directory.SetCurrentDirectory("C:\\current");
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
