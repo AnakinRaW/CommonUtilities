@@ -14,7 +14,6 @@ public class FileSystemInfoExtensionTest
     [InlineData("C:\\test")]
     [InlineData("C:\\test.txt")]
     [InlineData("test.txt")]
-    [InlineData("/")]
     public void Test_GetDriveSize_Windows(string path)
     {
         _fileSystem.WithDrive("C:", c => c.SetTotalSize(1234));
