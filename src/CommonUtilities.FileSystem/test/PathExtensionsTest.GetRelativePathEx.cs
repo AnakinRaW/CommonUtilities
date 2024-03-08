@@ -73,10 +73,10 @@ public class GetRelativePathExTest
     [InlineData(@"C:\a", @"C:a", @"..\current\a")]
     [InlineData(@"C:\a", @"C:a\", @"..\current\a\")]
     [InlineData(@"C:\a\b", @"C:a\b", @"..\..\current\a\b")]
-    [InlineData(@"C:\a", @"D:a", @"D:\a")]
+    [InlineData(@"C:\a", @"X:a", @"X:\a")]
     public void Test_GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
     {
-        _fileSystem.WithDrive("C:").WithDrive("D:");
+        _fileSystem.WithDrive("C:").WithDrive("X:");
         _fileSystem.Initialize().WithSubdirectory("C:\\current");
         _fileSystem.Directory.SetCurrentDirectory("C:\\current");
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
