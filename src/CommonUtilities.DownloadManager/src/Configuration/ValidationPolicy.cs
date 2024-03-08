@@ -8,18 +8,13 @@ public enum ValidationPolicy
     /// <summary>
     /// Verification will always be skipped.
     /// </summary>
-    Skip,
+    NoValidation,
     /// <summary>
-    /// Verification will be skipped if no <see cref="Verification.IVerificationContext"/> is provided
-    /// or the <see cref="Verification.IVerificationContext"/> has invalid data.
-    /// </summary>
-    SkipWhenNoContextOrBroken,
-    /// <summary>
-    /// Verification will be skipped if no <see cref="Verification.IVerificationContext"/> is provided.
+    /// Validation is optional.
     /// </summary>
     Optional,
     /// <summary>
-    /// Verification is enforced.
+    /// Validation is required.
     /// </summary>
-    Enforce,
+    Required,
 }

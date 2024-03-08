@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using AnakinRaW.CommonUtilities.Verification;
+using AnakinRaW.CommonUtilities.DownloadManager.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
@@ -23,7 +22,6 @@ public class DownloadManager : IDownloadManager {
 
     private readonly List<IDownloadProvider> _allProviders = new();
     private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
-    private readonly IVerificationManager _verifier;
 
     /// <inheritdoc/>
     public IEnumerable<string> Providers => _allProviders.Select(e => e.Name);
@@ -34,11 +32,11 @@ public class DownloadManager : IDownloadManager {
     /// <param name="serviceProvider">The service provider of this instance.</param>
     public DownloadManager(IServiceProvider serviceProvider)
     {
-        Requires.NotNull(serviceProvider, nameof(serviceProvider));
+        if (serviceProvider == null) 
+            throw new ArgumentNullException(nameof(serviceProvider));
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
         _configuration = serviceProvider.GetService<IDownloadManagerConfigurationProvider>()?.GetConfiguration() ??
                          DownloadManagerConfiguration.Default;
-        _verifier = serviceProvider.GetRequiredService<IVerificationManager>();
         switch (_configuration.InternetClient)
         {
             case InternetClient.HttpClient:
@@ -58,21 +56,24 @@ public class DownloadManager : IDownloadManager {
     /// <inheritdoc/>
     public void AddDownloadProvider(IDownloadProvider provider)
     {
-        Requires.NotNull(provider, nameof(provider));
+        if (provider == null) 
+            throw new ArgumentNullException(nameof(provider));
         if (_allProviders.Any(e => string.Equals(e.Name, provider.Name, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("Provider " + provider.Name + " already exists.");
         _allProviders.Add(provider);
     }
 
     /// <inheritdoc/>
-    public Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
-        IVerificationContext? verificationContext = null, CancellationToken cancellationToken = default)
+    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+        IDownloadValidator? validator = null, CancellationToken cancellationToken = default)
     {
-        _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
         if (outputStream == null)
             throw new ArgumentNullException(nameof(outputStream));
         if (!outputStream.CanWrite)
-            throw new InvalidOperationException("Input stream must be writable.");
+            throw new NotSupportedException("Input stream must be writable.");
+
+        _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
+
         if (!uri.IsFile && !uri.IsUnc)
         {
             if (!string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase) && 
@@ -95,7 +96,7 @@ public class DownloadManager : IDownloadManager {
         {
             var providers = GetSuitableProvider(uri);
             return Task.Run(async () =>
-                await DownloadWithRetry(providers, uri, outputStream, progress, verificationContext, cancellationToken)
+                await DownloadWithRetry(providers, uri, outputStream, progress, validator, cancellationToken)
                     .ConfigureAwait(false), cancellationToken);
         }
         catch (Exception ex)
@@ -110,12 +111,12 @@ public class DownloadManager : IDownloadManager {
         _allProviders.Clear();
     }
 
-    private async Task<DownloadSummary> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
-        ProgressUpdateCallback? progress, IVerificationContext? verificationContext, CancellationToken cancellationToken)
+    private async Task<DownloadResult> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
+        ProgressUpdateCallback? progress, IDownloadValidator? validator, CancellationToken cancellationToken)
     {
-        if (_configuration.ValidationPolicy == ValidationPolicy.Enforce && verificationContext is null)
+        if (_configuration.ValidationPolicy == ValidationPolicy.Required && validator is null)
         {
-            var exception = new VerificationFailedException("No verification context available to verify the download.");
+            var exception = new NotSupportedException("A validation callback is required for this download.");
             _logger?.LogError(exception, exception.Message);
             throw exception;
         }
@@ -133,6 +134,7 @@ public class DownloadManager : IDownloadManager {
                     {
                         progress?.Invoke(new ProgressUpdateStatus(provider.Name, status.BytesRead, status.TotalBytes, status.BitRate));
                     }, cancellationToken).ConfigureAwait(false);
+                
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
                 {
                     var exception = new Exception($"Empty file downloaded on '{uri}'.");
@@ -140,26 +142,40 @@ public class DownloadManager : IDownloadManager {
                     throw exception;
                 }
 
-                if (_configuration.ValidationPolicy != ValidationPolicy.Skip && verificationContext is not null)
+
+                if (_configuration.ValidationPolicy == ValidationPolicy.NoValidation)
                 {
-                    var valid = verificationContext.Verify();
-                    if (valid)
+                    _logger?.LogTrace("Skipping validation because verification context of is not valid.");
+                }
+                else
+                {
+                    if (validator is null)
                     {
-                        var verificationResult = _verifier.Verify(outputStream, verificationContext);
-                        summary.ValidationResult = verificationResult;
-                        if (verificationResult.Status != VerificationResultStatus.Success)
-                        {
-                            var exception = new VerificationFailedException(
-                                $"Verification on downloaded file '{uri.AbsoluteUri}' was not successful: {verificationResult.Status}");
-                            _logger?.LogError(exception, exception.Message);
-                            throw exception;
-                        }
+                        _logger?.LogTrace("Skipping validation because verification context of is not valid.");
                     }
                     else
                     {
-                        if (_configuration.ValidationPolicy is ValidationPolicy.Optional or ValidationPolicy.Enforce)
-                            throw new VerificationFailedException("Download is missing or has an invalid VerificationContext");
-                        _logger?.LogTrace("Skipping validation because verification context of is not valid.");
+                        bool validationSuccess;
+                        try
+                        {
+                            validationSuccess = await validator.Validate(outputStream, summary.DownloadedSize, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            var exception = new DownloadValidationFailedException(
+                                $"Validation of '{uri.AbsoluteUri}' failed with exception: {e.Message}", e);
+                            _logger?.LogError(exception, exception.Message);
+                            throw exception;
+                        }
+
+                        if (!validationSuccess)
+                        {
+                            var exception = new DownloadValidationFailedException(
+                                $"Downloaded file '{uri.AbsoluteUri}' is not valid.");
+                            _logger?.LogError(exception, exception.Message);
+                            throw exception;
+                        }
                     }
                 }
 
@@ -167,6 +183,7 @@ public class DownloadManager : IDownloadManager {
                 _preferredDownloadProviders.LastSuccessfulProviderName = provider.Name;
 
                 summary.DownloadProvider = provider.Name;
+
                 return summary;
             }
             catch (OperationCanceledException)
@@ -192,7 +209,8 @@ public class DownloadManager : IDownloadManager {
                     continue;
 
                 _logger?.LogTrace($"Sleeping {millisecondsTimeout} before retrying download.");
-                Thread.Sleep(millisecondsTimeout);
+
+                await Task.Delay(TimeSpan.FromMilliseconds(millisecondsTimeout), cancellationToken);
             }
         }
 
@@ -201,7 +219,7 @@ public class DownloadManager : IDownloadManager {
 
     private IList<IDownloadProvider> GetSuitableProvider(Uri uri)
     {
-        var source = uri.IsFile || uri.IsUnc ? DownloadSource.File : DownloadSource.Internet;
+        var source = uri.IsFile || uri.IsUnc ? DownloadKind.File : DownloadKind.Internet;
         var supportedProviders = _allProviders.Where(e => e.IsSupported(source)).ToList();
         if (!supportedProviders.Any())
         {

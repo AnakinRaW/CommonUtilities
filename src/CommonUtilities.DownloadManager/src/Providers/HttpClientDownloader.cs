@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
@@ -22,16 +21,17 @@ internal class HttpClientDownloader : DownloadProviderBase
         ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
-    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadSource.Internet)
+    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadKind.Internet)
     {
-        Requires.NotNull(services, nameof(services));
+        if (services == null) 
+            throw new ArgumentNullException(nameof(services));
         _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
-    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var summary = new DownloadSummary();
+        var summary = new DownloadResult();
         var webRequest = CreateRequest(uri);
         var response = await GetWebResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
@@ -102,7 +102,7 @@ internal class HttpClientDownloader : DownloadProviderBase
         return request;
     }
 
-    private async Task<HttpResponseMessage?> GetWebResponse(Uri uri, DownloadSummary summary, HttpRequestMessage request,
+    private async Task<HttpResponseMessage?> GetWebResponse(Uri uri, DownloadResult result, HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage? response = null;
@@ -124,7 +124,7 @@ internal class HttpClientDownloader : DownloadProviderBase
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
             {
-                summary.FinalUri = responseUri!;
+                result.Uri = responseUri!;
                 _logger?.LogTrace($"Uri '{uri}' redirected to '{responseUri}'");
             }
 

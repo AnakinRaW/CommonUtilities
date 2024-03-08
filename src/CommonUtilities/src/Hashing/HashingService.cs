@@ -54,21 +54,26 @@ public class HashingService : IHashingService
 
 #if NET
     /// <inheritdoc/>
-    public Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType)
+    public async Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType)
     {
         if (file == null) 
             throw new ArgumentNullException(nameof(file));
-        return HashFileInternalAsync(file, GetAlgorithm(hashType));
+        await using var fs = file.OpenRead();
+        return await HashInternalAsync(fs, hashType).ConfigureAwait(false);
     }
 
-    private static Task<byte[]> HashFileInternalAsync(IFileInfo file, HashAlgorithm algorithm)
+    /// <inheritdoc/>
+    public async Task<byte[]> GetStreamHashAsync(Stream stream, HashType hashType)
     {
-        using (algorithm)
-        {
-            using var fs = file.OpenRead();
-            fs.Position = 0;
-            return algorithm.ComputeHashAsync(fs);
-        }
+        if (stream == null)
+            throw new ArgumentNullException(nameof(stream));
+        return await HashInternalAsync(stream, hashType).ConfigureAwait(false);
+    }
+
+    private static async Task<byte[]> HashInternalAsync(Stream stream, HashType hashType)
+    {
+        using var algorithm = GetAlgorithm(hashType);
+        return await algorithm.ComputeHashAsync(stream).ConfigureAwait(false);
     }
 #endif
 }

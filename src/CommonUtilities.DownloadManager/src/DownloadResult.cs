@@ -1,12 +1,11 @@
 ﻿using System;
-using AnakinRaW.CommonUtilities.Verification;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Summary information of a completed file download.
+/// Information of a completed file download.
 /// </summary>
-public class DownloadSummary
+public sealed class DownloadResult
 {
     /// <summary>
     /// The size of the downloaded file in bytes.
@@ -31,18 +30,12 @@ public class DownloadSummary
     /// <summary>
     /// The actual URI used to download the file.
     /// </summary>
-    public string FinalUri { get; internal set; }
+    public string Uri { get; internal set; }
 
     /// <summary>
-    /// The verification result of the download.
+    /// Creates an empty <see cref="DownloadResult"/>
     /// </summary>
-    public VerificationResult ValidationResult { get; internal set; }
-
-    /// <summary>
-    /// Creates an empty <see cref="DownloadSummary"/>
-    /// </summary>
-    public DownloadSummary()
-        : this(string.Empty, 0L, 0.0, TimeSpan.Zero, VerificationResult.NotVerified)
+    internal DownloadResult() : this(string.Empty, 0L, 0.0, TimeSpan.Zero)
     {
     }
 
@@ -53,14 +46,12 @@ public class DownloadSummary
     /// <param name="downloadSize">The downloaded bytes.</param>
     /// <param name="bitRate">Mean downloading rate.</param>
     /// <param name="downloadTime">The download duration.</param>
-    /// <param name="validationResult">The verification result.</param>
-    public DownloadSummary(string downloadProvider, long downloadSize, double bitRate, TimeSpan downloadTime, VerificationResult validationResult)
+    internal DownloadResult(string downloadProvider, long downloadSize, double bitRate, TimeSpan downloadTime)
     {
         DownloadProvider = downloadProvider;
         DownloadedSize = downloadSize;
         BitRate = bitRate;
         DownloadTime = downloadTime;
-        FinalUri = string.Empty;
-        ValidationResult = validationResult;
+        Uri = string.Empty;
     }
 }

@@ -14,12 +14,12 @@ public class DownloadProviderBaseTest
     [Fact]
     public async Task TestDownloadWithBitRate()
     {
-        var provMock = new Mock<DownloadProviderBase>("File", DownloadSource.File)
+        var provMock = new Mock<DownloadProviderBase>("File", DownloadKind.File)
         {
             CallBase = true
         };
 
-        var result = new DownloadSummary
+        var result = new DownloadResult
         {
             DownloadedSize = 123
         };
@@ -33,7 +33,7 @@ public class DownloadProviderBaseTest
         }
 
         provMock.Protected()
-            .Setup<Task<DownloadSummary>>("DownloadAsyncCore", ItExpr.IsAny<Uri>(), ItExpr.IsAny<Stream>(),
+            .Setup<Task<DownloadResult>>("DownloadAsyncCore", ItExpr.IsAny<Uri>(), ItExpr.IsAny<Stream>(),
                 ItExpr.IsAny<ProgressUpdateCallback>(), ItExpr.IsAny<CancellationToken>())
             .Callback((Uri _, Stream _, ProgressUpdateCallback p, CancellationToken _) =>
             {

@@ -16,11 +16,11 @@ public interface IDownloadProvider
     string Name { get; }
 
     /// <summary>
-    /// Evaluates whether a given <see cref="DownloadSource"/> is supported by this provider.
+    /// Evaluates whether a given <see cref="DownloadKind"/> is supported by this provider.
     /// </summary>
-    /// <param name="source">The target <see cref="DownloadSource"/>.</param>
-    /// <returns><see langword="true"/> is <paramref name="source"/> is supported; <see langword="false"/> otherwise.</returns>
-    bool IsSupported(DownloadSource source);
+    /// <param name="kind">The target <see cref="DownloadKind"/>.</param>
+    /// <returns><see langword="true"/> is <paramref name="kind"/> is supported; <see langword="false"/> otherwise.</returns>
+    bool IsSupported(DownloadKind kind);
 
     /// <summary>
     /// Downloads a file.
@@ -30,6 +30,6 @@ public interface IDownloadProvider
     /// <param name="progress">A callback reporting the current status of the download.</param>
     /// <param name="cancellationToken">A token to cancel the download operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 }

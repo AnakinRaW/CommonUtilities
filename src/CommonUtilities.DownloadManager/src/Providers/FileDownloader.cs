@@ -7,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadSource.File)
+internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadKind.File)
 {
-    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         if (!uri.IsFile && !uri.IsUnc)
             throw new ArgumentException("Expected file or UNC path", nameof(uri));
-        return new DownloadSummary
+        return new DownloadResult
         {
             DownloadedSize = await CopyFileToStreamAsync(uri.LocalPath, outputStream, progress, cancellationToken).ConfigureAwait(false)
         };

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 
@@ -101,8 +100,8 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressRe
     /// <param name="progress">The progress value.</param>
     public void Report(TStep step, double progress)
     {
-        Requires.NotNull(step, nameof(step));
-
+        if (step == null)
+            throw new ArgumentNullException(nameof(step));
         if (!_progressSteps.Contains(step))
             return;
 
@@ -111,7 +110,8 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressRe
 
     void IStepProgressReporter.Report(IProgressStep step, double progress)
     {
-        Requires.NotNull(step, nameof(step));
+        if (step == null) 
+            throw new ArgumentNullException(nameof(step));
 
         if (!_progressSteps.Contains(step))
             return;

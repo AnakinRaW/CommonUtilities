@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.Hashing;
 public interface IHashingService
 {
     /// <summary>
-    /// Calculates a hash code of a given file.
+    /// Calculates a hash code of a specified file.
     /// </summary>
     /// <param name="file">The file to get the hash code for.</param>
     /// <param name="hashType">The hash algorithm.</param>
@@ -25,7 +25,7 @@ public interface IHashingService
     byte[] GetFileHash(IFileInfo file, HashType hashType);
 
     /// <summary>
-    /// Calculates a hash code of a given data stream by reading it from start to end.
+    /// Calculates a hash code of a specified data stream by reading it from start to end.
     /// </summary>
     /// <param name="stream">The target stream</param>
     /// <param name="hashType">The hash algorithm.</param>
@@ -37,14 +37,24 @@ public interface IHashingService
 
 #if NET
     /// <summary>
-    /// Calculates a hash code of a given file asynchronously.
+    /// Calculates a hash code of a specified file asynchronously.
     /// </summary>
     /// <param name="file">The file to get the hash code for.</param>
     /// <param name="hashType">The hash algorithm</param>
     /// <returns>The hash code of the file.</returns>
-    /// <exception cref="FileNotFoundException">If the file does not exist.</exception>
-    /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
-    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
+    /// <exception cref="FileNotFoundException">The file does not exist.</exception>
+    /// <exception cref="InvalidOperationException">The file cannot be read.</exception>
+    /// <exception cref="NotSupportedException">No hashing algorithm implementation could be found.</exception>
     Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType);
+
+    /// <summary>
+    /// Calculates a hash code of a specified data stream asynchronously.
+    /// </summary>
+    /// <param name="stream">The data stream to get the hash code for.</param>
+    /// <param name="hashType">The hash algorithm</param>
+    /// <returns>The hash code of the data stream.</returns>
+    /// <exception cref="InvalidOperationException">If the data stream cannot be read.</exception>
+    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
+    Task<byte[]> GetStreamHashAsync(Stream stream, HashType hashType);
 #endif
 }

@@ -4,29 +4,19 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Verification;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class DownloadManagerIntegrationTest
 {
-    private readonly ITestOutputHelper _helper;
-
-    public DownloadManagerIntegrationTest(ITestOutputHelper helper)
-    {
-        _helper = helper;
-    }
-
     [Fact]
     public async Task TestDownload()
     {
         var fs = new MockFileSystem();
         var sc = new ServiceCollection();
         sc.AddSingleton<IFileSystem>(fs);
-        sc.AddSingleton<IVerificationManager>(sp => new VerificationManager(sp));
         var manager = new DownloadManager(sc.BuildServiceProvider());
 
         var file = fs.FileStream.New("file.txt", FileMode.Create);

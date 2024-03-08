@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
@@ -35,8 +34,7 @@ public abstract class PipelineStep : IStep
     /// <param name="serviceProvider">The service provider.</param>
     protected PipelineStep(IServiceProvider serviceProvider)
     {
-        Requires.NotNull(serviceProvider, nameof(serviceProvider));
-        Services = serviceProvider;
+        Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 

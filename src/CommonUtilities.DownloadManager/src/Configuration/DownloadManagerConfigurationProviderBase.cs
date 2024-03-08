@@ -1,5 +1,5 @@
-﻿using System.Threading;
-using Validation;
+﻿using System;
+using System.Threading;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
@@ -14,7 +14,8 @@ public abstract class DownloadManagerConfigurationProviderBase : IDownloadManage
     public IDownloadManagerConfiguration GetConfiguration()
     {
         var configuration = LazyInitializer.EnsureInitialized(ref _configuration, CreateConfiguration);
-        Assumes.NotNull(configuration);
+        if (configuration is null)
+            throw new InvalidOperationException();
         return configuration;
     }
 
