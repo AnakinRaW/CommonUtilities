@@ -116,7 +116,7 @@ public class DirectoryInfoExtensionsTest
 
 
         var progressValue = 0d;
-        var progress = new Progress<double>(d =>
+        var progress = new BlockingProgress(d =>
         {
             progressValue = d;
         });
@@ -210,11 +210,12 @@ public class DirectoryInfoExtensionsTest
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
         var progressValue = 0d;
-        var progress = new Progress<double>(d =>
+        var progress = new BlockingProgress(d =>
         {
             progressValue = d;
         });
         var delSuc = await dirToMove.MoveToAsync("other", progress, DirectoryOverwriteOption.CleanOverwrite);
+        
         Assert.True(delSuc);
         Assert.Equal(1.0, progressValue);
     }
@@ -356,5 +357,17 @@ public class DirectoryInfoExtensionsTest
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("D:\\other"));
         Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\other").GetFiles("*").Length);
+    }
+
+
+    /// <summary>
+    /// A progress which handles get invoked on the current thread instead of a captured synchronization context.
+    /// </summary>
+    private class BlockingProgress(Action<double> handler) : IProgress<double>
+    {
+        public void Report(double value)
+        {
+            handler(value);
+        }
     }
 }
