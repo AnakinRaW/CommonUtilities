@@ -5,7 +5,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 /// <summary>
 /// Represents a named progress type which can be used as a filter channel.
 /// </summary>
-public struct ProgressType : IEquatable<ProgressType>
+public readonly struct ProgressType : IEquatable<ProgressType>
 {
     /// <summary>
     /// Gets the unique identifier of the progress type.
