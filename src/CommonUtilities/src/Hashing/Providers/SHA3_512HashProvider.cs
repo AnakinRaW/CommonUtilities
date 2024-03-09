@@ -30,7 +30,7 @@ internal class SHA3_512HashProvider : HashAlgorithmProviderBase
 
     protected override HashAlgorithm CreateHashAlgorithm()
     {
-        return SHA3_384.Create();
+        return SHA3_512.Create();
     }
 }
 #endif

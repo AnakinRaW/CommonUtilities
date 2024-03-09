@@ -226,7 +226,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
 #endif
 
-    public void Test_GetHash_DefaultProviders_WithEmptyData(HashTypeKey hashType, string input, string expectedHashString)
+    public void Test_GetHash_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
 
@@ -272,7 +272,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA3_384))]
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
 #endif
-    public async void Test_GetHashAsync_DefaultProviders_WithEmptyData(HashTypeKey hashType, string input, string expectedHashString)
+    public async void Test_GetHashAsync_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
 
@@ -347,9 +347,7 @@ public class HashingServiceTest
             yield break;
 
         yield return [HashTypeKey.SHA3_256, "", "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"];
-        yield return [HashTypeKey.SHA3_256, "e9", "f0d04dd1e6cfc29a4460d521796852f25d9ef8d28b44ee91ff5b759d72c1e6d6"];
-        yield return [HashTypeKey.SHA3_256, "37b442385e0538", "cfa55031e716bbd7a83f2157513099e229a88891bb899d9ccd317191819998f8"];
-        yield return [HashTypeKey.SHA3_256, "56ea14d7fcb0db748ff649aaa5d0afdc2357528a9aad6076d73b2805b53d89e73681abfad26bee6c0f3d20215295f354f538ae80990d2281be6de0f6919aa9eb048c26b524f4d91ca87b54c0c54aa9b54ad02171e8bf31e8d158a9f586e92ffce994ecce9a5185cc80364d50a6f7b94849a914242fcb73f33a86ecc83c3403630d20650ddb8cd9c4", "4beae3515ba35ec8cbd1d94567e22b0d7809c466abfbafe9610349597ba15b45"];
+        yield return [HashTypeKey.SHA3_256, RepeatString("0102030405060708", 1024), "5e80dd4330d9124adce40a043f166d7e0f6853050fd99919c7b1436ee0a538e9"];
         yield return [HashTypeKey.SHA3_256, RepeatString("0102030405060708", 1025), "5dbbd15ba5745412a79835cc4bec1bede925da06eca7a5bbf50c38a6ec1c49bc"];
     }
 
@@ -358,9 +356,7 @@ public class HashingServiceTest
         if (!SHA3_384.IsSupported)
             yield break;
         yield return [HashTypeKey.SHA3_384, "", "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004"];
-        yield return [HashTypeKey.SHA3_384, "80", "7541384852e10ff10d5fb6a7213a4a6c15ccc86d8bc1068ac04f69277142944f4ee50d91fdc56553db06b2f5039c8ab7"];
-        yield return [HashTypeKey.SHA3_384, "c44a2c58c84c393a", "60ad40f964d0edcf19281e415f7389968275ff613199a069c916a0ff7ef65503b740683162a622b913d43a46559e913c"];
-        yield return [HashTypeKey.SHA3_384, "92c41d34bd249c182ad4e18e3b856770766f1757209675020d4c1cf7b6f7686c8c1472678c7c412514e63eb9f5aee9f5c9d5cb8d8748ab7a5465059d9cbbb8a56211ff32d4aaa23a23c86ead916fe254cc6b2bff7a9553df1551b531f95bb41cbbc4acddbd372921", "71307eec1355f73e5b726ed9efa1129086af81364e30a291f684dfade693cc4bc3d6ffcb7f3b4012a21976ff9edcab61"];
+        yield return [HashTypeKey.SHA3_384, RepeatString("0102030405060708", 1024), "0aa96c328926f2faa796dc75a104e200f5b497beb0313e8822b471efebbb39cef02687e33787883a87c18f35856dcad1"];
         yield return [HashTypeKey.SHA3_384, RepeatString("0102030405060708", 1025), "e2d1714c8011e7b90550123006128d90fa464cb71903e4aa67342bc8780eb43ae099a2d8610e0ba3061f4f3792d344a7"];
     }
 
@@ -369,14 +365,11 @@ public class HashingServiceTest
         if (!SHA3_512.IsSupported)
             yield break;
         yield return [HashTypeKey.SHA3_512, "", "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"];
-        yield return [HashTypeKey.SHA3_512, "e5", "150240baf95fb36f8ccb87a19a41767e7aed95125075a2b2dbba6e565e1ce8575f2b042b62e29a04e9440314a821c6224182964d8b557b16a492b3806f4c39c1"];
-        yield return [HashTypeKey.SHA3_512, "d91a9c324ece84b072d0753618", "fb1f06c4d1c0d066bdd850ab1a78b83296eba0ca423bb174d74283f46628e6095539214adfd82b462e8e9204a397a83c6842b721a32e8bb030927a568f3c29e6"];
-        yield return [HashTypeKey.SHA3_512, "0ce9f8c3a990c268f34efd9befdb0f7c4ef8466cfdb01171f8de70dc5fefa92acbe93d29e2ac1a5c2979129f1ab08c0e77de7924ddf68a209cdfa0adc62f85c18637d9c6b33f4ff8", "b018a20fcf831dde290e4fb18c56342efe138472cbe142da6b77eea4fce52588c04c808eb32912faa345245a850346faec46c3a16d39bd2e1ddb1816bc57d2da"];
+        yield return [HashTypeKey.SHA3_512, RepeatString("0102030405060708", 1024), "b5ec7fe7061c944b65f42a3193ebafcc3b35f063dc2ac7a5af05140b2439c425e4d9e63bc97103f704a7b6849a1986cec743ac288ca2f123e82c0ce60b714615"];
         yield return [HashTypeKey.SHA3_512, RepeatString("0102030405060708", 1025), "ea418b3d279a9b25ddc6f8a294006c63068cbd4b872163365f7d11f6f287c8291adc0e3b77999db9606a40c989d7eca405247162104feec1d5a46e59404692a2"];
     }
 
 #endif
-
 
 
     internal class AlwaysOneHashProvider : IHashAlgorithmProvider
@@ -434,7 +427,6 @@ public class HashingServiceTest
     internal static byte[] HexToByteArray(string hexString)
     {
         var bytes = new byte[hexString.Length / 2];
-
         for (var i = 0; i < hexString.Length; i += 2)
         {
             var s = hexString.Substring(i, 2);
@@ -445,23 +437,17 @@ public class HashingServiceTest
 
     internal static byte[] AsciiBytes(string s)
     {
-        byte[] bytes = new byte[s.Length];
-
-        for (int i = 0; i < s.Length; i++)
-        {
+        var bytes = new byte[s.Length];
+        for (var i = 0; i < s.Length; i++) 
             bytes[i] = (byte)s[i];
-        }
-
         return bytes;
     }
 
     internal static string RepeatString(string valueToRepeat, int iteration)
     {
         var stringBuilder = new StringBuilder();
-        for (int i = 0; i < iteration; i++)
-        {
+        for (var i = 0; i < iteration; i++) 
             stringBuilder.Append(valueToRepeat);
-        }
         return stringBuilder.ToString();
     }
 }
