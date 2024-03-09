@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !NET5_0_OR_GREATER
+
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -10,8 +12,6 @@ namespace AnakinRaW.CommonUtilities.Test;
 // From https://github.com/microsoft/vs-threading
 public class AwaitExtensionsTests
 {
-#if !NET5_0_OR_GREATER
-
     [Fact]
     public async Task WaitForExit_NullArgument()
     {
@@ -105,6 +105,5 @@ public class AwaitExtensionsTests
             p.Kill();
         }
     }
-
-#endif
 }
+#endif

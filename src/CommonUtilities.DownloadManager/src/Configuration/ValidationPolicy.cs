@@ -1,12 +1,12 @@
 ﻿namespace AnakinRaW.CommonUtilities.DownloadManager.Configuration;
 
 /// <summary>
-/// Options how verification at the end of a download shall be handled.
+/// Options how validation at the end of a download shall be handled.
 /// </summary>
 public enum ValidationPolicy
 {
     /// <summary>
-    /// Verification will always be skipped.
+    /// Validation will always be skipped.
     /// </summary>
     NoValidation,
     /// <summary>

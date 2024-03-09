@@ -1,60 +1,36 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
-#if NET
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-#endif
-
 
 namespace AnakinRaW.CommonUtilities.Hashing;
 
-/// <summary>
-/// Service for calculating hash codes.
-/// </summary>
 public interface IHashingService
 {
-    /// <summary>
-    /// Calculates a hash code of a specified file.
-    /// </summary>
-    /// <param name="file">The file to get the hash code for.</param>
-    /// <param name="hashType">The hash algorithm.</param>
-    /// <returns>The hash code of the file.</returns>
-    /// <exception cref="FileNotFoundException">If the file does not exist.</exception>
-    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
-    /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
-    byte[] GetFileHash(IFileInfo file, HashType hashType);
+    byte[] GetHash(IFileInfo file, HashTypeKey hashType);
 
-    /// <summary>
-    /// Calculates a hash code of a specified data stream by reading it from start to end.
-    /// </summary>
-    /// <param name="stream">The target stream</param>
-    /// <param name="hashType">The hash algorithm.</param>
-    /// <returns>The hash code of the stream</returns>
-    /// <exception cref="InvalidOperationException">If the file cannot be read.</exception>
-    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
-    byte[] GetStreamHash(Stream stream, HashType hashType);
+    int GetHash(IFileInfo file, Span<byte> destination, HashTypeKey hashType);
+
+    byte[] GetHash(Stream source, HashTypeKey hashType);
+
+    int GetHash(Stream source, Span<byte> destination, HashTypeKey hashType);
+
+    int GetHash(ReadOnlySpan<byte> source, Span<byte> destination, HashTypeKey hashType);
+
+    byte[] GetHash(byte[] source, HashTypeKey hashType);
+
+    byte[] GetHash(string stringData, Encoding encoding, HashTypeKey hashType);
+
+    int GetHash(string stringData, Encoding encoding, Span<byte> destination, HashTypeKey hashType);
 
 
-#if NET
-    /// <summary>
-    /// Calculates a hash code of a specified file asynchronously.
-    /// </summary>
-    /// <param name="file">The file to get the hash code for.</param>
-    /// <param name="hashType">The hash algorithm</param>
-    /// <returns>The hash code of the file.</returns>
-    /// <exception cref="FileNotFoundException">The file does not exist.</exception>
-    /// <exception cref="InvalidOperationException">The file cannot be read.</exception>
-    /// <exception cref="NotSupportedException">No hashing algorithm implementation could be found.</exception>
-    Task<byte[]> HashFileAsync(IFileInfo file, HashType hashType);
+    ValueTask<byte[]> GetHashAsync(IFileInfo file, HashTypeKey hashType, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Calculates a hash code of a specified data stream asynchronously.
-    /// </summary>
-    /// <param name="stream">The data stream to get the hash code for.</param>
-    /// <param name="hashType">The hash algorithm</param>
-    /// <returns>The hash code of the data stream.</returns>
-    /// <exception cref="InvalidOperationException">If the data stream cannot be read.</exception>
-    /// <exception cref="NotSupportedException">If no hashing algorithm implementation could be found.</exception>
-    Task<byte[]> GetStreamHashAsync(Stream stream, HashType hashType);
-#endif
+    ValueTask<int> GetHashAsync(IFileInfo file, Memory<byte> destination, HashTypeKey hashType, CancellationToken cancellationToken = default);
+
+    ValueTask<byte[]> GetHashAsync(Stream source, HashTypeKey hashType, CancellationToken cancellationToken = default);
+
+    ValueTask<int> GetHashAsync(Stream source, Memory<byte> destination, HashTypeKey hashType, CancellationToken cancellationToken = default);
 }

@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 public sealed class HashDownloadValidator : IDownloadValidator
 {
     private readonly byte[]? _hash;
-    private readonly HashType _hashType;
+    private readonly HashTypeKey _hashType;
     private readonly IHashingService _hashingService;
 
     /// <summary>
@@ -23,13 +23,13 @@ public sealed class HashDownloadValidator : IDownloadValidator
     /// <param name="hash">The expected hash.</param>
     /// <param name="hashType">The hash type.</param>
     /// <param name="serviceProvider">The service provider.</param>
-    public HashDownloadValidator(byte[]? hash, HashType hashType, IServiceProvider serviceProvider)
+    public HashDownloadValidator(byte[]? hash, HashTypeKey hashType, IServiceProvider serviceProvider)
     {
         if (serviceProvider == null)
             throw new ArgumentNullException(nameof(serviceProvider));
 
         var size = hash?.Length ?? 0;
-        if (size != (int)hashType)
+        if (size != hashType.HashSize)
             throw new ArgumentException("Hash value and hash type do not match.", nameof(hash));
 
         _hash = (byte[]?)hash?.Clone() ?? null;
@@ -38,19 +38,19 @@ public sealed class HashDownloadValidator : IDownloadValidator
     }
 
     /// <inheritdoc />
-    public Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
+    public async Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
     {
         if (stream == null) 
             throw new ArgumentNullException(nameof(stream));
         if (!stream.CanSeek)
             throw new NotSupportedException("Stream must be seekable.");
 
-        if (_hashType == HashType.None)
-            return Task.FromResult(true);
+        if (_hashType == HashTypeKey.None)
+            return true;
 
         stream.Seek(-downloadedBytes, SeekOrigin.Current);
-        var actualHash = _hashingService.GetStreamHash(stream, _hashType);
+        var actualHash = await _hashingService.GetHashAsync(stream, _hashType, token);
 
-        return Task.FromResult(_hash!.SequenceEqual(actualHash));
+        return _hash!.SequenceEqual(actualHash);
     }
 }
