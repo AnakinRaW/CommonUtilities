@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Globalization;
 
-namespace AnakinRaW.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test.Hashing;
 
 
 public class HashingServiceTest
@@ -68,7 +68,7 @@ public class HashingServiceTest
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), notExistingProvider));
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash(someSource, notExistingProvider));
     }
-    
+
     [Fact]
     public async void Test_GetHashAsync_ProviderNotFound_ThrowsHashProviderNotFoundException()
     {
@@ -76,7 +76,7 @@ public class HashingServiceTest
 
         var notExistingProvider = new HashTypeKey("SomeProvider", 1);
         var someSource = Array.Empty<byte>();
-        var someDestination = Array.Empty<byte>();
+        var someDestination = new byte[1];
         var someStream = new MemoryStream(someSource);
 
         await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider));
@@ -95,11 +95,11 @@ public class HashingServiceTest
         var someSource = Array.Empty<byte>();
         var someDestination = Array.Empty<byte>();
         var someStream = new MemoryStream(someSource);
-        
-        Assert.Throws<IndexOutOfRangeException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), new Span<byte>(someDestination), provider));
-        Assert.Throws<IndexOutOfRangeException>(() => _hashingService.GetHash(new ReadOnlySpan<byte>(someSource), someDestination.AsSpan(), provider));
-        Assert.Throws<IndexOutOfRangeException>(() => _hashingService.GetHash(someStream, someDestination.AsSpan(), provider));
-        Assert.Throws<IndexOutOfRangeException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), provider));
+
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), new Span<byte>(someDestination), provider));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(new ReadOnlySpan<byte>(someSource), someDestination.AsSpan(), provider));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, someDestination.AsSpan(), provider));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), provider));
     }
 
     [Fact]
@@ -112,8 +112,8 @@ public class HashingServiceTest
         var someDestination = Array.Empty<byte>();
         var someStream = new MemoryStream(someSource);
 
-        await Assert.ThrowsAsync<IndexOutOfRangeException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), provider));
-        await Assert.ThrowsAsync<IndexOutOfRangeException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), provider));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), provider));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), provider));
     }
 
     [Fact]
@@ -146,10 +146,10 @@ public class HashingServiceTest
         var someDestination = new byte[2];
         var someStream = new MemoryStream(someSource);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async() => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async() => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async() => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async() => await _hashingService.GetHashAsync(someStream, notExistingProvider));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, notExistingProvider));
     }
 
 
@@ -163,7 +163,7 @@ public class HashingServiceTest
         var someStream = new MemoryStream(someSource);
 
         var destination = new byte[] { 0, 0 };
-        
+
         var expectedHashExact = new byte[] { 1 };
         var expectedHashJoint = new byte[] { 1, 0 };
 
@@ -203,7 +203,7 @@ public class HashingServiceTest
         var expectedHashJoint = new byte[] { 1, 0 };
 
         Assert.Equal(expectedHashExact, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), provider));
-        
+
         Assert.Equal(1, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), destination.AsMemory(), provider));
         Assert.Equal(expectedHashJoint, destination);
 
@@ -229,7 +229,7 @@ public class HashingServiceTest
     public void Test_GetHash_DefaultProviders_WithEmptyData(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
-        
+
         var expectedHash = HexToByteArray(expectedHashString);
         var expectedSize = hashType.HashSize;
 
@@ -261,7 +261,7 @@ public class HashingServiceTest
         Assert.Equal(expectedHash, _hashingService.GetHash(someSource, hashType));
     }
 
-    [Theory] 
+    [Theory]
     [MemberData(nameof(ProviderHashTestData_MD5))]
     [MemberData(nameof(ProviderHashTestData_SHA1))]
     [MemberData(nameof(ProviderHashTestData_SHA256))]
@@ -463,46 +463,5 @@ public class HashingServiceTest
             stringBuilder.Append(valueToRepeat);
         }
         return stringBuilder.ToString();
-    }
-}
-
-public class HashTypeKeyTest
-{
-    [Fact]
-    public void Test_Ctor()
-    {
-        var key = new HashTypeKey("123", 1);
-        Assert.Equal("123", key.HashType);
-        Assert.Equal(1, key.HashSize);
-    }
-
-    [Fact]
-    public void Test_Ctor_Throws()
-    {
-        Assert.Throws<ArgumentNullException>(() => new HashTypeKey(null!, 1));
-        Assert.Throws<ArgumentException>(() => new HashTypeKey("", 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new HashTypeKey("123", 0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new HashTypeKey("123", -1));
-    }
-
-    [Fact]
-    public void Test_Equals_GetHashCode()
-    {
-        var key1 = new HashTypeKey("abc", 1);
-        var key2 = new HashTypeKey("ABC", 1);
-        var key3 = new HashTypeKey("abc", 2);
-        var key4 = new HashTypeKey("def", 2);
-
-        Assert.True(key1 == key2);
-        Assert.True(key1 == key3);
-        Assert.True(key1 != key4);
-
-        Assert.True(key1.Equals(key2));
-        Assert.True(key1.Equals(key3));
-        Assert.True(!key1.Equals(key4));
-
-        Assert.Equal(key1.GetHashCode(), key2.GetHashCode());
-        Assert.Equal(key1.GetHashCode(), key3.GetHashCode());
-        Assert.NotEqual(key1.GetHashCode(), key4.GetHashCode());
     }
 }
