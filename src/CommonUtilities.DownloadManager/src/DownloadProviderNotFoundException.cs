@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// <summary>
 /// Thrown if there could be no <see cref="IDownloadProvider"/> found for a download operation.
 /// </summary>
-public class DownloadProviderNotFoundException : InvalidOperationException
+public sealed class DownloadProviderNotFoundException : InvalidOperationException
 {
     /// <summary>
     /// Initializes a new instance of the DownloadProviderNotFoundException class.

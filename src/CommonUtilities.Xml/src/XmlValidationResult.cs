@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.Xml;
 /// <summary>
 /// Data which represents the result of an XML validation.
 /// </summary>
-public class XmlValidationResult : IEnumerable<XmlValidationError>
+public sealed class XmlValidationResult : IEnumerable<XmlValidationError>
 {
     private readonly IEnumerable<XmlValidationError> _errors;
 

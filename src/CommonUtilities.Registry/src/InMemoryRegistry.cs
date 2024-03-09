@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.Registry;
 /// <summary>
 /// Platform independent <see cref="IRegistry"/> implementation which stores keys in memory only.
 /// </summary>
-public class InMemoryRegistry : IRegistry
+public sealed class InMemoryRegistry : IRegistry
 {
     private readonly Dictionary<(RegistryView, RegistryHive), InMemoryRegistryKey> _rootKeys = new();
 

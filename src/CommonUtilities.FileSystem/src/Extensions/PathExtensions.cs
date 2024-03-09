@@ -15,9 +15,6 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 /// </summary>
 public static class PathExtensions
 {
-    private const string UncExtendedPathPrefix = @"\\?\UNC\";
-    private const int DevicePrefixLength = 4;
-
     private const string ThisDirectory = ".";
     private const string ParentRelativeDirectory = "..";
 

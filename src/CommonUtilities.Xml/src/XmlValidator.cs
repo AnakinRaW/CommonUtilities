@@ -8,7 +8,7 @@ using Validation;
 namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <inheritdoc cref="IXmlValidator"/>
-public class XmlValidator : IXmlValidator
+public sealed class XmlValidator : IXmlValidator
 {
     private XmlReaderSettings ReaderSettings { get; }
 

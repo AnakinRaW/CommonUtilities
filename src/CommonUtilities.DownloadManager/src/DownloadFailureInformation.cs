@@ -5,7 +5,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// <summary>
 /// Contains information about a failed download
 /// </summary>
-public class DownloadFailureInformation
+public sealed class DownloadFailureInformation
 {
     /// <summary>
     /// The exception of the download failure.

@@ -15,7 +15,8 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// <summary>
 /// Download manager which supports local file system and HTTP downloads by default.
 /// </summary>
-public class DownloadManager : IDownloadManager {
+public sealed class DownloadManager : IDownloadManager 
+{
 
     private readonly ILogger? _logger;
     private readonly IDownloadManagerConfiguration _configuration;

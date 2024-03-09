@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <inheritdoc cref="IXmlObjectParser{T}"/>
-public class XmlObjectParser<T> : IXmlObjectParser<T> where T: class
+public sealed class XmlObjectParser<T> : IXmlObjectParser<T> where T: class
 {
     /// <inheritdoc/>
     public T? Parse(Stream stream, bool keepOpen = false)
@@ -20,9 +20,7 @@ public class XmlObjectParser<T> : IXmlObjectParser<T> where T: class
             stream.Seek(0, SeekOrigin.Begin);
             var reader = XmlReader.Create(stream, new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Document });
             var result = new XmlSerializer(typeof(T)).Deserialize(reader);
-            if (result is null)
-                return null;
-            return (T) result;
+            return (T)result;
         }
         finally
         {

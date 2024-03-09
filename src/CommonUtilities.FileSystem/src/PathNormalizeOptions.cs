@@ -3,7 +3,7 @@
 /// <summary>
 /// Options how path normalization shall be performed.
 /// </summary>
-public record PathNormalizeOptions
+public sealed record PathNormalizeOptions
 {
     /// <summary>
     /// Gets or sets whether directory separator shall be unified across the path based on <see cref="SeparatorKind"/>.
