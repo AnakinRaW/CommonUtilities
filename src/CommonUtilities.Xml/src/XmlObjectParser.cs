@@ -9,23 +9,15 @@ namespace AnakinRaW.CommonUtilities.Xml;
 public sealed class XmlObjectParser<T> : IXmlObjectParser<T> where T: class
 {
     /// <inheritdoc/>
-    public T? Parse(Stream stream, bool keepOpen = false)
+    public T? Parse(Stream stream)
     {
         if (stream == null || stream.Length == 0)
             throw new ArgumentNullException(nameof(stream));
         if (!stream.CanRead)
             throw new NotSupportedException();
-        try
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            var reader = XmlReader.Create(stream, new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Document });
-            var result = new XmlSerializer(typeof(T)).Deserialize(reader);
-            return (T)result;
-        }
-        finally
-        {
-            if (!keepOpen)
-                stream.Dispose();
-        }
+
+        var reader = XmlReader.Create(stream, new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Document });
+        var result = new XmlSerializer(typeof(T)).Deserialize(reader);
+        return (T)result;
     }
 }

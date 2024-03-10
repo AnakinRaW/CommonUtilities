@@ -144,12 +144,14 @@ public class DownloadManagerTest
         var manager = CreateDownloadManager();
         manager.AddDownloadProvider(p.Object);
        
+        // Pretend there was already some data in the stream
         output.WriteByte(1);
+
         await manager.DownloadAsync(new Uri("file://test.txt"), output, null, null, CancellationToken.None);
 
         var outData = new byte[2];
         output.Seek(0, SeekOrigin.Begin);
-        var _ = await output.ReadAsync(outData, 0, (int)output.Length);
+        _ = await output.ReadAsync(outData, 0, (int)output.Length);
         Assert.Equal(new byte[] { 1, 2 }, outData);
     }
 
@@ -381,7 +383,12 @@ public class DownloadManagerTest
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
         p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
-            .Returns(Task.FromResult(new DownloadResult()));
+            .Callback(() =>
+            {
+                Assert.Equal(1, output.Position);
+                output.WriteByte(2);
+            })
+            .Returns(Task.FromResult(new DownloadResult("A", 1, default, default)));
 
         _configProvider.Setup(c => c.GetConfiguration())
             .Returns(DownloadManagerConfiguration.Default with
@@ -392,13 +399,24 @@ public class DownloadManagerTest
 
         var validator = new Mock<IDownloadValidator>();
         validator.Setup(v => v.Validate(output, It.IsAny<long>(), CancellationToken.None))
+            .Callback((Stream o, long dBytes, CancellationToken _) =>
+            {
+                Assert.Same(o, output);
+                Assert.Equal(2, o.Position);
+                Assert.Equal(1, dBytes);
+            })
             .Returns(Task.FromResult(true));
 
 
         var manager = CreateDownloadManager();
         manager.AddDownloadProvider(p.Object);
 
+        // Pretend there is already data in the output stream.
+        output.WriteByte(1);
+
         await manager.DownloadAsync(new Uri("file://"), output, null, validator.Object, CancellationToken.None);
+
+        validator.Verify(v => v.Validate(output, 1, CancellationToken.None), Times.Once);
     }
 
     [Fact]

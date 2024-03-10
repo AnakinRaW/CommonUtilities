@@ -110,12 +110,25 @@ public class HashDownloadValidatorTest
     {
         var hash = GenerateRandomHash(HashTypeKey.MD5);
 
-        _hashingService.Setup(h => h.GetHashAsync(It.IsAny<Stream>(), HashTypeKey.MD5, CancellationToken.None))
+        const long actualDownloadedBytes = 3;
+        var dlStream = new MemoryStream([0, 1, 2, 3, 4]);
+
+        // Pretend the download progressed to EOF
+        dlStream.Position = dlStream.Length;
+
+        _hashingService.Setup(h => h.GetHashAsync(dlStream, HashTypeKey.MD5, CancellationToken.None))
+            .Callback((Stream s, HashTypeKey h, CancellationToken c) =>
+            {
+                Assert.Equal(dlStream.Length - actualDownloadedBytes, dlStream.Position);
+            })
             .Returns(new ValueTask<byte[]>(hash));
 
+
         var validator = new HashDownloadValidator(hash, HashTypeKey.MD5, _serviceProvider);
-        var result = await validator.Validate(new MemoryStream(new byte[3]), 0);
+        var result = await validator.Validate(dlStream, actualDownloadedBytes);
         Assert.True(result);
+
+        _hashingService.Verify(v => v.GetHashAsync(dlStream, HashTypeKey.MD5, CancellationToken.None), Times.Once);
     }
 
     private static byte[] GenerateRandomHash(HashTypeKey hashType)
