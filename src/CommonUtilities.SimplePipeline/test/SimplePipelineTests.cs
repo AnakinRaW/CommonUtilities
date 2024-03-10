@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
-using AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
@@ -13,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class SimplePipelineTests
 {
     [Fact]
-    public void SimplePipeline_RunNormally()
+    public void Test_Run_SimplePipelineRunsNormally()
     {
         var sc = new ServiceCollection();
 
@@ -36,7 +35,7 @@ public class SimplePipelineTests
     }
 
     [Fact]
-    public void SimplePipeline_Fails()
+    public void Test_Run_SimplePipelineFails_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 
@@ -64,7 +63,7 @@ public class SimplePipelineTests
     }
 
     [Fact]
-    public void SimplePipeline_FailsSlow()
+    public void Test_Run_SimplePipelineFailsSlow_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 
@@ -97,7 +96,7 @@ public class SimplePipelineTests
     }
 
     [Fact]
-    public void SimplePipeline_FailsFast()
+    public void Test_Run_SimplePipelineFailsFast_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 

@@ -17,7 +17,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Initialize_UpdatesTotalSize()
+    public void Test_Initialize_UpdatesTotalSize()
     {
         var steps = new List<TestStep>
         {
@@ -32,7 +32,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Report_IgnoresUnregisteredStep()
+    public void Test_Report_IgnoresUnregisteredStep()
     {
         var step = new TestStep(1, "Step 1");
         _aggregatedProgressReporter.Report(step, 0.5);
@@ -43,7 +43,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Report_ReportsProgress()
+    public void Test_Report_ReportsProgress()
     {
         var step1 = new TestStep(1, "Step 1");
         var step2 = new TestStep(2, "Step 2");

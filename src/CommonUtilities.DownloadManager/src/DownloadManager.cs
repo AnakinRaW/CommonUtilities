@@ -138,7 +138,7 @@ public sealed class DownloadManager : IDownloadManager
                 
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
                 {
-                    var exception = new Exception($"Empty file downloaded on '{uri}'.");
+                    var exception = new InvalidOperationException($"Empty file downloaded on '{uri}'.");
                     _logger?.LogError(exception, exception.Message);
                     throw exception;
                 }

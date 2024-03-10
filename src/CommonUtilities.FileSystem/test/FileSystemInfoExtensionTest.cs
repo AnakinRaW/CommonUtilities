@@ -34,5 +34,4 @@ public class FileSystemInfoExtensionTest
         var size = fsi.GetDriveFreeSpace();
         Assert.True(size == 1234);
     }
-
 }

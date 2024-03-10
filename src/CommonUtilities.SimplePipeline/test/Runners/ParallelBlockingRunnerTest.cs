@@ -10,7 +10,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class ParallelBlockingRunnerTest
 {
     [Fact]
-    public void TestWaitNotFinished()
+    public void Test_Run_WaitNotFinished()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
@@ -41,7 +41,7 @@ public class ParallelBlockingRunnerTest
     }
 
     [Fact]
-    public void TestWaitFinished()
+    public void Test_Wait_Finished()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
@@ -79,7 +79,7 @@ public class ParallelBlockingRunnerTest
     }
 
     [Fact]
-    public void TestWaitFinished2()
+    public void Test_FinishAndWait()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());
@@ -111,7 +111,7 @@ public class ParallelBlockingRunnerTest
     }
 
     [Fact]
-    public void TestAddDelayed()
+    public void Test_Run_AddDelayed()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelBlockingRunner(2, sc.BuildServiceProvider());

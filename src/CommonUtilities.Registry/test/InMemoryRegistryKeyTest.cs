@@ -5,7 +5,7 @@ namespace AnakinRaW.CommonUtilities.Registry.Test;
 public class InMemoryRegistryKeyTest
 {
     [Fact]
-    public void GetAndSetDefaultValueTest()
+    public void Test_SetValue_GetValue_WithDefaults()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -17,7 +17,7 @@ public class InMemoryRegistryKeyTest
     }
 
     [Fact]
-    public void TestKeyNotExists()
+    public void Test_GetKey_KeyNotExists()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -26,7 +26,7 @@ public class InMemoryRegistryKeyTest
     }
 
     [Fact]
-    public void TestCan_Create_Deep_SubKey()
+    public void Test_CreateSubKey_CanCreateDeepSubKey()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -36,7 +36,7 @@ public class InMemoryRegistryKeyTest
     }
 
     [Fact]
-    public void TestDeleteValue()
+    public void Test_DeleteValue()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -51,7 +51,7 @@ public class InMemoryRegistryKeyTest
     }
 
     [Fact]
-    public void TestDeleteSubValue()
+    public void Test_DeleteValue_DeleteSubValue()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -63,7 +63,7 @@ public class InMemoryRegistryKeyTest
     }
 
     [Fact]
-    public void TestDeleteKey()
+    public void Test_DeleteKey()
     {
         var registry = new InMemoryRegistry();
         using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);

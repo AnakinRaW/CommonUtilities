@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 public class DownloadProviderBaseTest
 {
     [Fact]
-    public async Task TestDownloadWithBitRate()
+    public async Task Test_DownloadAsync_DownloadWithBitRate()
     {
         var provMock = new Mock<DownloadProviderBase>("File", DownloadKind.File)
         {

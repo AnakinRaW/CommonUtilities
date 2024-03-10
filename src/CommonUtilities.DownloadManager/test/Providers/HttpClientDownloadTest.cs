@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Testably.Abstractions.Testing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,16 +27,17 @@ public class HttpClientDownloadTest
     }
 
     [Fact]
-    public async Task TestDownloadNotFound()
+    public async Task Test_DownloadAsync_DownloadNotFound()
     {
         var outStream = new MemoryStream();
-        var result = await _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null,
-            CancellationToken.None);
-        Assert.Equal<long>(0, result.DownloadedSize);
+        
+        await Assert.ThrowsAsync<HttpRequestException>(async () => await _provider.DownloadAsync(
+            new Uri("https://example.com/test.txt"), outStream, null,
+            CancellationToken.None));
     }
 
     [Fact]
-    public async Task TestDownload()
+    public async Task Test_DownloadAsync_Download()
     {
         var outStream = new MemoryStream();
         var result = await _provider.DownloadAsync(
@@ -46,11 +48,15 @@ public class HttpClientDownloadTest
     }
 
     [Fact]
-    public async Task TestDownloadCancelled()
+    public async Task Test_DownloadAsync_DownloadCancelled()
     {
         var outStream = new MemoryStream();
         var cts = new CancellationTokenSource();
+#if NET
+         await cts.CancelAsync();
+#else
         cts.Cancel();
+#endif
 
         await Assert.ThrowsAsync<TaskCanceledException>(() =>
             _provider.DownloadAsync(new Uri("https://example.com/test.txt"), outStream, null, cts.Token));

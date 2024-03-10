@@ -12,7 +12,7 @@ public class DirectoryInfoExtensionsTest
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
-    public void TestDeleteDir()
+    public void Test_DeleteWithRetry()
     {
         _fileSystem.Initialize()
             .WithFile("test/text1.txt")

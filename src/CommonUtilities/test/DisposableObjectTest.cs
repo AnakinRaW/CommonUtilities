@@ -1,4 +1,8 @@
+using Moq;
 using System;
+using System.Reflection;
+using AnakinRaW.CommonUtilities.Testing;
+using Moq.Protected;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
@@ -6,21 +10,36 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class DisposableObjectTest
 {
     [Fact]
-    public void DisposeTest()
+    public void Test_DisposableObject_Lifecycle()
     {
-        var obj = new MockDisposableObject();
-        Assert.False(obj.IsDisposed);
-            
-        var eventFlag = false;
-        obj.Disposing += (_, _) => eventFlag = true;
-        obj.Dispose();
-        Assert.True(eventFlag);
-        Assert.True(obj.IsDisposed);
-        Assert.Throws<ObjectDisposedException>(() => obj.Disposing += (_, _) => {});
-            
-    }
+        var disposable = new Mock<DisposableObject>
+        {
+            CallBase = true
+        };
 
-    private class MockDisposableObject : DisposableObject
-    {
+        Assert.False(disposable.Object.IsDisposed);
+
+        var throwIfDisposed = disposable.Object.GetType().GetMethod("ThrowIfDisposed", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        // Must not throw!
+        throwIfDisposed!.Invoke(disposable.Object, null);
+
+        disposable.Object.Dispose();
+
+        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
+        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
+
+        Assert.True(disposable.Object.IsDisposed);
+
+        // Disposing again
+        disposable.Object.Dispose();
+
+        Assert.True(disposable.Object.IsDisposed);
+
+        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
+        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
+
+        ExceptionUtilities.AssertThrows_IgnoreTargetInvocationException<ObjectDisposedException>(() =>
+            throwIfDisposed!.Invoke(disposable.Object, null));
     }
 }

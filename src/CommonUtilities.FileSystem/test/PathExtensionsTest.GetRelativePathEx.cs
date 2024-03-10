@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetRelativePathExTest
 {
-    private readonly MockFileSystem _fileSystem = new MockFileSystem();
+    private readonly MockFileSystem _fileSystem = new();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData(@"C:\", @"C:\", @".")]
@@ -55,7 +55,6 @@ public class GetRelativePathExTest
             _fileSystem.Path.GetFullPath(_fileSystem.Path.Combine(_fileSystem.Path.GetFullPath(root), result))
                 .TrimEnd(_fileSystem.Path.DirectorySeparatorChar),
             StringComparer.OrdinalIgnoreCase);
-
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]

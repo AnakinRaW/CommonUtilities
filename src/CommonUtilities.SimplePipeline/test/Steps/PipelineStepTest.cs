@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 public class PipelineStepTest
 {
     [Fact]
-    public void Test()
+    public void Test_Disposed()
     {
         var sc = new ServiceCollection();
         var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
@@ -24,7 +24,7 @@ public class PipelineStepTest
     }
 
     [Fact]
-    public void TestRun()
+    public void Test_Run()
     {
         var sc = new ServiceCollection();
         var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
@@ -38,7 +38,7 @@ public class PipelineStepTest
     }
 
     [Fact]
-    public void TestRunWithException()
+    public void Test_Run_ThrowsException()
     {
         var sc = new ServiceCollection();
         var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
@@ -56,7 +56,7 @@ public class PipelineStepTest
     }
 
     [Fact]
-    public void TestRunWithCancellation()
+    public void Test_Run_WithCancellation_ThrowsOperationCanceledException()
     {
         var sc = new ServiceCollection();
         var step = new Mock<PipelineStep>(sc.BuildServiceProvider())

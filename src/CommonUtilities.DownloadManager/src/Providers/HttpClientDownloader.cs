@@ -33,7 +33,7 @@ internal class HttpClientDownloader : DownloadProviderBase
     {
         var summary = new DownloadResult();
         var webRequest = CreateRequest(uri);
-        var response = await GetWebResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
+        var response = await GetHttpResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
         {
             if (response is not null)
@@ -102,7 +102,7 @@ internal class HttpClientDownloader : DownloadProviderBase
         return request;
     }
 
-    private async Task<HttpResponseMessage?> GetWebResponse(Uri uri, DownloadResult result, HttpRequestMessage request,
+    private async Task<HttpResponseMessage?> GetHttpResponse(Uri uri, DownloadResult result, HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage? response = null;
@@ -117,9 +117,12 @@ internal class HttpClientDownloader : DownloadProviderBase
             {
                 Timeout = TimeSpan.FromMilliseconds(120000)
             };
-            
-            response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
+            response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+
+            response.EnsureSuccessStatusCode();
+            
             var responseUri = response.RequestMessage?.RequestUri?.ToString();
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
@@ -138,6 +141,20 @@ internal class HttpClientDownloader : DownloadProviderBase
                     break;
             }
         }
+        catch (HttpRequestException)
+        {
+            var errorMessage = cancellationToken.IsCancellationRequested
+                ? "GetHttpResponse failed along with a cancellation request"
+                : "GetHttpResponse failed";
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger?.LogTrace(
+                    "HttpClient error with '" + uri.AbsoluteUri + "' - " + errorMessage);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            _logger?.LogTrace("WebClient error - '" + uri.AbsoluteUri + "'.");
+            throw;
+        }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "General exception error in HttpClient");
@@ -145,8 +162,8 @@ internal class HttpClientDownloader : DownloadProviderBase
         }
         finally
         {
-            if (response != null && !success)
-                response.Dispose();
+            if (response != null & !success)
+                response!.Dispose();
         }
         return null;
     }

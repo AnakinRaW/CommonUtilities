@@ -107,7 +107,7 @@ internal class WebClientDownloader : DownloadProviderBase
         CancellationToken cancellationToken)
     {
         HttpWebResponse? httpWebResponse = null;
-        var successful = true;
+        var success = false;
         try
         {
             using (cancellationToken.Register(webRequest.Abort))
@@ -124,7 +124,7 @@ internal class WebClientDownloader : DownloadProviderBase
             switch (httpWebResponse.StatusCode)
             {
                 case HttpStatusCode.OK:
-                    successful = false;
+                    success = true;
                     return httpWebResponse;
             }
         }
@@ -150,8 +150,8 @@ internal class WebClientDownloader : DownloadProviderBase
         }
         finally
         {
-            if (httpWebResponse != null && successful)
-                httpWebResponse.Close();
+            if (httpWebResponse != null & !success)
+                httpWebResponse!.Close();
         }
         return null;
     }

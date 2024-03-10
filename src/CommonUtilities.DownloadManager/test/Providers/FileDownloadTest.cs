@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
+using Testably.Abstractions.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
@@ -24,10 +24,10 @@ public class FileDownloadTest
     }
 
     [Fact]
-    public async Task TestDownload()
+    public async Task Test_DownloadAsync()
     {
         const string data = "This is some text.";
-        _fileSystem.AddFile("test.file", new MockFileData(data));
+        _fileSystem.Initialize().WithFile("test.file").Which(f => f.HasStringContent(data));
         var source = _fileSystem.FileInfo.New("test.file");
 
         var outStream = new MemoryStream();
@@ -39,7 +39,7 @@ public class FileDownloadTest
     }
 
     [Fact]
-    public async Task TestDownloadFileNotFound()
+    public async Task Test_DownloadAsync_ThrowsFileNotFound()
     {
         var source = _fileSystem.FileInfo.New("test.file");
         var outStream = new MemoryStream();

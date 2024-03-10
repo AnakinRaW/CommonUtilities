@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class ParallelRunnerTest
 {
     [Fact]
-    public void TestWait()
+    public void Test_Wait()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -44,7 +44,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void TestNoWait()
+    public void Test_Run_NoWait()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -78,7 +78,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void TestWaitTimeout()
+    public void Test_Wait_Timeout_ThrowsTimeoutException()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -100,7 +100,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void TestRunWithError()
+    public void Test_Run_WithError()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -128,7 +128,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void TestRunCancelled()
+    public void Test_Run_Cancelled()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(1, sc.BuildServiceProvider());

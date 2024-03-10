@@ -38,7 +38,7 @@ public class HashDownloadValidatorTest
 
     [Theory]
     [MemberData(nameof(ValidContextData))]
-    public void TestValidateCorrect(HashTypeKey type, byte[] data)
+    public void Test_Ctor_ValidateCorrect(HashTypeKey type, byte[] data)
     {
         _ = new HashDownloadValidator(data, type, _serviceProvider);
     }

@@ -34,7 +34,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public void TestAddProviders()
+    public void Test_AddDownloadProvider()
     {
         var manager = CreateDownloadManager();
         var p = new Mock<IDownloadProvider>();
@@ -46,7 +46,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestNoDownloadProvider()
+    public async Task Test_DownloadAsync_NoDownloadProvider_ThrowsDownloadProviderNotFoundException()
     {
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
@@ -71,7 +71,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestUriNotSupported()
+    public async Task Test_DownloadAsync_UriNotSupported_ThrowsArgumentException()
     {
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
@@ -85,7 +85,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownloadEmptyThrows()
+    public async Task Test_DownloadAsync_DownloadEmpty_ThrowsDownloadFailedException()
     {
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
@@ -103,7 +103,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownloadEmptyAllowed()
+    public async Task Test_DownloadAsync_DownloadEmptyAllowed()
     {
         var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
@@ -124,7 +124,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownload()
+    public async Task Test_DownloadAsync_Download()
     {
         var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
@@ -152,11 +152,11 @@ public class DownloadManagerTest
         var outData = new byte[2];
         output.Seek(0, SeekOrigin.Begin);
         _ = await output.ReadAsync(outData, 0, (int)output.Length);
-        Assert.Equal(new byte[] { 1, 2 }, outData);
+        Assert.Equal([1, 2], outData);
     }
 
     [Fact]
-    public async Task TesProgress()
+    public async Task Test_DownloadAsync_Progress()
     {
         var output = new MemoryStream();
         var p = new Mock<IDownloadProvider>();
@@ -189,7 +189,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownloadFailed()
+    public async Task Test_DownloadAsync_DownloadFailed_Throws_DownloadFailedException()
     {
         var output = new MemoryStream();
         var providerA = new Mock<IDownloadProvider>();
@@ -221,7 +221,7 @@ public class DownloadManagerTest
     }
 
     [Fact]
-    public async Task TestDownloadWithRetry()
+    public async Task Test_DownloadAsync_DownloadWithRetry()
     {
         var output = new MemoryStream();
         var providerA = new Mock<IDownloadProvider>();
@@ -266,8 +266,8 @@ public class DownloadManagerTest
 
         var outData = new byte[3];
         output.Seek(0, SeekOrigin.Begin);
-        var _ = await output.ReadAsync(outData, 0, (int)output.Length);
-        Assert.Equal(new byte[] { 1, 3, 4 }, outData);
+        _ = await output.ReadAsync(outData, 0, (int)output.Length);
+        Assert.Equal([1, 3, 4], outData);
     }
 
 

@@ -8,13 +8,13 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class StepFailureExceptionTests
 {
     [Fact]
-    public void Constructor_WithNullFailedSteps_ThrowsArgumentNullException()
+    public void Test_Ctor_WithNullFailedSteps_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new StepFailureException(null!));
     }
 
     [Fact]
-    public void Message_WithNoFailedSteps_ReturnsEmptyString()
+    public void Test_Message_WithNoFailedSteps_ReturnsEmptyString()
     {
         var ex = new StepFailureException(new List<IStep>());
 
@@ -22,7 +22,7 @@ public class StepFailureExceptionTests
     }
 
     [Fact]
-    public void Message_WithOneFailedStep_ReturnsErrorMessage()
+    public void Test_Message_WithOneFailedStep_ReturnsErrorMessage()
     {
         var step = new Mock<IStep>();
         step.Setup(s => s.ToString()).Returns("TestStep");
@@ -34,7 +34,7 @@ public class StepFailureExceptionTests
     }
 
     [Fact]
-    public void Message_WithMultipleFailedSteps_ReturnsErrorMessage()
+    public void Test_Message_WithMultipleFailedSteps_ReturnsErrorMessage()
     {
         var step1 = new Mock<IStep>();
         step1.Setup(s => s.ToString()).Returns("TestStep1");

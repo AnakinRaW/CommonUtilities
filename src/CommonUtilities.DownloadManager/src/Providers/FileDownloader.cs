@@ -16,6 +16,7 @@ internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProvid
             throw new ArgumentException("Expected file or UNC path", nameof(uri));
         return new DownloadResult
         {
+            Uri = uri.LocalPath,
             DownloadedSize = await CopyFileToStreamAsync(uri.LocalPath, outputStream, progress, cancellationToken).ConfigureAwait(false)
         };
     }

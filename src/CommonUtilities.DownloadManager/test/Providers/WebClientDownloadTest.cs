@@ -2,12 +2,12 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 using Microsoft.Extensions.DependencyInjection;
+using Testably.Abstractions.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
@@ -25,7 +25,7 @@ public class WebClientDownloadTest
     }
 
     [Fact]
-    public async Task TestDownloadNotFound()
+    public async Task Test_DownloadAsync_DownloadNotFound()
     {
         var outStream = new MemoryStream();
         await Assert.ThrowsAsync<WebException>(() =>
@@ -33,7 +33,7 @@ public class WebClientDownloadTest
     }
 
     [Fact]
-    public async Task TestDownload()
+    public async Task Test_DownloadAsync_Download()
     {
         var outStream = new MemoryStream();
         var result = await _provider.DownloadAsync(
@@ -44,7 +44,7 @@ public class WebClientDownloadTest
     }
 
     [Fact]
-    public async Task TestDownloadCancelled()
+    public async Task Test_DownloadAsync_DownloadCancelled()
     {
         var outStream = new MemoryStream();
         var cts = new CancellationTokenSource();
