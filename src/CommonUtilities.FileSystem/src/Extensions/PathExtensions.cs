@@ -31,23 +31,12 @@ public static class PathExtensions
 
     internal static readonly Lazy<bool> IsFileSystemCaseInsensitive = new(CheckIfFileSystemIsCaseInsensitive);
 
-
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="c"></param>
-    /// <returns></returns>
-    public static bool IsAnyDirectorySeparator(char c)
-    {
-        return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
-    }
-
-    /// <summary>
-    /// 
+    /// Determines whether the specified path ends with a directory path separator
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="path"></param>
-    /// <returns></returns>
+    /// <param name="path">The path to check.</param>
+    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
     public static bool HasTrailingDirectorySeparator(this IPath _, string path)
     {
@@ -57,11 +46,11 @@ public static class PathExtensions
     }
 
     /// <summary>
-    /// 
+    /// Determines whether the specified path ends with a directory path separator
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="path"></param>
-    /// <returns></returns>
+    /// <param name="path">The path to check.</param>
+    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
     public static bool HasTrailingDirectorySeparator(this IPath _, ReadOnlySpan<char> path)
     {
         return HasTrailingDirectorySeparator(path);
@@ -75,17 +64,23 @@ public static class PathExtensions
         return IsAnyDirectorySeparator(last);
     }
 
+    private static bool IsAnyDirectorySeparator(char c)
+    {
+        return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
+    }
+
     /// <summary>
-    /// Checks whether a path is rooted, but not absolute to a drive e.g, "C:" or "C:my/path"
+    /// Checks whether a path is rooted, but not absolute, to a drive e.g, "C:" or "C:my/path"
     /// </summary>
     /// <remarks>
     /// Only works on Windows. For Linux systems, this method will always return <see langword="false"/>.
     /// </remarks>
     /// <param name="fsPath">The file system's path instance.</param>
     /// <param name="path">The path to check.</param>
-    /// <param name="driveLetter"></param>
+    /// <param name="driveLetter">If <paramref name="path"/> is drive relative the drive's letter will be stored into this variable.
+    /// <see langword="null"/> if <paramref name="path"/> is not drive relative.</param>
     /// <returns>Return <see langword="true"/> if <paramref name="path"/> is relative, but not absolute to a drive; otherwise, <see langword="false"/>.</returns>
-    public static bool IsDriveRelative(this IPath fsPath, string path, out char? driveLetter)
+    public static bool IsDriveRelative(this IPath fsPath, string? path, out char? driveLetter)
     {
         driveLetter = null;
 
