@@ -1,4 +1,4 @@
-﻿namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
+﻿namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 
 /// <summary>
 /// Indicates the status of a file name validation.

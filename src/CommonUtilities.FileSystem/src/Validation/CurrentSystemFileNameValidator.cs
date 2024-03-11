@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 
 /// <summary>
 /// A file name validator for the current platform.

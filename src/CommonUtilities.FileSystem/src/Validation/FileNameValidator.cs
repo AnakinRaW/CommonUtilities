@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 
 /// <summary>
 /// Allows validation of file names.

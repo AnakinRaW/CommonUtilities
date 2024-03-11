@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
+namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 
 /// <summary>
 /// A file name validator for the Linux-based systems.

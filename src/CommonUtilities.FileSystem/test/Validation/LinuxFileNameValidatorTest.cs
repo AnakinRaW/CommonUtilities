@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using AnakinRaW.CommonUtilities.FileSystem.Validation;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
