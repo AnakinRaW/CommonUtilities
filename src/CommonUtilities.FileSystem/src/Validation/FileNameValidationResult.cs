@@ -18,15 +18,17 @@ public enum FileNameValidationResult
     /// </summary>
     InvalidCharacter,
     /// <summary>
-    /// The file name starts or ends with a white space (\u0020) character.
+    /// The file name is not valid, as it starts or ends with a white space (\u0020) character.
     /// </summary>
+    /// <remarks>This result is Windows exclusive.</remarks>
     LeadingOrTrailingWhiteSpace,
     /// <summary>
-    /// The file name ends with a period ('.') character.
+    /// The file name is not valid, as it ends with a period ('.') character.
     /// </summary>
+    /// <remarks>This result is Windows exclusive.</remarks>
     TrailingPeriod,
     /// <summary>
-    /// The file name is reserved by windows (such as 'CON') and thus cannot be used.
+    /// The file name is reserved by the current system (e.g, on Windows such as 'CON') and thus cannot be used.
     /// </summary>
-    WindowsReserved
+    SystemReserved
 }

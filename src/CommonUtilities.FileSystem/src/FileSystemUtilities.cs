@@ -23,6 +23,12 @@ public static class FileSystemUtilities
     public static bool ExecuteFileSystemActionWithRetry(int retryCount, int retryDelay, Action fileAction,
         bool throwOnFailure = true, Func<Exception, int, bool>? errorAction = null)
     {
+        if (retryCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(retryCount), "retryCount must be positive");
+
+        if (fileAction is null)
+            throw new ArgumentNullException(nameof(fileAction));
+
         var num = retryCount + 1;
         for (var index = 0; index < num; ++index)
         {
