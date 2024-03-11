@@ -4,6 +4,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using AnakinRaW.CommonUtilities.FileSystem.Normalization;
 
 namespace AnakinRaW.CommonUtilities.FileSystem;
 
@@ -25,100 +26,97 @@ public static class PathExtensions
 
     private static readonly char[] PathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
-    private static readonly bool IsUnixLikePlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    internal static readonly bool IsUnixLikePlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 
-    private static readonly Lazy<bool> IsFileSystemCaseInsensitive = new(CheckIfFileSystemIsCaseInsensitive);
+    internal static readonly Lazy<bool> IsFileSystemCaseInsensitive = new(CheckIfFileSystemIsCaseInsensitive);
 
     /// <summary>
-    /// Normalizes a given path according to given normalization rules.
+    /// Determines whether the specified path ends with a directory path separator
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="path">The input path.</param>
-    /// <param name="options">The options how to normalize.</param>
-    /// <returns>The normalized path.</returns>
+    /// <param name="path">The path to check.</param>
+    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
-    /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
-    public static string Normalize(this IPath _, string path, PathNormalizeOptions options)
+    public static bool HasTrailingDirectorySeparator(this IPath _, string path)
     {
-        if (string.IsNullOrEmpty(path))
+        if (path == null)
+            throw new ArgumentNullException(nameof(path));
+        return HasTrailingDirectorySeparator(path.AsSpan());
+    }
+
+    /// <summary>
+    /// Determines whether the specified path ends with a directory path separator
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="path">The path to check.</param>
+    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
+    public static bool HasTrailingDirectorySeparator(this IPath _, ReadOnlySpan<char> path)
+    {
+        return HasTrailingDirectorySeparator(path);
+    }
+
+    private static bool HasTrailingDirectorySeparator(ReadOnlySpan<char> value)
+    {
+        if (value.Length == 0)
+            return false;
+        var last = value[value.Length - 1];
+        return IsAnyDirectorySeparator(last);
+    }
+
+    private static bool IsAnyDirectorySeparator(char c)
+    {
+        return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
+    }
+
+    /// <summary>
+    /// Checks whether a path is rooted, but not absolute, to a drive e.g, "C:" or "C:my/path"
+    /// </summary>
+    /// <remarks>
+    /// Only works on Windows. For Linux systems, this method will always return <see langword="false"/>.
+    /// </remarks>
+    /// <param name="fsPath">The file system's path instance.</param>
+    /// <param name="path">The path to check.</param>
+    /// <param name="driveLetter">If <paramref name="path"/> is drive relative the drive's letter will be stored into this variable.
+    /// <see langword="null"/> if <paramref name="path"/> is not drive relative.</param>
+    /// <returns>Return <see langword="true"/> if <paramref name="path"/> is relative, but not absolute to a drive; otherwise, <see langword="false"/>.</returns>
+    public static bool IsDriveRelative(this IPath fsPath, string? path, out char? driveLetter)
+    {
+        driveLetter = null;
+
+        // On Linux there is no such thing as drive relative paths
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return false;
+
+        // Implementation based on Path.Windows.cs from the .NET repository
+
+        if (!fsPath.IsPathRooted(path))
+            return false;
+
+        if (path.Length < 2)
+            return false;
+
+        if (IsValidDriveChar(path[0]) && path[1] == VolumeSeparatorChar)
         {
-            if (path is null)
-                throw new ArgumentNullException(path);
-            throw new ArgumentException("The value cannot be an empty string.", path);
+            if (path.Length < 3 || !IsAnyDirectorySeparator(path[2]))
+            {
+                driveLetter = path[0];
+                return true;
+            }
+            return false;
         }
 
-        // Only do for DirectorySeparatorKind.System, cause for other kinds it will be done at the very end anyway.
-        if (options.UnifySlashes && options.SeparatorKind == DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, DirectorySeparatorKind.System);
-
-        if (options.TrimTrailingSeparator)
-            path = TrimTrailingSeparators(path.AsSpan(), options.SeparatorKind);
-
-        path = NormalizeCasing(path, options.UnifyCase);
-
-        // NB: As previous steps may add new separators (such as GetFullPath) we need to re-apply slash normalization
-        // if the desired DirectorySeparatorKind is not DirectorySeparatorKind.System
-        if (options.UnifySlashes && options.SeparatorKind != DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, options.SeparatorKind);
-
-        return path;
+        return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string NormalizeCasing(string path, UnifyCasingKind casing)
+    internal static string TrimTrailingSeparators(ReadOnlySpan<char> path, DirectorySeparatorKind separatorKind = DirectorySeparatorKind.System)
     {
-        if (casing == UnifyCasingKind.None)
-            return path;
-
-        if (!IsFileSystemCaseInsensitive.Value && !casing.IsForce())
-            return path;
-
-        if (casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.LowerCase)
-            return path.ToLowerInvariant();
-
-        if (casing is UnifyCasingKind.UpperCase or UnifyCasingKind.UpperCaseForce)
-            return path.ToUpperInvariant();
-
-        throw new ArgumentOutOfRangeException(nameof(casing));
-    }
-
-    private static string TrimTrailingSeparators(ReadOnlySpan<char> s, DirectorySeparatorKind separatorKind = DirectorySeparatorKind.System)
-    {
-        var lastSeparator = s.Length;
-        while (lastSeparator > 0 && IsAnyDirectorySeparator(s[lastSeparator - 1], separatorKind))
+        var lastSeparator = path.Length;
+        while (lastSeparator > 0 && IsAnyDirectorySeparator(path[lastSeparator - 1], separatorKind))
             lastSeparator -= 1;
-        if (lastSeparator != s.Length)
-            s = s.Slice(0, lastSeparator);
-        return s.ToString();
-    }
-
-    private static string GetPathWithDirectorySeparator(string path, DirectorySeparatorKind separatorKind)
-    {
-        switch (separatorKind)
-        {
-            case DirectorySeparatorKind.System:
-                return IsUnixLikePlatform ? GetPathWithForwardSlashes(path) : GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Windows:
-                return GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Linux:
-                return GetPathWithForwardSlashes(path);
-            default:
-                throw new ArgumentOutOfRangeException(nameof(separatorKind));
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithBackSlashes(string path)
-    {
-        return path.Replace('/', '\\');
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithForwardSlashes(string path)
-    {
-        return path.Replace('\\', '/');
+        if (lastSeparator != path.Length)
+            path = path.Slice(0, lastSeparator);
+        return path.ToString();
     }
 
 
@@ -167,7 +165,7 @@ public static class PathExtensions
         return EnsureTrailingSeparatorInternal(input);
     }
 
-    private static string EnsureTrailingSeparatorInternal(string input)
+    internal static string EnsureTrailingSeparatorInternal(string input)
     {
         if (input.Length == 0 || IsAnyDirectorySeparator(input[input.Length - 1]))
             return input;
@@ -198,7 +196,7 @@ public static class PathExtensions
     /// <returns>The relative path, or path if the paths don't share the same root.</returns>
     public static string GetRelativePathEx(this IPath fsPath, string root, string path)
     {
-        var endsWithTrailingPathSeparator = HasTrailingPathSeparatorInternal(path.AsSpan());
+        var endsWithTrailingPathSeparator = HasTrailingDirectorySeparator(path.AsSpan());
 
         if (!fsPath.IsPathRooted(path))
             return path;
@@ -411,7 +409,7 @@ public static class PathExtensions
     {
         return casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.UpperCaseForce;
     }
-
+    
 
 #pragma warning disable IO0003
 #pragma warning disable IO0006
