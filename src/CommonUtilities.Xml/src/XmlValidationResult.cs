@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Xml;
 
@@ -29,8 +28,7 @@ public sealed class XmlValidationResult : IEnumerable<XmlValidationError>
     /// <param name="exception">The exception that occurred.</param>
     public XmlValidationResult(Exception exception)
     {
-        Requires.NotNull(exception, nameof(exception));
-        Exception = exception;
+        Exception = exception ?? throw new ArgumentNullException(nameof(exception));
         _errors = Enumerable.Empty<XmlValidationError>();
     }
 
