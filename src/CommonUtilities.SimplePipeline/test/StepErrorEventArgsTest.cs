@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class StepErrorEventArgsTest
 {
     [Fact]
-    public void TestCancelProp()
+    public void Test_Cancel()
     {
         var step = new Mock<IStep>();
         var args = new StepErrorEventArgs(step.Object);

@@ -9,7 +9,7 @@ public enum InternetClient
     /// Uses the <see cref="System.Net.Http.HttpClient"/> API
     /// </summary>
     HttpClient,
-#if !NET6_0_OR_GREATER
+#if !NET
     /// <summary>
     /// Uses the <see cref="System.Net.WebClient"/> API
     /// </summary>

@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class SequentialPipelineTests
 {
     [Fact]
-    public void SequentialPipeline_RunsInSequence()
+    public void Test_Run_SequentialPipeline_RunsInSequence()
     {
         var sc = new ServiceCollection();
 

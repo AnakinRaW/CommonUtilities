@@ -1,8 +1,6 @@
-﻿using System;
-using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 using Moq;
 using System.Collections.Generic;
-using System.Threading;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;
@@ -19,7 +17,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Initialize_UpdatesTotalSize()
+    public void Test_Initialize_UpdatesTotalSize()
     {
         var steps = new List<TestStep>
         {
@@ -34,7 +32,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Report_IgnoresUnregisteredStep()
+    public void Test_Report_IgnoresUnregisteredStep()
     {
         var step = new TestStep(1, "Step 1");
         _aggregatedProgressReporter.Report(step, 0.5);
@@ -45,7 +43,7 @@ public class AggregatedProgressReporterTests
     }
 
     [Fact]
-    public void Report_ReportsProgress()
+    public void Test_Report_ReportsProgress()
     {
         var step1 = new TestStep(1, "Step 1");
         var step2 = new TestStep(2, "Step 2");
@@ -56,65 +54,34 @@ public class AggregatedProgressReporterTests
         _aggregatedProgressReporter.Report(step1, 0.5);
 
         _progressReporter.Verify(
-            r => r.Report("Step 1", It.IsAny<double>(), It.IsAny<ProgressType>(), It.IsAny<TestInfo>()),
+            r => r.Report("Step 1", 0.5, It.IsAny<ProgressType>(), It.IsAny<TestInfo>()),
             Times.Once);
 
         _aggregatedProgressReporter.Report(step2, 0.8);
 
         _progressReporter.Verify(
-            r => r.Report("Step 2", It.IsAny<double>(), It.IsAny<ProgressType>(), It.IsAny<TestInfo>()),
+            r => r.Report("Step 2", 0.5 + 0.8, It.IsAny<ProgressType>(), It.IsAny<TestInfo>()),
             Times.Once);
     }
-}
 
-public class TestAggregatedProgressReporter : AggregatedProgressReporter<TestStep, TestInfo>
-{
-    public TestAggregatedProgressReporter(IProgressReporter<TestInfo> progressReporter) : base(progressReporter)
+    public class TestAggregatedProgressReporter(IProgressReporter<TestInfo> progressReporter)
+        : AggregatedProgressReporter<TestStep, TestInfo>(progressReporter)
     {
+        private double _progress;
+
+        protected override ProgressType Type => new() { DisplayName = "Test", Id = "test" };
+
+        protected override double CalculateAggregatedProgress(TestStep task, double progress, ref TestInfo progressInfo)
+        {
+            _progress += progress;
+            return _progress;
+        }
+
+        protected override string GetProgressText(TestStep step)
+        {
+            return step.Text;
+        }
     }
-
-    protected override ProgressType Type => new() {DisplayName = "Test", Id = "test"};
-
-    protected override double CalculateAggregatedProgress(TestStep task, double progress, ref TestInfo progressInfo)
-    {
-        return progress;
-    }
-
-    protected override string GetProgressText(TestStep step)
-    {
-        return step.Text;
-    }
-}
-
-public class TestStep : IProgressStep
-{
-    public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
-
-    public IStepProgressReporter ProgressReporter { get; }
-
-    public long Size { get; }
-
-    public string Text { get; }
-
-    public Exception Error { get; }
-
-    public TestStep(long size, string text)
-    {
-        Size = size;
-        Text = text;
-    }
-
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Run(CancellationToken token)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public struct TestInfo
-{
+    
+    public struct TestInfo;
 }

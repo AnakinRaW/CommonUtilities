@@ -10,7 +10,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class TaskRunnerTest
 {
     [Fact]
-    public void TestRunEmpty()
+    public void Test_Run_Empty()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());
@@ -22,7 +22,7 @@ public class TaskRunnerTest
     }
 
     [Fact]
-    public void TestRunCancelled()
+    public void Test_Run_Cancelled()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());
@@ -53,7 +53,7 @@ public class TaskRunnerTest
     }
 
     [Fact]
-    public void TestRunWithError()
+    public void Test_Run_WithError()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());

@@ -4,12 +4,12 @@ using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Get's thrown if there could be no <see cref="IDownloadProvider"/> found for a download operation.
+/// Thrown if there could be no <see cref="IDownloadProvider"/> found for a download operation.
 /// </summary>
-public class DownloadProviderNotFoundException : InvalidOperationException
+public sealed class DownloadProviderNotFoundException : InvalidOperationException
 {
     /// <summary>
-    /// Creates the exception
+    /// Initializes a new instance of the DownloadProviderNotFoundException class.
     /// </summary>
     /// <param name="message">The message of the exception</param>
     public DownloadProviderNotFoundException(string message)

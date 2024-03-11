@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Win32;
 using Xunit;
 
@@ -9,64 +11,51 @@ public class WindowsRegistryKeyTest : IDisposable
     private const string SubKey = @"SOFTWARE\CommonUtilities.Registry.Windows.Test";
     private readonly IRegistryKey _registryKey;
 
-    private readonly RegistryKey w_registryKey;
+    private readonly RegistryKey _wRegistryKey;
 
     public WindowsRegistryKeyTest()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return;
-#endif
+
         var baseKey = new WindowsRegistry().OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
         _registryKey = baseKey.CreateSubKey(SubKey)!;
-        w_registryKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default)
+        _wRegistryKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default)
             .OpenSubKey(SubKey)!;
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestExists()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-            return;
-#endif
         Assert.True(_registryKey.HasPath(""));
-        Assert.NotNull(w_registryKey);
+        Assert.NotNull(_wRegistryKey);
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestCrud()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-            return;
-#endif
         _registryKey.SetValue("Test", true);
-        Assert.NotNull(w_registryKey.GetValue("Test"));
+        Assert.NotNull(_wRegistryKey.GetValue("Test"));
 
         _registryKey.DeleteValue("Test");
-        Assert.Null(w_registryKey.GetValue("Test"));
+        Assert.Null(_wRegistryKey.GetValue("Test"));
 
         _registryKey.CreateSubKey("Sub\\SubSub");
         var deleted = _registryKey.DeleteKey("Sub", false);
         Assert.False(deleted);
-        Assert.NotNull(w_registryKey.OpenSubKey("Sub\\SubSub"));
+        Assert.NotNull(_wRegistryKey.OpenSubKey("Sub\\SubSub"));
 
         deleted = _registryKey.DeleteKey("Sub", true);
         Assert.True(deleted);
-        Assert.Null(w_registryKey.OpenSubKey("Sub\\SubSub"));
+        Assert.Null(_wRegistryKey.OpenSubKey("Sub\\SubSub"));
 
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestCrudSub()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-            return;
-#endif
         var sub = _registryKey.CreateSubKey("Sub")!;
-        var w_sub = w_registryKey.OpenSubKey("Sub");
+        var w_sub = _wRegistryKey.OpenSubKey("Sub");
         Assert.NotNull(w_sub);
 
         sub.SetValue("Test", true);
@@ -77,32 +66,24 @@ public class WindowsRegistryKeyTest : IDisposable
 
         var deleted = _registryKey.DeleteKey("Sub", false);
         Assert.True(deleted);
-        Assert.Null(w_registryKey.OpenSubKey("Sub"));
+        Assert.Null(_wRegistryKey.OpenSubKey("Sub"));
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestSelfDelete()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-            return;
-#endif
         _registryKey.DeleteValue("Test");
-        Assert.Null(w_registryKey.GetValue("Test"));
+        Assert.Null(_wRegistryKey.GetValue("Test"));
 
         var sub = _registryKey.CreateSubKey("Sub");
         var deleted = sub!.DeleteKey("", true);
         Assert.True(deleted);
-        Assert.Null(w_registryKey.OpenSubKey("Sub"));
+        Assert.Null(_wRegistryKey.OpenSubKey("Sub"));
     }
 
-    [Fact]
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestDataTypes()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-            return;
-#endif
         _registryKey.SetValue("TestEnum", 1);
         _registryKey.GetValue("TestEnum", out int oi);
         var i = Assert.IsType<int>(oi);
@@ -126,10 +107,9 @@ public class WindowsRegistryKeyTest : IDisposable
 
     public void Dispose()
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return;
-#endif
+
         var wBase = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default);
         wBase.DeleteSubKeyTree(SubKey);
         _registryKey.Dispose();

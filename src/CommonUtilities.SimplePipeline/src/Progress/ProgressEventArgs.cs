@@ -1,5 +1,4 @@
 ﻿using System;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 
@@ -51,7 +50,7 @@ public class ProgressEventArgs<T> : EventArgs where T: new()
     /// <param name="detailedProgress">Additional detailed progress information.</param>
     public ProgressEventArgs(string progressText, double progress, ProgressType type, T detailedProgress)
     {
-        Requires.NotNullOrEmpty(progressText, nameof(progressText));
+        ThrowHelper.ThrowIfNullOrEmpty(progressText);
         ProgressText = progressText;
         Progress = progress;
         Type = type;

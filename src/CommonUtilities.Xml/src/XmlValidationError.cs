@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an XML Validation error.
 /// </summary>
-public class XmlValidationError
+public sealed class XmlValidationError
 {
     /// <summary>
     /// The message of the XML validation error.

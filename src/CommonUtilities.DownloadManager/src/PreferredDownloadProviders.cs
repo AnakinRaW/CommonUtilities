@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 internal class PreferredDownloadProviders
 {
     private static readonly object SyncRoot = new();
-    private readonly ConcurrentDictionary<string, int> _preferredProviders;
+    private readonly ConcurrentDictionary<string, int> _preferredProviders = new();
 
     private string? _lastSuccessfulProviderName;
 
@@ -23,11 +23,6 @@ internal class PreferredDownloadProviders
             _lastSuccessfulProviderName = value;
             _preferredProviders.AddOrUpdate(value, 1, (_, existingVal) => ++existingVal);
         }
-    }
-
-    public PreferredDownloadProviders()
-    {
-        _preferredProviders = new ConcurrentDictionary<string, int>();
     }
 
     public IList<IDownloadProvider> GetProvidersInPriorityOrder(IEnumerable<IDownloadProvider> providers)

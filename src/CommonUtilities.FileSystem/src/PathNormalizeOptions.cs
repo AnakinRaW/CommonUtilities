@@ -1,41 +1,27 @@
-﻿using System;
-
-namespace AnakinRaW.CommonUtilities.FileSystem;
+﻿namespace AnakinRaW.CommonUtilities.FileSystem;
 
 /// <summary>
-/// Options which can be performed by an path normalization.
+/// Options how path normalization shall be performed.
 /// </summary>
-[Flags]
-public enum PathNormalizeOptions
+public sealed record PathNormalizeOptions
 {
     /// <summary>
-    /// Directory Separator Characters get unified across the path based on the system's preferred separator.
-    /// <remarks>On Windows this is '\'. On Linux this is '/'</remarks>
+    /// Gets or sets whether directory separator shall be unified across the path based on <see cref="SeparatorKind"/>.
     /// </summary>
-    UnifySlashes = 1,
+    public bool UnifySlashes { get; init; }
+
     /// <summary>
-    /// Removes any trailing directory separators at the end of a path.
+    /// Gets or sets a value how directory separators shall be treated. Default is <see cref="DirectorySeparatorKind.System"/>.
     /// </summary>
-    TrimTrailingSeparator = 2,
+    public DirectorySeparatorKind SeparatorKind { get; init; }
+
     /// <summary>
-    /// On case insensitive systems (like Windows) the normalization will lower all characters.
+    /// Gets or sets a value which casing option to apply. Default is <see cref="UnifyCasingKind.None"/>.
     /// </summary>
-    ToLowerCase = 4,
+    public UnifyCasingKind UnifyCase { get; init; }
+
     /// <summary>
-    /// Makes a path absolute and resolves any '..' and '.' path identifiers.
+    /// Gets or sets whether any trailing directory separators shall be removed at the end of the path.
     /// </summary>
-    ResolveFullPath = 8,
-    /// <summary>
-    /// Removes adjacent directory separators.
-    /// <remarks>This options is not necessary when <see cref="ResolveFullPath"/> is applied.</remarks>
-    /// </summary>
-    RemoveAdjacentSlashes = 16,
-    /// <summary>
-    /// Applies all available options.
-    /// </summary>
-    Full = UnifySlashes | TrimTrailingSeparator | ToLowerCase | ResolveFullPath,
-    /// <summary>
-    /// Applies all available options excluding <see cref="ResolveFullPath"/>.
-    /// </summary>
-    FullNoResolve = UnifySlashes | TrimTrailingSeparator | ToLowerCase | RemoveAdjacentSlashes
+    public bool TrimTrailingSeparator { get; init; }
 }

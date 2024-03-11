@@ -8,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class ExtensionsTest
 {
     [Fact]
-    public void IsExceptionType()
+    public void Test_IsExceptionType()
     {
         var e = new InvalidOperationException();
 

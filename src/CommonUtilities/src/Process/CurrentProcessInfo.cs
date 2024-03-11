@@ -1,8 +1,7 @@
-﻿#if NET6_0
-using System;
-#else
-using Vanara.PInvoke;
+﻿#if !NET
+using AnakinRaW.CommonUtilities.NativeMethods;
 #endif
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -34,11 +33,11 @@ internal sealed class CurrentProcessInfo : ICurrentProcessInfo
     {
         var p = Process.GetCurrentProcess();
         Id = p.Id;
-#if NET6_0
+#if NET
         var processPath = Environment.ProcessPath;
 #else
         var processPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Kernel32.GetModuleFileName(HINSTANCE.NULL)
+            ? Kernel32.GetModuleFileName(IntPtr.Zero)
             : Process.GetCurrentProcess().MainModule.FileName;
 #endif
 
@@ -47,28 +46,5 @@ internal sealed class CurrentProcessInfo : ICurrentProcessInfo
         IsElevated = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? ProcessElevationWindows.IsProcessElevated()
             : ProcessElevationLinux.IsElevated();
-    }
-}
-
-
-/// <summary>
-/// Provides access to information about the current process.
-/// </summary>
-public interface ICurrentProcessInfoProvider
-{
-    /// <summary>
-    /// Gets the current process information.
-    /// </summary>
-    /// <returns>An <see cref="ICurrentProcessInfo"/> instance that contains information about the current process.</returns>
-    public ICurrentProcessInfo GetCurrentProcessInfo();
-}
-
-/// <inheritdoc/>
-public sealed class CurrentProcessInfoProvider : ICurrentProcessInfoProvider
-{
-    /// <inheritdoc/>
-    public ICurrentProcessInfo GetCurrentProcessInfo()
-    {
-        return CurrentProcessInfo.Current;
     }
 }

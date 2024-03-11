@@ -3,7 +3,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities;
 
@@ -25,7 +24,8 @@ public static class AwaitExtensions
     // From https://github.com/dotnet/runtime
     public static async Task<int> WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
     {
-        Requires.NotNull(process, nameof(process));
+        if (process == null)
+            throw new ArgumentNullException(nameof(process));
 
         if (!process.HasExited)
             cancellationToken.ThrowIfCancellationRequested();

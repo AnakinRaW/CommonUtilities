@@ -8,7 +8,7 @@ using Validation;
 namespace AnakinRaW.CommonUtilities.Xml;
 
 /// <inheritdoc cref="IXmlValidator"/>
-public class XmlValidator : IXmlValidator
+public sealed class XmlValidator : IXmlValidator
 {
     private XmlReaderSettings ReaderSettings { get; }
 
@@ -25,7 +25,6 @@ public class XmlValidator : IXmlValidator
 
     private static XmlReaderSettings CreateSettings(Stream schemeStream, ConformanceLevel conformanceLevel)
     {
-        schemeStream.Seek(0, SeekOrigin.Begin);
         var settings = new XmlReaderSettings { ValidationType = ValidationType.Schema };
         settings.ValidationFlags |= XmlSchemaValidationFlags.ProcessSchemaLocation |
                                     XmlSchemaValidationFlags.ReportValidationWarnings;
@@ -41,32 +40,18 @@ public class XmlValidator : IXmlValidator
         if (!File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return InternalValidate(stream);
+        return Validate(stream);
     }
 
     /// <inheritdoc/>
-    public XmlValidationResult Validate(Stream stream, bool keepOpen)
-    {
-        try
-        {
-            return InternalValidate(stream);
-        }
-        finally
-        {
-            if (!keepOpen)
-                stream.Dispose();
-        }
-    }
-
-    private XmlValidationResult InternalValidate(Stream stream)
+    public XmlValidationResult Validate(Stream stream)
     {
         if (!stream.CanRead)
             throw new InvalidOperationException("Cannot read from stream");
-        
-        stream.Seek(0, SeekOrigin.Begin);
+
         var errors = new List<XmlValidationError>();
         try
-        { 
+        {
             ReaderSettings.ValidationEventHandler += OnValidationError;
             var reader = XmlReader.Create(stream, ReaderSettings);
             while (reader.Read())
