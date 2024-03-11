@@ -20,8 +20,4 @@
 		<InheritDocEnabled>true</InheritDocEnabled>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Validation" Version="2.5.51" PrivateAssets="compile" />
-	</ItemGroup>
-
 </Project>

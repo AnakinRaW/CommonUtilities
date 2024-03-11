@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Xml;
 
@@ -19,7 +18,8 @@ public sealed class XmlValidator : IXmlValidator
     /// <param name="conformanceLevel">The <see cref="ConformanceLevel"/> of the XSD document.</param>
     public XmlValidator(Stream schemeStream, ConformanceLevel conformanceLevel = ConformanceLevel.Auto)
     {
-        Requires.NotNull(schemeStream, nameof(schemeStream));
+        if (schemeStream == null) 
+            throw new ArgumentNullException(nameof(schemeStream));
         ReaderSettings = CreateSettings(schemeStream, conformanceLevel);
     }
 

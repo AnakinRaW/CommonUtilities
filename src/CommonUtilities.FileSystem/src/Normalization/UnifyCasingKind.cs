@@ -1,4 +1,4 @@
-﻿namespace AnakinRaW.CommonUtilities.FileSystem;
+﻿namespace AnakinRaW.CommonUtilities.FileSystem.Normalization;
 
 /// <summary>
 /// Determines which character casing path normalization shall use.

@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.Win32;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
@@ -31,8 +30,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// <param name="registryKey">The internal registry key this instance represents.</param>
     public WindowsRegistryKey(RegistryKey registryKey)
     {
-        Requires.NotNull(registryKey, nameof(registryKey));
-        WindowsKey = registryKey;
+        WindowsKey = registryKey ?? throw new ArgumentNullException(nameof(registryKey));
     }
 
     /// <summary>
