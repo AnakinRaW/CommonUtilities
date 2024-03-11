@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 /// <summary>
 /// Windows specific Registry implementation of <see cref="IRegistry"/>
 /// </summary>
-public class WindowsRegistry : IRegistry
+public sealed class WindowsRegistry : IRegistry
 {
     /// <summary>
     /// Provides a singleton instance for a Windows Registry.

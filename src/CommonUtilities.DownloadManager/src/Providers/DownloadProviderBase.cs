@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
@@ -12,40 +11,40 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 /// </summary>
 public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider {
     
-    private readonly HashSet<DownloadSource> _supportedSources;
+    private readonly HashSet<DownloadKind> _supportedSources;
 
     /// <inheritdoc/>
     public string Name { get; }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadProvider"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadProviderBase"/> class.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
-    /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, DownloadSource supportedSources) : this(name, new []{supportedSources})
+    /// <param name="supportedKinds">The supported download locations by this instance.</param>
+    protected DownloadProviderBase(string name, DownloadKind supportedKinds) : this(name, new []{supportedKinds})
     {
     }
 
     /// <summary>
-    /// Initializes an <see cref="IDownloadProvider"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadProviderBase"/> class.
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, IEnumerable<DownloadSource> supportedSources)
+    protected DownloadProviderBase(string name, IEnumerable<DownloadKind> supportedSources)
     {
-        Requires.NotNullOrEmpty(name, nameof(name));
+        ThrowHelper.ThrowIfNullOrEmpty(name);
         Name = name;
-        _supportedSources = new HashSet<DownloadSource>(supportedSources);
+        _supportedSources = new HashSet<DownloadKind>(supportedSources);
     }
 
     /// <inheritdoc/>
-    public bool IsSupported(DownloadSource source)
+    public bool IsSupported(DownloadKind kind)
     {
-        return _supportedSources.Contains(source);
+        return _supportedSources.Contains(kind);
     }
 
     /// <inheritdoc/>
-    public Task<DownloadSummary> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         return DownloadWithBitRate(uri, outputStream, progress, cancellationToken);
@@ -59,10 +58,10 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <param name="progress">Progress with already updated performance data.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    protected abstract Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected abstract Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken);
 
-    private async Task<DownloadSummary> DownloadWithBitRate(
+    private async Task<DownloadResult> DownloadWithBitRate(
         Uri uri,
         Stream outputStream,
         ProgressUpdateCallback? progress,

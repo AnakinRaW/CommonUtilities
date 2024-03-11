@@ -7,22 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class FileDownloader : DownloadProviderBase
+internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadKind.File)
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public FileDownloader(IServiceProvider serviceProvider) : base("File", DownloadSource.File)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
-    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         if (!uri.IsFile && !uri.IsUnc)
             throw new ArgumentException("Expected file or UNC path", nameof(uri));
-        return new DownloadSummary
+        return new DownloadResult
         {
+            Uri = uri.LocalPath,
             DownloadedSize = await CopyFileToStreamAsync(uri.LocalPath, outputStream, progress, cancellationToken).ConfigureAwait(false)
         };
     }
@@ -30,7 +24,7 @@ internal class FileDownloader : DownloadProviderBase
     private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var fileSystem = _serviceProvider.GetRequiredService<IFileSystem>();
+        var fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
 #if NETSTANDARD2_1 || NET

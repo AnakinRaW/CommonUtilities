@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class PipelineTest
 {
     [Fact]
-    public void TestPreparePipeline()
+    public void Test_Prepare()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -23,7 +23,7 @@ public class PipelineTest
     }
 
     [Fact]
-    public void TestPipelineRun()
+    public void Test_Run()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -40,7 +40,7 @@ public class PipelineTest
     }
 
     [Fact]
-    public void TestPipelinePrepareRun()
+    public void Test_Prepare_Run()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -58,7 +58,7 @@ public class PipelineTest
     }
 
     [Fact]
-    public void TestPipelineRunCancelled()
+    public void Test_Run_Cancelled_ThrowsOperationCanceledException()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -73,7 +73,7 @@ public class PipelineTest
     }
 
     [Fact]
-    public void TestPipelineDisposedPrepare()
+    public void Test_Prepare_Disposed_ThrowsObjectDisposedException()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -81,12 +81,13 @@ public class PipelineTest
         };
 
         pipeline.Object.Dispose();
+        pipeline.Object.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() => pipeline.Object.Prepare());
     }
 
     [Fact]
-    public void TestPipelineDisposedRun()
+    public void Test_Run_Disposed_ThrowsObjectDisposedException()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -94,7 +95,6 @@ public class PipelineTest
         };
 
         pipeline.Object.Prepare();
-
         pipeline.Object.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() => pipeline.Object.Run());

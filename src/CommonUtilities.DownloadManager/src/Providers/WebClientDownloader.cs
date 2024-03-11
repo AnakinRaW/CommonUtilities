@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
@@ -22,16 +21,17 @@ internal class WebClientDownloader : DownloadProviderBase
         ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
-    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadSource.Internet)
+    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadKind.Internet)
     {
-        Requires.NotNull(services, nameof(services));
+        if (services == null) 
+            throw new ArgumentNullException(nameof(services));
         _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
-    protected override async Task<DownloadSummary> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var summary = new DownloadSummary();
+        var summary = new DownloadResult();
 
         var webRequest = CreateRequest(uri);
 
@@ -103,11 +103,11 @@ internal class WebClientDownloader : DownloadProviderBase
         return webRequest;
     }
 
-    private async Task<HttpWebResponse?> GetWebResponse(Uri uri, DownloadSummary summary, HttpWebRequest webRequest,
+    private async Task<HttpWebResponse?> GetWebResponse(Uri uri, DownloadResult result, HttpWebRequest webRequest,
         CancellationToken cancellationToken)
     {
         HttpWebResponse? httpWebResponse = null;
-        var successful = true;
+        var success = false;
         try
         {
             using (cancellationToken.Register(webRequest.Abort))
@@ -117,14 +117,14 @@ internal class WebClientDownloader : DownloadProviderBase
             if (!string.IsNullOrEmpty(responseUri) &&
                 !uri.ToString().EndsWith(responseUri, StringComparison.InvariantCultureIgnoreCase))
             {
-                summary.FinalUri = responseUri;
+                result.Uri = responseUri;
                 _logger?.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
             }
 
             switch (httpWebResponse.StatusCode)
             {
                 case HttpStatusCode.OK:
-                    successful = false;
+                    success = true;
                     return httpWebResponse;
             }
         }
@@ -150,8 +150,8 @@ internal class WebClientDownloader : DownloadProviderBase
         }
         finally
         {
-            if (httpWebResponse != null && successful)
-                httpWebResponse.Close();
+            if (httpWebResponse != null & !success)
+                httpWebResponse!.Close();
         }
         return null;
     }

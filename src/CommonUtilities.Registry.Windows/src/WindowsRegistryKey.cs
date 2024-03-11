@@ -7,10 +7,10 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 /// <summary>
 /// Windows specific RegistryKey implementation of <see cref="IRegistryKey"/>
 /// </summary>
-public class WindowsRegistryKey : RegistryKeyBase
+public sealed class WindowsRegistryKey : RegistryKeyBase
 {
     /// <summary>
-    /// Returns the underlaying <see cref="RegistryKey"/> of this instance.
+    /// Returns the underlying <see cref="RegistryKey"/> of this instance.
     /// </summary>
     public RegistryKey WindowsKey { get; }
 

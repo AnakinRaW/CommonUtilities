@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// <summary>
 /// Aggregated exception which holds all <see cref="DownloadFailureInformation"/> of a file download operation.
 /// </summary>
-public class DownloadFailedException : Exception
+public sealed class DownloadFailedException : Exception
 {
     /// <summary>
     /// All failures during a file download operation.

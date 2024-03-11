@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
@@ -47,7 +46,8 @@ public class StepRunner : IRunner
     /// <param name="services"></param>
     public StepRunner(IServiceProvider services)
     {
-        Requires.NotNull(services, nameof(services));
+        if (services == null) 
+            throw new ArgumentNullException(nameof(services));
         StepQueue = new ConcurrentQueue<IStep>();
         StepList = new List<IStep>();
         Logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());

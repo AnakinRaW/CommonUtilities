@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.Registry;
 /// <summary>
 /// In memory <see cref="IRegistryKey"/> implementation for platform independent use. 
 /// </summary>
-public class InMemoryRegistryKey : RegistryKeyBase
+public sealed class InMemoryRegistryKey : RegistryKeyBase
 {
     private const char Separator = '\\';
 

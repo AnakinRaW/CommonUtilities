@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 public class SynchronizedStepTest
 {
     [Fact]
-    public void TestWaitThrows()
+    public void Test_Wait_ThrowsTimeoutException()
     {
         var sc = new ServiceCollection();
         var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
@@ -20,12 +20,11 @@ public class SynchronizedStepTest
             CallBase = true
         };
 
-        
         Assert.Throws<TimeoutException>(() => step.Object.Wait(TimeSpan.Zero));
     }
 
     [Fact]
-    public void TestThrowsWait()
+    public void Test_Run_ThrowsWait()
     {
         var sc = new ServiceCollection();
         var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
@@ -43,7 +42,7 @@ public class SynchronizedStepTest
     }
 
     [Fact]
-    public void TestCancelled()
+    public void Test_Run_Cancelled_ThrowsOperationCanceledException()
     {
         var sc = new ServiceCollection();
         var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
@@ -71,7 +70,7 @@ public class SynchronizedStepTest
     }
 
     [Fact]
-    public void TestWait()
+    public void Test_Wait()
     {
         var sc = new ServiceCollection();
         var step = new TestSync(sc.BuildServiceProvider());
@@ -96,7 +95,7 @@ public class SynchronizedStepTest
     }
 
     [Fact]
-    public void TestWaitTimeout()
+    public void Test_Wait_WithTimeout()
     {
         var sc = new ServiceCollection();
         var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())

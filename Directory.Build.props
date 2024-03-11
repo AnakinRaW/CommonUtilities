@@ -10,26 +10,22 @@
   </PropertyGroup>
   <PropertyGroup>
     <Product>.NET Common Utilities</Product>
-    <Copyright>Copyright © AnakinRaW 2023</Copyright>
+    <Copyright>Copyright © AnakinRaW 2024</Copyright>
     <Authors>AnakinRaW</Authors>
     <Owners>AnakinRaW</Owners>
     <PackageProjectUrl>https://github.com/AnakinRaW/CommonUtilities</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly Condition="'$(Configuration)' == 'Release'">True</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)AnakinOSS.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
-      <PrivateAssets>all</PrivateAssets>
-      <Version>3.6.133</Version>
-    </PackageReference>
-    <PackageReference Include="SauceControl.InheritDoc" Version="2.0.0" PrivateAssets="all" />
+    <PackageReference Include="SauceControl.InheritDoc" Version="2.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
+	    <PrivateAssets>all</PrivateAssets>
+	    <Version>3.6.133</Version>
     </PackageReference>
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
   </ItemGroup>

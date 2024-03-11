@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// Represents a set of errors during pipeline execution with one or multiple steps.
 /// </summary>
-public class StepFailureException : Exception
+public sealed class StepFailureException : Exception
 {
     private readonly string? _error = null;
     private readonly IEnumerable<IStep> _failedSteps;

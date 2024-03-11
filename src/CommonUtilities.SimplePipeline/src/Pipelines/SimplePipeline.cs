@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
@@ -38,8 +37,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     /// </remarks>
     protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true)
     {
-        Requires.NotNull(serviceProvider, nameof(serviceProvider));
-        ServiceProvider = serviceProvider;
+        ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _failFast = failFast;
     }
 

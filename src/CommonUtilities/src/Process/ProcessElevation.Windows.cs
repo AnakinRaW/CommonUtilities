@@ -1,29 +1,40 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using Vanara.PInvoke;
+using AnakinRaW.CommonUtilities.NativeMethods;
+using AdvApi32 = AnakinRaW.CommonUtilities.NativeMethods.AdvApi32;
 
 namespace AnakinRaW.CommonUtilities;
 
 internal static class ProcessElevationWindows
 {
+    public const uint ErrorInvalidParameter = 0x00000057;
+
     internal static bool IsProcessElevated()
     {
-        using var processToken = OpenProcessToken(Process.GetCurrentProcess().Handle);
+        var processToken = OpenProcessToken(Process.GetCurrentProcess().Handle);
         try
         {
-            var elevation = AdvApi32.GetTokenInformation<AdvApi32.TOKEN_ELEVATION>(processToken, AdvApi32.TOKEN_INFORMATION_CLASS.TokenElevation);
-            return elevation.TokenIsElevated;
+            try
+            {
+                var elevation = AdvApi32.GetTokenElevation(processToken);
+                return elevation.TokenIsElevated;
+            }
+            catch (Exception e) when (e.HResult == ErrorInvalidParameter)
+            {
+                return false;
+            }
         }
-        catch (Exception e) when (e.HResult == Win32Error.ERROR_INVALID_PARAMETER)
+        finally
         {
-            return false;
+            if (processToken !=  IntPtr.Zero)
+                Kernel32.CloseHandle(processToken);
         }
     }
 
-    private static AdvApi32.SafeHTOKEN OpenProcessToken(IntPtr process)
+    private static IntPtr OpenProcessToken(IntPtr process)
     {
-        if (!AdvApi32.OpenProcessToken(process, AdvApi32.TokenAccess.TOKEN_QUERY, out var handle))
+        if (!AdvApi32.OpenProcessToken(process, AdvApi32.TokenAccess.Query, out var handle))
             throw new Win32Exception();
         return handle;
     }

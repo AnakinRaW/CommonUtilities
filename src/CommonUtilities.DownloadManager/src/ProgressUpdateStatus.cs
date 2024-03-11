@@ -3,7 +3,7 @@
 /// <summary>
 /// Progress report data for downloading a file.
 /// </summary>
-public class ProgressUpdateStatus
+public sealed class ProgressUpdateStatus
 {
     /// <summary>
     /// Bytes read from the source.

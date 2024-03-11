@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class ParallelPipelineTests
 {
     [Fact]
-    public void ParallelPipeline_Waits()
+    public void Test_Run_Waits()
     {
         var sc = new ServiceCollection();
 

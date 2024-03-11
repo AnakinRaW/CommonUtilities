@@ -8,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 public class WaitStepTest
 {
     [Fact]
-    public void TestWait()
+    public void Test_Wait()
     {
         var runner = new Mock<IParallelRunner>();
         var sc = new ServiceCollection();

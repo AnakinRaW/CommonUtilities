@@ -1,8 +1,11 @@
-﻿using System;
+﻿#if !NET5_0_OR_GREATER
+
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
@@ -10,18 +13,15 @@ namespace AnakinRaW.CommonUtilities.Test;
 // From https://github.com/microsoft/vs-threading
 public class AwaitExtensionsTests
 {
-#if !NET5_0_OR_GREATER
-
     [Fact]
-    public async Task WaitForExit_NullArgument()
+    public async Task Test_WaitForExitAsync_NullArgument()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!));
     }
 
-    [SkippableFact]
-    public async Task WaitForExitAsync_ExitCode()
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
+    public async Task Test_WaitForExitAsync_ExitCode_Windows()
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
         var p = Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
             {
@@ -32,10 +32,9 @@ public class AwaitExtensionsTests
         Assert.Equal(55, exitCode);
     }
 
-    [SkippableFact]
-    public void WaitForExitAsync_AlreadyExited()
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
+    public void Test_WaitForExitAsync_AlreadyExited_Windows()
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
         var p = Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
             {
@@ -49,7 +48,7 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task WaitForExitAsync_UnstartedProcess()
+    public async Task Test_WaitForExitAsync_UnstartedProcess()
     {
         var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
         var process = new Process();
@@ -59,7 +58,7 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task WaitForExitAsync_DoesNotCompleteTillKilled()
+    public async Task Test_WaitForExitAsync_DoesNotCompleteTillKilled()
     {
         var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
         var expectedExitCode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
@@ -88,7 +87,7 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task WaitForExitAsync_Canceled()
+    public async Task Test_WaitForExitAsync_Canceled()
     {
         var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
         var p = Process.Start(new ProcessStartInfo(processName) { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
@@ -105,6 +104,5 @@ public class AwaitExtensionsTests
             p.Kill();
         }
     }
-
-#endif
 }
+#endif

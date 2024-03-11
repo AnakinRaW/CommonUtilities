@@ -8,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Configuration;
 public class DownloadManagerConfigurationProviderBaseTests
 {
     [Fact]
-    public void GetConfiguration_CreatesNewConfiguration_Once()
+    public void Test_GetConfiguration_CreatesNewConfiguration_Once()
     {
         var m = new Mock<DownloadManagerConfigurationProviderBase>();
 

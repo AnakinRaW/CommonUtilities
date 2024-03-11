@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Microsoft.Extensions.Logging;
-using Validation;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
@@ -19,8 +18,7 @@ public sealed class WaitStep : PipelineStep
     /// <param name="serviceProvider">The service provider.</param>
     public WaitStep(IParallelRunner runner, IServiceProvider serviceProvider) : base(serviceProvider)
     {
-        Requires.NotNull(runner, nameof(runner));
-        _runner = runner;
+        _runner = runner ?? throw new ArgumentNullException(nameof(runner));
     }
 
     /// <inheritdoc/>

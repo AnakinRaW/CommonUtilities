@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 public class StreamUtilitiesTest
 {
     [Fact]
-    public async Task TestStreamsNotDisposed()
+    public async Task Test_CopyStreamWithProgressAsync_StreamsNotDisposed()
     {
         var inputData = Array.Empty<byte>();
         var input = new MemoryStream(inputData);
@@ -22,7 +21,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task TestStreamLengthAndCorrectCopy()
+    public async Task Test_CopyStreamWithProgressAsync_StreamLengthAndCorrectCopy()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -36,7 +35,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task TestInputLengthTooSmall()
+    public async Task Test_CopyStreamWithProgressAsync_InputLengthTooSmall()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -46,7 +45,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task TestInputLengthTooLarge()
+    public async Task Test_CopyStreamWithProgressAsync_InputLengthTooLarge()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -56,7 +55,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task TestProgressReport()
+    public async Task Test_CopyStreamWithProgressAsync_ProgressReport()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -72,7 +71,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task TestCancellation()
+    public async Task Test_CopyStreamWithProgressAsync_Cancellation()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);

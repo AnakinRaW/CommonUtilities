@@ -1,8 +1,7 @@
-﻿#if NET
-using System;
-#else
-using Vanara.PInvoke;
+﻿#if !NET
+using AnakinRaW.CommonUtilities.NativeMethods;
 #endif
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -38,7 +37,7 @@ internal sealed class CurrentProcessInfo : ICurrentProcessInfo
         var processPath = Environment.ProcessPath;
 #else
         var processPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Kernel32.GetModuleFileName(HINSTANCE.NULL)
+            ? Kernel32.GetModuleFileName(IntPtr.Zero)
             : Process.GetCurrentProcess().MainModule.FileName;
 #endif
 

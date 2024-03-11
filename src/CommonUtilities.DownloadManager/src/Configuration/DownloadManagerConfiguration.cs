@@ -16,7 +16,7 @@ public record DownloadManagerConfiguration : IDownloadManagerConfiguration
     public bool AllowEmptyFileDownload { get; init; }
 
     /// <inheritdoc/>
-    public VerificationPolicy VerificationPolicy { get; init; }
+    public ValidationPolicy ValidationPolicy { get; init; }
     
     /// <inheritdoc/>
     public InternetClient InternetClient { get; init; }
