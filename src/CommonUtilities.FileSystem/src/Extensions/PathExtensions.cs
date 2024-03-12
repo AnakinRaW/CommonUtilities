@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -80,7 +81,7 @@ public static class PathExtensions
     /// <param name="driveLetter">If <paramref name="path"/> is drive relative the drive's letter will be stored into this variable.
     /// <see langword="null"/> if <paramref name="path"/> is not drive relative.</param>
     /// <returns>Return <see langword="true"/> if <paramref name="path"/> is relative, but not absolute to a drive; otherwise, <see langword="false"/>.</returns>
-    public static bool IsDriveRelative(this IPath fsPath, string? path, out char? driveLetter)
+    public static bool IsDriveRelative(this IPath fsPath, string? path, [NotNullWhen(true)] out char? driveLetter)
     {
         driveLetter = null;
 
@@ -103,9 +104,9 @@ public static class PathExtensions
                 driveLetter = path[0];
                 return true;
             }
+
             return false;
         }
-
         return false;
     }
 
