@@ -49,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.SimplePipel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.SimplePipeline.Test", "src\CommonUtilities.SimplePipeline\test\CommonUtilities.SimplePipeline.Test.csproj", "{C8BF3F01-B1D5-4C29-9164-6DC7B9744589}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonUtilities.TestingUtilities", "src\CommonUtilities.TestingUtilities\CommonUtilities.TestingUtilities.csproj", "{99A3B9B4-6482-410A-A001-9D62F4B259CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities.TestingUtilities", "src\CommonUtilities.TestingUtilities\CommonUtilities.TestingUtilities.csproj", "{99A3B9B4-6482-410A-A001-9D62F4B259CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
