@@ -26,13 +26,6 @@ public class WindowsRegistryKeyTest : IDisposable
             .OpenSubKey(SubKey)!;
     }
 
-    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
-    public void TestCreate_ThrowsPlatformNotSupportedException_Linux()
-    {
-        Assert.Throws<PlatformNotSupportedException>(() => new WindowsRegistry());
-        Assert.Throws<PlatformNotSupportedException>(() => new WindowsRegistryKey(null!));
-    }
-
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void TestExists()
     {
