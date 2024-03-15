@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using AnakinRaW.CommonUtilities.Registry.Windows;
 using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Win32;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.Registry.Windows.Test;
+namespace AnakinRaW.CommonUtilities.Registry.Test;
+
 
 public class WindowsRegistryKeyTest : IDisposable
 {
@@ -22,6 +24,13 @@ public class WindowsRegistryKeyTest : IDisposable
         _registryKey = baseKey.CreateSubKey(SubKey)!;
         _wRegistryKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.CurrentUser, Microsoft.Win32.RegistryView.Default)
             .OpenSubKey(SubKey)!;
+    }
+
+    [PlatformSpecificFact(TestPlatformIdentifier.Linux)]
+    public void TestCreate_ThrowsPlatformNotSupportedException_Linux()
+    {
+        Assert.Throws<PlatformNotSupportedException>(() => new WindowsRegistry());
+        Assert.Throws<PlatformNotSupportedException>(() => new WindowsRegistryKey(null!));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
