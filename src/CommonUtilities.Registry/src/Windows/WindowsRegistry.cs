@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using Microsoft.Win32;
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
@@ -8,7 +7,6 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 /// <summary>
 /// Windows specific Registry implementation of <see cref="IRegistry"/>
 /// </summary>
-[SupportedOSPlatform("windows")]
 public sealed class WindowsRegistry : IRegistry
 {
     /// <summary>

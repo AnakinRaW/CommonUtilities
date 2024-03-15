@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using Microsoft.Win32;
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
@@ -8,7 +7,6 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 /// <summary>
 /// Windows specific RegistryKey implementation of <see cref="IRegistryKey"/>
 /// </summary>
-[SupportedOSPlatform("windows")]
 public sealed class WindowsRegistryKey : RegistryKeyBase
 {
     /// <summary>
