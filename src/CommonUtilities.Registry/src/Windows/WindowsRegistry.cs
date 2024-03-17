@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+#if NET8_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 /// <summary>
 /// Windows specific Registry implementation of <see cref="IRegistry"/>
 /// </summary>
+#if NET8_0_OR_GREATER
+[SupportedOSPlatform("windows")]
+#endif
 public sealed class WindowsRegistry : IRegistry
 {
     /// <summary>
