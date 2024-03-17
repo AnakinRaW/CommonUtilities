@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using System.Security.AccessControl;
+using AnakinRaW.CommonUtilities.FileSystem.Windows;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
+namespace AnakinRaW.CommonUtilities.FileSystem.Test.Windows;
 
 public class WindowsPathServiceTest
 {

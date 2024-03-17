@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Description>Helper classes and methods targeting the Filesystem and Paths.</Description>
+		<Description>Helper classes and methods targeting the file system.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -36,6 +36,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
 	</ItemGroup>
 
 </Project>
