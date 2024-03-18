@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using AnakinRaW.CommonUtilities.Registry.Windows;
 using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Win32;
@@ -7,7 +8,9 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
 
-
+#if NET
+[SupportedOSPlatform("windows")]
+#endif
 public class WindowsRegistryKeyTest : IDisposable
 {
     private const string SubKey = @"SOFTWARE\CommonUtilities.Registry.Windows.Test";

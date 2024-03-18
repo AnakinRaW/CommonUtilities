@@ -299,7 +299,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         var collection = GenericICollectionFactory(count);
         if (IsReadOnly || AddRemoveClear_ThrowsNotSupported)
         {
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
+            Assert.Throws<NotSupportedException>(collection.Clear);
             Assert.Equal(count, collection.Count);
         }
         else
@@ -316,9 +316,9 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         var collection = GenericICollectionFactory(count);
         if (IsReadOnly || AddRemoveClear_ThrowsNotSupported)
         {
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
+            Assert.Throws<NotSupportedException>(collection.Clear);
+            Assert.Throws<NotSupportedException>(collection.Clear);
+            Assert.Throws<NotSupportedException>(collection.Clear);
             Assert.Equal(count, collection.Count);
         }
         else

@@ -3,9 +3,15 @@ using System.Security.AccessControl;
 using AnakinRaW.CommonUtilities.FileSystem.Windows;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
+#if NET
+using System.Runtime.Versioning;
+#endif
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test.Windows;
 
+#if NET
+[SupportedOSPlatform("windows")]
+#endif
 public class WindowsPathServiceTest
 {
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
