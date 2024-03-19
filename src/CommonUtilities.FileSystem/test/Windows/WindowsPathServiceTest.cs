@@ -20,7 +20,7 @@ public class WindowsPathServiceTest
     [InlineData("C:\\", FileSystemRights.Read, true)]
     [InlineData("C:\\System Volume Information", FileSystemRights.Read, false)]
     [InlineData("C:\\System Volume Information", FileSystemRights.Write, false)]
-    public void Test_UserHasDirectoryAccessRights(string input, FileSystemRights rights, bool expected)
+    public void Test_UserHasDirectoryAccessRights(string? input, FileSystemRights rights, bool expected)
     {
         var fs = new System.IO.Abstractions.FileSystem();
         input ??= fs.Path.GetTempPath();
