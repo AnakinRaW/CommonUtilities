@@ -10,6 +10,8 @@ using Xunit;
 using System.Runtime.Versioning;
 #endif
 
+// From https://github.com/microsoft/vs-threading
+
 namespace AnakinRaW.CommonUtilities.Registry.Test;
 
 #if NET
