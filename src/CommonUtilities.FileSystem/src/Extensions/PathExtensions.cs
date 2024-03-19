@@ -255,6 +255,23 @@ public static class PathExtensions
         return pathParts;
     }
 
+    /// <summary>
+    /// Determines whether two specified paths are equal.
+    /// </summary>
+    /// <remarks>
+    /// This method resolves the full paths of <paramref name="pathA"/> and <paramref name="pathB"/> and checks whether they
+    /// match under the rules of the current file system. This includes character casing and directory separator variants.
+    /// </remarks>
+    /// <param name="_"></param>
+    /// <param name="pathA">The first path to compare</param>
+    /// <param name="pathB">The second path to compare</param>
+    /// <returns><see langword="true"/> if both <paramref name="pathA"/> and <paramref name="pathB"/> are equal on this system; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="pathA"/> or <paramref name="pathB"/> is <see langword="null"/>.</exception>
+    public static bool AreEqual(this IPath _, string pathA, string pathB)
+    {
+        return PathsEqual(_.GetFullPath(pathA), _.GetFullPath(pathB));
+    }
+
     internal static bool PathsEqual(string path1, string path2)
     {
         return PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));

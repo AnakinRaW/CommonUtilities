@@ -3,12 +3,18 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Security.AccessControl;
 using System.Security.Principal;
+#if NET8_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
 /// Service for validating file and directory paths for the Windows Operating System.
 /// </summary>
+#if NET8_0_OR_GREATER
+[SupportedOSPlatform("windows")]
+#endif
 public static class WindowsPathExtensions
 {
     // Based on: https://stackoverflow.com/questions/1410127/c-sharp-test-if-user-has-write-access-to-a-folder

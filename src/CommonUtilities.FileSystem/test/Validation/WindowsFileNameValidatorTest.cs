@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using AnakinRaW.CommonUtilities.FileSystem.Validation;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.FileSystem.Windows.Test;
+namespace AnakinRaW.CommonUtilities.FileSystem.Test.Validation;
 
 public class WindowsFileNameValidatorTest
 {

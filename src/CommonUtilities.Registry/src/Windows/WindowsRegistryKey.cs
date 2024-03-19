@@ -1,11 +1,18 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
+#if NET8_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 /// <summary>
 /// Windows specific RegistryKey implementation of <see cref="IRegistryKey"/>
 /// </summary>
+#if NET8_0_OR_GREATER
+[SupportedOSPlatform("windows")]
+#endif
 public sealed class WindowsRegistryKey : RegistryKeyBase
 {
     /// <summary>
@@ -30,6 +37,9 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// <param name="registryKey">The internal registry key this instance represents.</param>
     public WindowsRegistryKey(RegistryKey registryKey)
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new PlatformNotSupportedException("Registry is not supported on this platform.");
+
         WindowsKey = registryKey ?? throw new ArgumentNullException(nameof(registryKey));
     }
 
@@ -37,7 +47,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// Finalizes this instance.
     /// </summary>
     ~WindowsRegistryKey() => Dispose(false);
-    
+
     /// <inheritdoc/>
     public override object? GetValue(string? name, object? defaultValue)
     {

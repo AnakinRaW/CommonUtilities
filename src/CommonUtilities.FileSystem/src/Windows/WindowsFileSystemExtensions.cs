@@ -6,12 +6,19 @@ using System.Linq;
 using System.Text;
 using AnakinRaW.CommonUtilities.FileSystem.Windows.NativeMethods;
 using Microsoft.Win32;
+#if NET8_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
+
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 
 /// <summary>
 /// Provides extension methods to the file system on Windows.
 /// </summary>
+#if NET8_0_OR_GREATER
+[SupportedOSPlatform("windows")]
+#endif
 public static class WindowsFileSystemExtensions
 {
     /// <summary>

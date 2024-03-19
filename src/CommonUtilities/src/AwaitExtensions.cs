@@ -48,6 +48,7 @@ public static class AwaitExtensions
             process.Exited += Handler!;
             if (process.HasExited)
                 return process.ExitCode;
+
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
             {
                 return await tcs.Task.ConfigureAwait(false);

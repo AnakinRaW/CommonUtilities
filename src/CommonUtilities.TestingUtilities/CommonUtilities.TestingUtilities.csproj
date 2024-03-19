@@ -12,8 +12,12 @@
 		<RootNamespace>AnakinRaW.CommonUtilities.Testing</RootNamespace>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<NoWarn>xUnit2013</NoWarn>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="coverlet.collector" Version="6.0.1">
+		<PackageReference Include="coverlet.collector" Version="6.0.2">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
