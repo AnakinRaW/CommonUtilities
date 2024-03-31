@@ -19,8 +19,8 @@ public class ParallelRunnerTest
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -54,8 +54,8 @@ public class ParallelRunnerTest
 
         var b = new ManualResetEvent(false);
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -87,7 +87,7 @@ public class ParallelRunnerTest
 
         var b = new ManualResetEvent(false);
 
-        runner.Queue(s1.Object);
+        runner.AddStep(s1.Object);
 
         s1.Setup(t => t.Run(default)).Callback(() =>
         {
@@ -118,7 +118,7 @@ public class ParallelRunnerTest
             ran = true;
         }).Throws<Exception>();
 
-        runner.Queue(step.Object);
+        runner.AddStep(step.Object);
         runner.Run(default);
         runner.Wait(Timeout.InfiniteTimeSpan);
 
@@ -157,8 +157,8 @@ public class ParallelRunnerTest
             b.WaitOne();
         });
 
-        runner.Queue(t1.Object);
-        runner.Queue(t2.Object);
+        runner.AddStep(t1.Object);
+        runner.AddStep(t2.Object);
         runner.Run(cts.Token);
         runner.Wait(Timeout.InfiniteTimeSpan);
 

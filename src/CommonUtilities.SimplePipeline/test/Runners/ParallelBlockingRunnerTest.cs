@@ -18,8 +18,8 @@ public class ParallelBlockingRunnerTest
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -49,8 +49,8 @@ public class ParallelBlockingRunnerTest
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -87,8 +87,8 @@ public class ParallelBlockingRunnerTest
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -120,8 +120,8 @@ public class ParallelBlockingRunnerTest
         var s2 = new Mock<IStep>();
         var s3 = new Mock<IStep>();
 
-        runner.Queue(s1.Object);
-        runner.Queue(s2.Object);
+        runner.AddStep(s1.Object);
+        runner.AddStep(s2.Object);
 
         var ran1 = false;
         s1.Setup(t => t.Run(default)).Callback(() =>
@@ -145,7 +145,7 @@ public class ParallelBlockingRunnerTest
 
         Task.Run(() =>
         {
-            runner.Queue(s3.Object);
+            runner.AddStep(s3.Object);
             Task.Delay(1000);
             runner.Finish();
         });

@@ -23,7 +23,7 @@ public class StepRunner : IRunner
     protected readonly List<IStep> StepList;
 
     /// <summary>
-    /// Queue of all to be performed steps.
+    /// AddStep of all to be performed steps.
     /// </summary>
     protected ConcurrentQueue<IStep> StepQueue { get; }
 
@@ -60,7 +60,7 @@ public class StepRunner : IRunner
     }
 
     /// <inheritdoc/>
-    public void Queue(IStep activity)
+    public void AddStep(IStep activity)
     {
         if (activity == null)
             throw new ArgumentNullException(nameof(activity));

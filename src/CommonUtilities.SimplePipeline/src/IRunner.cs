@@ -10,7 +10,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 public interface IRunner : IEnumerable<IStep>
 {
     /// <summary>
-    /// Event which gets raised if the execution of an <see cref="IStep"/> failed with an exception.
+    /// Gets raised when the execution of an <see cref="IStep"/> failed with an exception.
     /// </summary>
     event EventHandler<StepErrorEventArgs>? Error;
 
@@ -21,8 +21,8 @@ public interface IRunner : IEnumerable<IStep>
     void Run(CancellationToken token);
 
     /// <summary>
-    /// Queues an <see cref="IStep"/> for execution.
+    /// Adds an <see cref="IStep"/> to the <see cref="IRunner"/>.
     /// </summary>
-    /// <param name="activity">The step to queue.</param>
-    void Queue(IStep activity);
+    /// <param name="activity">The step to app.</param>
+    void AddStep(IStep activity);
 }

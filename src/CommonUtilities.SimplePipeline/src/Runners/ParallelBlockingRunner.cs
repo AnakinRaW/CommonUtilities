@@ -104,7 +104,7 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     }
 
     /// <inheritdoc/>
-    public void Queue(IStep step)
+    public void AddStep(IStep step)
     {
         if (step is null)
             throw new ArgumentNullException(nameof(step));

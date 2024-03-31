@@ -65,7 +65,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
         _buildRunner = CreateRunner() ?? throw new InvalidOperationException("RunnerFactory created null value!");
         var steps = BuildStepsOrdered();
         foreach (var step in steps)
-            _buildRunner.Queue(step);
+            _buildRunner.AddStep(step);
         return true;
     }
 

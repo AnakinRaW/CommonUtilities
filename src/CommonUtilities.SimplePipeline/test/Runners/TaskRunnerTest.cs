@@ -43,7 +43,7 @@ public class TaskRunnerTest
             ran = true;
         });
 
-        runner.Queue(step.Object);
+        runner.AddStep(step.Object);
         runner.Run(cts.Token);
 
         Assert.True(hasError);
@@ -71,7 +71,7 @@ public class TaskRunnerTest
             ran = true;
         }).Throws<Exception>();
 
-        runner.Queue(step.Object);
+        runner.AddStep(step.Object);
         runner.Run(default);
 
         Assert.True(hasError);
