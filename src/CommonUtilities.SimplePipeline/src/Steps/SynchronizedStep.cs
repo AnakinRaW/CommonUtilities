@@ -4,7 +4,7 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// An awaitable step implementation.
+/// A step that can be waited for.
 /// </summary>
 public abstract class SynchronizedStep : PipelineStep
 {
@@ -47,7 +47,7 @@ public abstract class SynchronizedStep : PipelineStep
     /// Executes this step.
     /// </summary>
     /// <param name="token"></param>
-    protected abstract void SynchronizedInvoke(CancellationToken token);
+    protected abstract void RunSynchronized(CancellationToken token);
 
     /// <inheritdoc />
     protected override void DisposeManagedResources()
@@ -61,7 +61,7 @@ public abstract class SynchronizedStep : PipelineStep
     {
         try
         {
-            SynchronizedInvoke(token);
+            RunSynchronized(token);
         }
         catch (Exception ex)
         {
