@@ -24,12 +24,6 @@ public abstract class SynchronizedStep : PipelineStep
         _handle = new ManualResetEvent(false);
     }
 
-    /// <inheritdoc/>
-    ~SynchronizedStep()
-    {
-        Dispose(false);
-    }
-
     /// <summary>
     ///  Waits until the predefined runner has finished.
     /// </summary>
@@ -55,15 +49,11 @@ public abstract class SynchronizedStep : PipelineStep
     /// <param name="token"></param>
     protected abstract void SynchronizedInvoke(CancellationToken token);
 
-    /// <summary>
-    /// Disposes managed resources of this instance.
-    /// </summary>
-    /// <param name="disposing"><see langword="true"/> is this instance gets disposed; <see langword="false"/> if it get's finalized.</param>
-    protected override void Dispose(bool disposing)
+    /// <inheritdoc />
+    protected override void DisposeManagedResources()
     {
-        if (disposing)
-            _handle.Dispose();
-        base.Dispose(disposing);
+        base.DisposeManagedResources();
+        _handle.Dispose();
     }
 
     /// <inheritdoc/>
