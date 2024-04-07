@@ -22,12 +22,14 @@ public class DirectoryInfoExtensionsTest
 
         Assert.Throws<IOException>(() => dir1.DeleteWithRetry(false));
         Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName, false));
-        
-        var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
-        Assert.Throws<IOException>(() => dir1.DeleteWithRetry());
-        Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName));
 
-        fs.Dispose();
+        // https://github.com/Testably/Testably.Abstractions/issues/549
+        //var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
+        //Assert.Throws<IOException>(() => dir1.DeleteWithRetry());
+        //Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName));
+
+        //fs.Dispose();
+
         dir1.DeleteWithRetry();
         _fileSystem.Directory.DeleteWithRetry(dir2.FullName);
 
@@ -161,7 +163,7 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
     public void Test_MoveToEx_CannotDeleteSource()
     {
         _fileSystem.Initialize()
@@ -273,7 +275,7 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
     public async void Test_MoveToAsync_CannotDeleteSource()
     {
         _fileSystem.Initialize()
