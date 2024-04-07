@@ -187,7 +187,6 @@ public static class FileExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-    /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
     public static void DeleteWithRetry(this IFileInfo file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null) 
@@ -204,7 +203,6 @@ public static class FileExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-    /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
     public static void DeleteWithRetry(this IFile _, string file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null) 
@@ -231,6 +229,61 @@ public static class FileExtensions
             errorAction?.Invoke(ex, attempt);
             return false;
         });
+    }
+
+    /// <summary>
+    /// Tries to delete a file. 
+    /// </summary>
+    /// <param name="file">The file to delete.</param>
+    /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
+    /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
+    /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
+    /// <returns><see langword="true"/> if the file is successfully deleted; otherwise, <see langword="false"/>.</returns>
+    public static bool TryDeleteWithRetry(this IFileInfo file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
+    {
+        if (file == null)
+            throw new ArgumentNullException(nameof(file));
+
+        return file.FileSystem.File.TryDeleteWithRetry(file.FullName, retryCount, retryDelay, errorAction);
+    }
+
+    /// <summary>
+    /// Tries to delete a file. 
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="file">The file to delete.</param>
+    /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
+    /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
+    /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
+    /// <returns><see langword="true"/> if the file is successfully deleted; otherwise, <see langword="false"/>.</returns>
+    public static bool TryDeleteWithRetry(this IFile _, string file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
+    {
+        if (file == null)
+            throw new ArgumentNullException(nameof(file));
+
+        if (!_.Exists(file))
+            return true;
+
+        return FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay, () => _.Delete(file), false,
+            (ex, attempt) =>
+            {
+                if (ex is UnauthorizedAccessException)
+                {
+                    if (attempt == 0)
+                    {
+                        var attributes = _.GetAttributes(file);
+                        if (attributes.HasFlag(FileAttributes.ReadOnly))
+                        {
+                            _.SetAttributes(file, attributes & ~FileAttributes.ReadOnly);
+                            errorAction?.Invoke(ex, attempt);
+                            return true;
+                        }
+                    }
+                }
+
+                errorAction?.Invoke(ex, attempt);
+                return false;
+            });
     }
 
     /// <summary>
