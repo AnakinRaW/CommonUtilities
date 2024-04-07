@@ -52,11 +52,60 @@ public class FileInfoExtensionsTest
         var file2 = _fileSystem.FileInfo.New("text2.txt");
         file2.Attributes |= FileAttributes.ReadOnly;
 
+        var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+        var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+        Assert.Throws<IOException>(() => file1.DeleteWithRetry());
+        Assert.Throws<IOException>(() => _fileSystem.File.DeleteWithRetry(file2.FullName));
+
+        file1.Refresh();
+        file2.Refresh();
+        Assert.True(file1.Exists);
+        Assert.True(file2.Exists);
+
+        fs1.Dispose();
+        fs2.Dispose();
+
         file1.Refresh();
         file2.Refresh();
         file1.DeleteWithRetry();
-        file2.DeleteWithRetry();
-        
+        _fileSystem.File.TryDeleteWithRetry(file2.FullName);
+
+
+        file1.Refresh();
+        file2.Refresh();
+        Assert.False(file1.Exists);
+        Assert.False(file2.Exists);
+    }
+
+    [Fact]
+    public void Test_TryDeleteWithRetry()
+    {
+        _fileSystem.Initialize()
+            .WithFile("text1.txt")
+            .WithFile("text2.txt");
+
+        var file1 = _fileSystem.FileInfo.New("text1.txt");
+        var file2 = _fileSystem.FileInfo.New("text2.txt");
+        file2.Attributes |= FileAttributes.ReadOnly;
+
+        var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+        var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+        Assert.False(file1.TryDeleteWithRetry());
+        Assert.False(_fileSystem.File.TryDeleteWithRetry(file2.FullName));
+
+        file1.Refresh();
+        file2.Refresh();
+        Assert.True(file1.Exists);
+        Assert.True(file2.Exists);
+
+        fs1.Dispose();
+        fs2.Dispose();
+
+        file1.Refresh();
+        file2.Refresh(); 
+        Assert.True(file1.TryDeleteWithRetry());
+        Assert.True(_fileSystem.File.TryDeleteWithRetry(file2.FullName));
+
         file1.Refresh();
         file2.Refresh();
         Assert.False(file1.Exists);

@@ -48,6 +48,7 @@ public class DirectoryCopierTest
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
             .WithFile("test/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("test/sub/4.txt").Which(f => f.HasStringContent("4"))
             .WithFile("other/3.txt").Which(f => f.HasStringContent("99"));
 
         var copier = new DirectoryCopier(_fileSystem);
@@ -65,6 +66,7 @@ public class DirectoryCopierTest
         Assert.Equal(1.0, progressValue);
 
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
 
         //fsStream.Dispose();
@@ -85,6 +87,7 @@ public class DirectoryCopierTest
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
             .WithFile("test/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("test/sub/4.txt").Which(f => f.HasStringContent("4"))
             .WithFile("other/3.txt").Which(f => f.HasStringContent("99"));
 
         var copier = new DirectoryCopier(_fileSystem);
@@ -102,6 +105,7 @@ public class DirectoryCopierTest
         Assert.Equal(1.0, progressValue);
 
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
 
         //fsStream.Dispose();
@@ -121,6 +125,7 @@ public class DirectoryCopierTest
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
             .WithFile("test/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("test/sub/4.txt").Which(f => f.HasStringContent("4"))
             .WithFile("other/3.txt").Which(f => f.HasStringContent("99"));
 
         var copier = new DirectoryCopier(_fileSystem);
@@ -136,9 +141,10 @@ public class DirectoryCopierTest
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
 
-        var destinationFiles = _fileSystem.Directory.GetFiles("other");
-        Assert.Equal(2, destinationFiles.Length);
+        var destinationFiles = _fileSystem.Directory.GetFiles("other", "*", SearchOption.AllDirectories);
+        Assert.Equal(3, destinationFiles.Length);
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
         return;
 
@@ -156,6 +162,7 @@ public class DirectoryCopierTest
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
             .WithFile("test/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("test/sub/4.txt").Which(f => f.HasStringContent("4"))
             .WithFile("other/3.txt").Which(f => f.HasStringContent("99"));
 
         var copier = new DirectoryCopier(_fileSystem);
@@ -175,6 +182,7 @@ public class DirectoryCopierTest
 
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
         Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
 
         fs.Dispose();
@@ -187,6 +195,7 @@ public class DirectoryCopierTest
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
             .WithFile("test/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("test/sub/4.txt").Which(f => f.HasStringContent("4"))
             .WithFile("other/3.txt").Which(f => f.HasStringContent("99"));
 
         var copier = new DirectoryCopier(_fileSystem);
@@ -205,6 +214,7 @@ public class DirectoryCopierTest
 
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
         Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
     }
 

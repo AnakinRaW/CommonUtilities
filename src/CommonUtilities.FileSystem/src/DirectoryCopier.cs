@@ -218,7 +218,7 @@ public class DirectoryCopier
 
     private IEnumerable<CopyInformation> GetFiles(string source, string destination, bool isMove, Predicate<string>? fileFilter)
     {
-        foreach (var file in _fileSystem.Directory.GetFiles(source, "*", SearchOption.TopDirectoryOnly))
+        foreach (var file in _fileSystem.Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
             if (fileFilter is not null && !fileFilter(file))
                 continue;
