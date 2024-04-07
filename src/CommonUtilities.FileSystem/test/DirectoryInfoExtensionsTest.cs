@@ -8,7 +8,6 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class DirectoryInfoExtensionsTest
 {
-
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
@@ -16,21 +15,60 @@ public class DirectoryInfoExtensionsTest
     {
         _fileSystem.Initialize()
             .WithFile("test/text1.txt")
-            .WithSubdirectory("/test1");
+            .WithSubdirectory("test1");
 
         var dir1 = _fileSystem.DirectoryInfo.New("test");
         var dir2 = _fileSystem.DirectoryInfo.New("test1");
 
-
         Assert.Throws<IOException>(() => dir1.DeleteWithRetry(false));
+        Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName, false));
+
+        // https://github.com/Testably/Testably.Abstractions/issues/549
+        //var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
+        //Assert.Throws<IOException>(() => dir1.DeleteWithRetry());
+        //Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName));
+
+        //fs.Dispose();
+
         dir1.DeleteWithRetry();
-        dir2.DeleteWithRetry();
+        _fileSystem.Directory.DeleteWithRetry(dir2.FullName);
 
         dir1.Refresh();
         dir2.Refresh();
 
         Assert.False(dir1.Exists);
         Assert.False(dir2.Exists);
+    }
+
+    [Fact]
+    public void Test_TryDeleteWithRetry()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/text1.txt")
+            .WithSubdirectory("test1");
+
+        var dir1 = _fileSystem.DirectoryInfo.New("test");
+        var dir2 = _fileSystem.DirectoryInfo.New("test1");
+
+        Assert.False(dir1.TryDeleteWithRetry(false));
+        Assert.False(_fileSystem.Directory.TryDeleteWithRetry(dir1.FullName, false));
+
+        var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
+        Assert.False(dir1.TryDeleteWithRetry(false));
+        Assert.False(_fileSystem.Directory.TryDeleteWithRetry(dir1.FullName, false));
+
+        fs.Dispose();
+        dir1.TryDeleteWithRetry();
+        _fileSystem.Directory.TryDeleteWithRetry(dir2.FullName);
+
+        Assert.True(dir1.TryDeleteWithRetry());
+        Assert.True(_fileSystem.Directory.TryDeleteWithRetry(dir2.FullName));
+
+        dir1.Refresh();
+        dir2.Refresh();
+
+        Assert.True(!dir1.Exists);
+        Assert.True(!dir2.Exists);
     }
 
     [Fact]
@@ -125,6 +163,23 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
+    public void Test_MoveToEx_CannotDeleteSource()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
+            .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+
+        var dirToMove = _fileSystem.DirectoryInfo.New("test");
+
+        var fs = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var delSuc = dirToMove.MoveToEx("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        Assert.False(delSuc);
+
+        fs.Dispose();
+    }
 
 
     [Fact]
@@ -220,6 +275,23 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
+    public async void Test_MoveToAsync_CannotDeleteSource()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
+            .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+
+        var dirToMove = _fileSystem.DirectoryInfo.New("test");
+
+        var fs = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        Assert.False(delSuc);
+
+        fs.Dispose();
+    }
 
     [Fact]
     public void Test_Copy_ThrowsDirectoryNotFound()
