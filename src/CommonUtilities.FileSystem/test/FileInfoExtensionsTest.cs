@@ -85,25 +85,25 @@ public class FileInfoExtensionsTest
 
 
     [Fact]
-    public void Test_MoveTo_ThrowsFileNotFoundException()
+    public void Test_MoveToEx_ThrowsFileNotFoundException()
     {
         var fileToMove = _fileSystem.FileInfo.New("test.txt");
-        Assert.Throws<FileNotFoundException>(() => fileToMove.MoveTo("test.txt", false));
+        Assert.Throws<FileNotFoundException>(() => fileToMove.MoveToEx("test.txt", false));
     }
 
 
     [Fact]
-    public void Test_MoveTo_NoOverwrite_ThrowsIOException()
+    public void Test_MoveToEx_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
         _fileSystem.Initialize().WithFile("test1.txt");
 
         var fileToMove = _fileSystem.FileInfo.New("test.txt");
-        Assert.Throws<IOException>(() => fileToMove.MoveTo("test1.txt", false));
+        Assert.Throws<IOException>(() => fileToMove.MoveToEx("test1.txt", false));
     }
 
     [Fact]
-    public void Test_MoveTo_WithOverwrite()
+    public void Test_MoveToEx_WithOverwrite()
     {
 
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
@@ -111,22 +111,70 @@ public class FileInfoExtensionsTest
 
         var fileToMove = _fileSystem.FileInfo.New("test.txt");
 
-        fileToMove.MoveTo("test1.txt", true);
+        fileToMove.MoveToEx("test1.txt", true);
         Assert.Equal("1234", _fileSystem.File.ReadAllText("test1.txt"));
         Assert.False(_fileSystem.File.Exists("test.txt"));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_MoveTo_AcrossVolume_Windows()
+    public void Test_MoveToEx_AcrossVolume_Windows()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
         _fileSystem.Initialize().WithFile("test1.txt");
 
         var fileToMove = _fileSystem.FileInfo.New("test.txt");
-        fileToMove.MoveTo("D:\\test.txt", false);
+        fileToMove.MoveToEx("D:\\test.txt", false);
 
         Assert.True(_fileSystem.File.Exists("D:\\test.txt"));
         Assert.False(_fileSystem.File.Exists("test.txt"));
+    }
+
+    [Fact]
+    public void Test_CreateRandomHiddenTemporaryFile_DirectoryNotFound()
+    {
+        _fileSystem.Initialize();
+        Assert.Throws<DirectoryNotFoundException>(() => _fileSystem.File.CreateRandomHiddenTemporaryFile("test"));
+    }
+
+    [Fact]
+    public void Test_CreateRandomHiddenTemporaryFile_UseUserTempWhenPathIsNull()
+    {
+        _fileSystem.Initialize();
+        var fs = _fileSystem.File.CreateRandomHiddenTemporaryFile();
+        var tmp = _fileSystem.Path.GetTempPath();
+        Assert.StartsWith(tmp, fs.Name);
+
+        Assert.True(_fileSystem.File.GetAttributes(fs.Name).HasFlag(FileAttributes.Hidden));
+
+        fs.Write([1, 2, 3], 0, 3);
+        fs.Position = 0;
+        var output = new byte[3];
+        fs.Read(output, 0, 3);
+        Assert.Equal([1, 2, 3], output);
+        fs.Dispose();
+        Assert.False(_fileSystem.File.Exists(fs.Name));
+    }
+
+    [Fact]
+    public void Test_CreateRandomHiddenTemporaryFile()
+    {
+        _fileSystem.Initialize()
+            .WithSubdirectory("test");
+
+        var fs = _fileSystem.File.CreateRandomHiddenTemporaryFile("test");
+        var tmp = _fileSystem.Path.GetFullPath("test");
+
+        Assert.StartsWith(tmp, fs.Name);
+
+        Assert.True(_fileSystem.File.GetAttributes(fs.Name).HasFlag(FileAttributes.Hidden));
+
+        fs.Write([1, 2, 3], 0, 3);
+        fs.Position = 0;
+        var output = new byte[3];
+        fs.Read(output, 0, 3);
+        Assert.Equal([1, 2, 3], output);
+        fs.Dispose();
+        Assert.False(_fileSystem.File.Exists(fs.Name));
     }
 }
