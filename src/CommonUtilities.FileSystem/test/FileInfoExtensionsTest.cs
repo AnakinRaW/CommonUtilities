@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -52,18 +53,24 @@ public class FileInfoExtensionsTest
         var file2 = _fileSystem.FileInfo.New("text2.txt");
         file2.Attributes |= FileAttributes.ReadOnly;
 
-        var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
-        var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
-        Assert.Throws<IOException>(() => file1.DeleteWithRetry());
-        Assert.Throws<IOException>(() => _fileSystem.File.DeleteWithRetry(file2.FullName));
+        // https://github.com/dotnet/runtime/issues/52700
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Assert.Throws<IOException>(() => file1.DeleteWithRetry());
+            Assert.Throws<IOException>(() => _fileSystem.File.DeleteWithRetry(file2.FullName));
 
-        file1.Refresh();
-        file2.Refresh();
-        Assert.True(file1.Exists);
-        Assert.True(file2.Exists);
+            file1.Refresh();
+            file2.Refresh();
+            Assert.True(file1.Exists);
+            Assert.True(file2.Exists);
 
-        fs1.Dispose();
-        fs2.Dispose();
+            fs1.Dispose();
+            fs2.Dispose();
+        }
+
+
 
         file1.Refresh();
         file2.Refresh();
@@ -88,19 +95,22 @@ public class FileInfoExtensionsTest
         var file2 = _fileSystem.FileInfo.New("text2.txt");
         file2.Attributes |= FileAttributes.ReadOnly;
 
-        var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
-        var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
-        Assert.False(file1.TryDeleteWithRetry());
-        Assert.False(_fileSystem.File.TryDeleteWithRetry(file2.FullName));
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var fs1 = _fileSystem.FileStream.New(file1.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+            var fs2 = _fileSystem.FileStream.New(file2.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+            Assert.False(file1.TryDeleteWithRetry());
+            Assert.False(_fileSystem.File.TryDeleteWithRetry(file2.FullName));
 
-        file1.Refresh();
-        file2.Refresh();
-        Assert.True(file1.Exists);
-        Assert.True(file2.Exists);
+            file1.Refresh();
+            file2.Refresh();
+            Assert.True(file1.Exists);
+            Assert.True(file2.Exists);
 
-        fs1.Dispose();
-        fs2.Dispose();
-
+            fs1.Dispose();
+            fs2.Dispose();
+        }
+        
         file1.Refresh();
         file2.Refresh(); 
         Assert.True(file1.TryDeleteWithRetry());

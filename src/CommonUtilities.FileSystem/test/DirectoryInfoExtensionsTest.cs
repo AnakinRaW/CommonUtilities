@@ -24,6 +24,7 @@ public class DirectoryInfoExtensionsTest
         Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName, false));
 
         // https://github.com/Testably/Testably.Abstractions/issues/549
+        // and also https://github.com/dotnet/runtime/issues/52700
         //var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
         //Assert.Throws<IOException>(() => dir1.DeleteWithRetry());
         //Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName));
