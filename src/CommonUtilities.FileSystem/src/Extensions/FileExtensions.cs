@@ -234,7 +234,6 @@ public static class FileExtensions
     /// <summary>
     /// Tries to delete a file. 
     /// </summary>
-    /// <param name="_"></param>
     /// <param name="file">The file to delete.</param>
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
