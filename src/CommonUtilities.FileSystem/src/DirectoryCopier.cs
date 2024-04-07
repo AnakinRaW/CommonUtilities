@@ -161,33 +161,21 @@ public class DirectoryCopier
 
         _fileSystem.Directory.CreateDirectory(destination);
 
-        var fileCount = 0;
+        var queue = new ConcurrentQueue<CopyInformation>(GetFiles(source, destination, isMove, fileFilter));
 
-        using (var queue = new BlockingCollection<CopyInformation>())
+        var taskList = new List<Task>(concurrentWorkers);
+        for (var index = 0; index < concurrentWorkers; ++index)
         {
-            var taskList = new List<Task>(concurrentWorkers)
-            {
-                Task.Run(() =>
-                {
-                    AddFilesToQueue(queue, source, destination, isMove, fileFilter, ref fileCount);
-                    RunCopyTask(queue, ref fileCount, progress);
-                }, cancellationToken)
-            };
-
-            for (var index = 1; index < concurrentWorkers; ++index)
-            {
-                var task = Task.Run(() => RunCopyTask(queue, ref fileCount, progress), cancellationToken);
-                taskList.Add(task);
-            }
-
-            await Task.WhenAll(taskList);
+            var task = Task.Run(() => CopyOrMoveTaskOperation(queue, queue.Count, progress), cancellationToken);
+            taskList.Add(task);
         }
+
+        await Task.WhenAll(taskList);
 
         progress?.Report(1.0);
 
         return !isMove || _fileSystem.Directory.TryDeleteWithRetry(source);
     }
-
 
     private bool CopyOrMoveDirectory(
         string source,
@@ -216,32 +204,16 @@ public class DirectoryCopier
 
         var queue = new Queue<CopyInformation>(filesToCopy);
         var totalFileCount = queue.Count;
+
         while (queue.Count > 0)
         {
             var copyInformation = queue.Dequeue();
-            CopyOrMoveFile(copyInformation, queue.Count, ref totalFileCount, progress);
+            CopyOrMoveFile(copyInformation, queue.Count, totalFileCount, progress);
         }
 
         progress?.Report(1.0);
 
         return !isMove || _fileSystem.Directory.TryDeleteWithRetry(source);
-    }
-
-
-    private void AddFilesToQueue(BlockingCollection<CopyInformation> queue,
-        string source,
-        string destination,
-        bool isMove,
-        Predicate<string>? fileFilter,
-        ref int fileCount)
-    {
-        foreach (var copyInformation in GetFiles(source, destination, isMove, fileFilter))
-        {
-            ++fileCount;
-            queue.Add(copyInformation);
-        }
-
-        queue.CompleteAdding();
     }
 
     private IEnumerable<CopyInformation> GetFiles(string source, string destination, bool isMove, Predicate<string>? fileFilter)
@@ -263,14 +235,13 @@ public class DirectoryCopier
         }
     }
 
-
-    private void RunCopyTask(BlockingCollection<CopyInformation> queue, ref int fileCount, IProgress<double>? progress)
+    private void CopyOrMoveTaskOperation(ConcurrentQueue<CopyInformation> queue, int fileCount, IProgress<double>? progress)
     {
-        foreach (var copyInfo in queue.GetConsumingEnumerable())
-            CopyOrMoveFile(copyInfo, queue.Count, ref fileCount, progress);
+        while (queue.TryDequeue(out var copyInfo)) 
+            CopyOrMoveFile(copyInfo, queue.Count, fileCount, progress);
     }
 
-    private void CopyOrMoveFile(CopyInformation copyInfo, int remainingFileCount, ref int totalFileCount, IProgress<double>? progress)
+    private void CopyOrMoveFile(CopyInformation copyInfo, int remainingFileCount, int totalFileCount, IProgress<double>? progress)
     {
         var source = copyInfo.SourceFile;
         var destination = copyInfo.DestinationFile;
