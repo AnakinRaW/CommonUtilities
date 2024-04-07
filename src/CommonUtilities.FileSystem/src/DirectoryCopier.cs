@@ -88,7 +88,7 @@ internal class DirectoryCopier
         var localFilePath = fileToCopy.FullName.Substring(source.FullName.Length + 1);
         var newFilePath = _fileSystem.Path.Combine(destination, localFilePath);
         CreateDirectoryOfFile(newFilePath);
-        var currentProgress = (totalFileCount - remainingFileCount) / totalFileCount;
+        var currentProgress = (totalFileCount - remainingFileCount) / (double)totalFileCount;
         if (copyInfo.IsMove && InvokeMoveOperation(fileToCopy, newFilePath))
         {
             _progress?.Report(currentProgress);
