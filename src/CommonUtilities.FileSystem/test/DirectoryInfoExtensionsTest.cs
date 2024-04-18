@@ -8,7 +8,6 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class DirectoryInfoExtensionsTest
 {
-
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
@@ -16,21 +15,61 @@ public class DirectoryInfoExtensionsTest
     {
         _fileSystem.Initialize()
             .WithFile("test/text1.txt")
-            .WithSubdirectory("/test1");
+            .WithSubdirectory("test1");
 
         var dir1 = _fileSystem.DirectoryInfo.New("test");
         var dir2 = _fileSystem.DirectoryInfo.New("test1");
 
-
         Assert.Throws<IOException>(() => dir1.DeleteWithRetry(false));
+        Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName, false));
+
+        // https://github.com/Testably/Testably.Abstractions/issues/549
+        // and also https://github.com/dotnet/runtime/issues/52700
+        //var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
+        //Assert.Throws<IOException>(() => dir1.DeleteWithRetry());
+        //Assert.Throws<IOException>(() => _fileSystem.Directory.DeleteWithRetry(dir1.FullName));
+
+        //fs.Dispose();
+
         dir1.DeleteWithRetry();
-        dir2.DeleteWithRetry();
+        _fileSystem.Directory.DeleteWithRetry(dir2.FullName);
 
         dir1.Refresh();
         dir2.Refresh();
 
         Assert.False(dir1.Exists);
         Assert.False(dir2.Exists);
+    }
+
+    [Fact]
+    public void Test_TryDeleteWithRetry()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/text1.txt")
+            .WithSubdirectory("test1");
+
+        var dir1 = _fileSystem.DirectoryInfo.New("test");
+        var dir2 = _fileSystem.DirectoryInfo.New("test1");
+
+        Assert.False(dir1.TryDeleteWithRetry(false));
+        Assert.False(_fileSystem.Directory.TryDeleteWithRetry(dir1.FullName, false));
+
+        var fs = _fileSystem.FileStream.New("test/text1.txt", FileMode.Open);
+        Assert.False(dir1.TryDeleteWithRetry(false));
+        Assert.False(_fileSystem.Directory.TryDeleteWithRetry(dir1.FullName, false));
+
+        fs.Dispose();
+        dir1.TryDeleteWithRetry();
+        _fileSystem.Directory.TryDeleteWithRetry(dir2.FullName);
+
+        Assert.True(dir1.TryDeleteWithRetry());
+        Assert.True(_fileSystem.Directory.TryDeleteWithRetry(dir2.FullName));
+
+        dir1.Refresh();
+        dir2.Refresh();
+
+        Assert.True(!dir1.Exists);
+        Assert.True(!dir2.Exists);
     }
 
     [Fact]
@@ -60,7 +99,9 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub/5.txt").Which(f => f.HasStringContent("5"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/sub/4.txt").Which(f => f.HasStringContent("4"));
 
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
@@ -69,7 +110,10 @@ public class DirectoryInfoExtensionsTest
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/5.txt"));
     }
 
     [Fact]
@@ -78,7 +122,10 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub1/4.txt").Which(f => f.HasStringContent("4"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/2.txt").Which(f => f.HasStringContent("99"))
+            .WithFile("other/sub/5.txt").Which(f => f.HasStringContent("5"));
 
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
@@ -87,7 +134,8 @@ public class DirectoryInfoExtensionsTest
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(5, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.Equal("2", _fileSystem.File.ReadAllText("other/2.txt"));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -101,7 +149,7 @@ public class DirectoryInfoExtensionsTest
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
         dirToMove.MoveToEx("D:\\test", null, DirectoryOverwriteOption.NoOverwrite);
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\test").GetFiles("*").Length);
+        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\test").GetFiles("*", SearchOption.AllDirectories).Length);
     }
 
     [Fact]
@@ -125,6 +173,23 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
+    public void Test_MoveToEx_CannotDeleteSource()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
+            .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+
+        var dirToMove = _fileSystem.DirectoryInfo.New("test");
+
+        var fs = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var delSuc = dirToMove.MoveToEx("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        Assert.False(delSuc);
+
+        fs.Dispose();
+    }
 
 
     [Fact]
@@ -155,7 +220,9 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub/5.txt").Which(f => f.HasStringContent("5"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/sub/4.txt").Which(f => f.HasStringContent("4"));
 
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
@@ -164,7 +231,10 @@ public class DirectoryInfoExtensionsTest
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/5.txt"));
     }
 
     [Fact]
@@ -173,7 +243,10 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub1/4.txt").Which(f => f.HasStringContent("4"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/2.txt").Which(f => f.HasStringContent("99"))
+            .WithFile("other/sub/5.txt").Which(f => f.HasStringContent("5"));
 
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
@@ -182,7 +255,8 @@ public class DirectoryInfoExtensionsTest
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(5, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.Equal("2", _fileSystem.File.ReadAllText("other/2.txt"));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -196,7 +270,7 @@ public class DirectoryInfoExtensionsTest
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
         await dirToMove.MoveToAsync("D:\\test", null, DirectoryOverwriteOption.NoOverwrite);
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\test").GetFiles("*").Length);
+        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\test").GetFiles("*", SearchOption.AllDirectories).Length);
     }
 
     [Fact]
@@ -220,6 +294,23 @@ public class DirectoryInfoExtensionsTest
         Assert.Equal(1.0, progressValue);
     }
 
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
+    public async void Test_MoveToAsync_CannotDeleteSource()
+    {
+        _fileSystem.Initialize()
+            .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
+            .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+
+        var dirToMove = _fileSystem.DirectoryInfo.New("test");
+
+        var fs = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        Assert.False(delSuc);
+
+        fs.Dispose();
+    }
 
     [Fact]
     public void Test_Copy_ThrowsDirectoryNotFound()
@@ -247,14 +338,19 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub/5.txt").Which(f => f.HasStringContent("5"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/sub/4.txt").Which(f => f.HasStringContent("4"));
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
         dirToCopy.Copy("other", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/5.txt"));
     }
 
     [Fact]
@@ -263,14 +359,18 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub1/4.txt").Which(f => f.HasStringContent("4"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/2.txt").Which(f => f.HasStringContent("99"))
+            .WithFile("other/sub/5.txt").Which(f => f.HasStringContent("5"));
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
         dirToCopy.Copy("other", null, DirectoryOverwriteOption.MergeOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(5, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.Equal("2", _fileSystem.File.ReadAllText("other/2.txt"));
     }
 
 
@@ -287,7 +387,7 @@ public class DirectoryInfoExtensionsTest
         dirToCopy.Copy("D:\\other", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("D:\\other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\other").GetFiles("*").Length);
+        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\other").GetFiles("*", SearchOption.AllDirectories).Length);
     }
 
     [Fact]
@@ -316,14 +416,19 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub/5.txt").Which(f => f.HasStringContent("5"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/sub/4.txt").Which(f => f.HasStringContent("4"));
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
         await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.True(_fileSystem.File.Exists("other/1.txt"));
+        Assert.True(_fileSystem.File.Exists("other/2.txt"));
+        Assert.True(_fileSystem.File.Exists("other/sub/5.txt"));
     }
 
     [Fact]
@@ -332,14 +437,18 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
             .WithFile("test/2.txt").Which(f => f.HasStringContent("2"))
-            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"));
+            .WithFile("test/sub1/4.txt").Which(f => f.HasStringContent("4"))
+            .WithFile("other/3.txt").Which(f => f.HasStringContent("3"))
+            .WithFile("other/2.txt").Which(f => f.HasStringContent("99"))
+            .WithFile("other/sub/5.txt").Which(f => f.HasStringContent("5"));
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
         await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.MergeOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
-        Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*").Length);
+        Assert.Equal(5, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
+        Assert.Equal("2", _fileSystem.File.ReadAllText("other/2.txt"));
     }
 
 
@@ -356,7 +465,7 @@ public class DirectoryInfoExtensionsTest
         await dirToCopy.CopyAsync("D:\\other", null, DirectoryOverwriteOption.CleanOverwrite);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("D:\\other"));
-        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\other").GetFiles("*").Length);
+        Assert.Equal(2, _fileSystem.DirectoryInfo.New("D:\\other").GetFiles("*", SearchOption.AllDirectories).Length);
     }
 
 

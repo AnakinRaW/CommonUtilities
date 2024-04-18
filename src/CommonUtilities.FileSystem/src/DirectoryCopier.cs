@@ -3,109 +3,269 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.FileSystem;
 
-internal class DirectoryCopier
+/// <summary>
+/// Service to copy and move directories with progress, file selection callback and cancellation.
+/// </summary>
+public class DirectoryCopier
 {
     private readonly IFileSystem _fileSystem;
-    private readonly IProgress<double>? _progress;
-    private int MaximumConcurrency { get; }
 
-    public DirectoryCopier(IFileSystem fileSystem, IProgress<double>? progress, int maximumConcurrency = 1)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DirectoryCopier"/> class.
+    /// </summary>
+    /// <param name="fileSystem">The file system.</param>
+    public DirectoryCopier(IFileSystem fileSystem)
     {
-        _fileSystem = fileSystem;
-        _progress = progress;
-        MaximumConcurrency = maximumConcurrency;
-        if (MaximumConcurrency <= 0)
-            throw new InvalidOperationException("MaximumConcurrency must be greater than zero");
+        _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     }
 
-    public void CopyDirectory(IDirectoryInfo source, string destination, bool isMove)
+    /// <summary>
+    /// Copies a directory to a different location.
+    /// </summary>
+    /// <param name="source">The source directory.</param>
+    /// <param name="destination">The new location.</param>
+    /// <param name="progress">Progress of the operation in percent ranging from 0.0 to 1.0. This argument is optional.</param>
+    /// <param name="fileFilter">A callback to filter whether a file shall be copied.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> or <paramref name="destination"/> is an empty string.</exception>
+    /// <exception cref="DirectoryNotFoundException"> <paramref name="source"/> was not found.</exception>
+    public void CopyDirectory(
+        string source,
+        string destination, 
+        IProgress<double>? progress = null,
+        Predicate<string>? fileFilter = null)
     {
-        var filesToCopy = source.GetFiles("*", SearchOption.AllDirectories)
-            .Select(f => new CopyInformation { File = f, IsMove = isMove })
-            .ToList();
-        var totalFileCount = filesToCopy.Count;
-        var queue = new Queue<CopyInformation>(filesToCopy);
-        while (queue.Count > 0)
-        {
-            var copyInformation = queue.Dequeue();
-            CopyFile(source, copyInformation, destination, queue.Count, ref totalFileCount);
-        }
+        CopyOrMoveDirectory(source, destination, progress, fileFilter, false);
     }
 
-    public async Task CopyDirectoryAsync(IDirectoryInfo source, string destination, bool isMove, CancellationToken cancellationToken)
+    /// <summary>
+    /// Moves a directory to a new location. This method works also when moving directories across drives.
+    /// </summary>
+    /// <param name="source">The directory or directory.</param>
+    /// <param name="destination">The new location.</param>
+    /// <param name="progress">Progress of the operation in percent ranging from 0.0 to 1.0. This argument is optional.</param>
+    /// <param name="fileFilter">A callback to filter whether a file shall be copied.</param>
+    /// <returns><see langowrd="true"/> <paramref name="source"/> was successfully deleted; otherwise, <see langowrd="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> or <paramref name="destination"/> is an empty string.</exception>
+    /// <exception cref="DirectoryNotFoundException"> <paramref name="source"/> was not found.</exception>
+    public bool MoveDirectory(
+        string source,
+        string destination,
+        IProgress<double>? progress = null,
+        Predicate<string>? fileFilter = null)
     {
+        return CopyOrMoveDirectory(source, destination, progress, fileFilter, true);
+    }
+
+    /// <summary>
+    /// Copies a directory to a new location. This method works also when moving directories across drives.
+    /// </summary>
+    /// <param name="source">The directory or directory.</param>
+    /// <param name="destination">The new location.</param>
+    /// <param name="progress">Progress of the operation in percent ranging from 0.0 to 1.0. This argument is optional.</param>
+    /// <param name="fileFilter">A callback to filter whether a file shall be copied.</param>
+    /// <param name="concurrentWorkers">The number of tasks parallel tasks performing the operation.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> or <paramref name="destination"/> is an empty string.</exception>
+    /// <exception cref="ArgumentException"><paramref name="concurrentWorkers"/> is zero or negative.</exception>
+    /// <exception cref="DirectoryNotFoundException"><paramref name="source"/> was not found.</exception>
+    /// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+    public Task CopyDirectoryAsync(
+        string source,
+        string destination,
+        IProgress<double>? progress = null,
+        Predicate<string>? fileFilter = null,
+        int concurrentWorkers = 2, 
+        CancellationToken cancellationToken = default)
+    {
+        return CopyOrMoveDirectoryAsync(
+            source, destination,
+            false,
+            progress,
+            fileFilter, 
+            concurrentWorkers,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Moves a directory to a new location. This method works also when moving directories across drives.
+    /// </summary>
+    /// <remarks>The overwrite functionality may cause data losses of the destination if the operation fails.</remarks>
+    /// <param name="source">The directory or directory.</param>
+    /// <param name="destination">The new location.</param>
+    /// <param name="progress">Progress of the operation in percent ranging from 0.0 to 1.0. This argument is optional.</param>
+    /// <param name="fileFilter">A callback to filter whether a file shall be copied.</param>
+    /// <param name="concurrentWorkers">The number of tasks parallel tasks performing the operation.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous move operation and wraps the status information whether <paramref name="source"/> was successfully deleted.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> or <paramref name="destination"/> is an empty string.</exception>
+    /// <exception cref="ArgumentException"><paramref name="concurrentWorkers"/> is zero or negative.</exception>
+    /// <exception cref="DirectoryNotFoundException"><paramref name="source"/> was not found.</exception>
+    /// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+    public Task<bool> MoveDirectoryAsync(
+        string source,
+        string destination,
+        IProgress<double>? progress = null,
+        Predicate<string>? fileFilter = null,
+        int concurrentWorkers = 2,
+        CancellationToken cancellationToken = default)
+    {
+        return CopyOrMoveDirectoryAsync(
+            source, destination,
+            true,
+            progress,
+            fileFilter,
+            concurrentWorkers,
+            cancellationToken);
+    }
+
+    private async Task<bool> CopyOrMoveDirectoryAsync(
+        string source,
+        string destination,
+        bool isMove,
+        IProgress<double>? progress,
+        Predicate<string>? fileFilter,
+        int concurrentWorkers,
+        CancellationToken cancellationToken = default)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+        if (string.IsNullOrEmpty(source))
+            throw new ArgumentException(nameof(source));
+        if (destination == null)
+            throw new ArgumentNullException(nameof(destination));
+        if (string.IsNullOrEmpty(destination))
+            throw new ArgumentException(nameof(destination));
+        
+        if (concurrentWorkers <= 0)
+            throw new ArgumentException("concurrentWorkers must be greater than zero", nameof(concurrentWorkers));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        source = _fileSystem.Path.GetFullPath(source);
+        destination = _fileSystem.Path.GetFullPath(destination);
+
+        if (!_fileSystem.Directory.Exists(source))
+            throw new DirectoryNotFoundException($"Source directory '{source}' not found");
+
+        progress?.Report(0.0);
+
         _fileSystem.Directory.CreateDirectory(destination);
-        var fileCount = 0;
-        using BlockingCollection<CopyInformation> queue = new();
-        List<Task> taskList = new(MaximumConcurrency)
+
+        var queue = new ConcurrentQueue<CopyInformation>(GetFiles(source, destination, isMove, fileFilter));
+
+        var taskList = new List<Task>(concurrentWorkers);
+        for (var index = 0; index < concurrentWorkers; ++index)
         {
-            Task.Run(() => EnumerateFiles(source, destination, queue, isMove, ref fileCount), cancellationToken)
-        };
-        for (var index = 1; index < MaximumConcurrency; ++index)
-        {
-            var task = Task.Run(() => RunCopyTask(source, destination, queue, ref fileCount), cancellationToken);
+            var task = Task.Run(() => CopyOrMoveTaskOperation(queue, queue.Count, progress), cancellationToken);
             taskList.Add(task);
         }
 
         await Task.WhenAll(taskList);
+
+        progress?.Report(1.0);
+
+        return !isMove || _fileSystem.Directory.TryDeleteWithRetry(source);
     }
 
-    private void EnumerateFiles(IDirectoryInfo source, string destination,
-        BlockingCollection<CopyInformation> queue, bool isMove, ref int fileCount)
+    private bool CopyOrMoveDirectory(
+        string source,
+        string destination,
+        IProgress<double>? progress,
+        Predicate<string>? fileFilter, bool isMove)
     {
-        foreach (var file in source.GetFiles("*", SearchOption.AllDirectories))
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+        if (string.IsNullOrEmpty(source))
+            throw new ArgumentException(nameof(source));
+        if (destination == null)
+            throw new ArgumentNullException(nameof(destination));
+        if (string.IsNullOrEmpty(destination))
+            throw new ArgumentException(nameof(destination));
+
+        source = _fileSystem.Path.GetFullPath(source);
+        destination = _fileSystem.Path.GetFullPath(destination);
+
+        if (!_fileSystem.Directory.Exists(source))
+            throw new DirectoryNotFoundException($"Source directory '{source}' not found");
+
+        progress?.Report(0.0);
+
+        var filesToCopy = GetFiles(source, destination, isMove, fileFilter);
+
+        var queue = new Queue<CopyInformation>(filesToCopy);
+        var totalFileCount = queue.Count;
+
+        while (queue.Count > 0)
         {
-            var copyInformation = new CopyInformation
-            {
-                File = file,
-                IsMove = isMove
-            };
-            ++fileCount;
-            queue.Add(copyInformation);
+            var copyInformation = queue.Dequeue();
+            CopyOrMoveFile(copyInformation, queue.Count, totalFileCount, progress);
         }
 
-        queue.CompleteAdding();
-        RunCopyTask(source, destination, queue, ref fileCount);
+        progress?.Report(1.0);
+
+        return !isMove || _fileSystem.Directory.TryDeleteWithRetry(source);
     }
 
-
-    private void RunCopyTask(IDirectoryInfo source, string destination, BlockingCollection<CopyInformation> queue, ref int fileCount)
+    private IEnumerable<CopyInformation> GetFiles(string source, string destination, bool isMove, Predicate<string>? fileFilter)
     {
-        foreach (var copyInfo in queue.GetConsumingEnumerable())
-            CopyFile(source, copyInfo, destination, queue.Count, ref fileCount);
-    }
-
-    private void CopyFile(IDirectoryInfo source, CopyInformation copyInfo, string destination,
-        int remainingFileCount, ref int totalFileCount)
-    {
-        var fileToCopy = copyInfo.File;
-        var localFilePath = fileToCopy.FullName.Substring(source.FullName.Length + 1);
-        var newFilePath = _fileSystem.Path.Combine(destination, localFilePath);
-        CreateDirectoryOfFile(newFilePath);
-        var currentProgress = (totalFileCount - remainingFileCount) / totalFileCount;
-        if (copyInfo.IsMove && InvokeMoveOperation(fileToCopy, newFilePath))
+        foreach (var file in _fileSystem.Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
-            _progress?.Report(currentProgress);
+            if (fileFilter is not null && !fileFilter(file))
+                continue;
+
+            var localFilePath = file.Substring(source.Length + 1); // +1 for the trailing directory separator
+            var destinationPath = _fileSystem.Path.Combine(destination, localFilePath);
+
+            yield return new CopyInformation
+            {
+                SourceFile = file,
+                DestinationFile = destinationPath,
+                IsMove = isMove
+            };
+        }
+    }
+
+    private void CopyOrMoveTaskOperation(ConcurrentQueue<CopyInformation> queue, int fileCount, IProgress<double>? progress)
+    {
+        while (queue.TryDequeue(out var copyInfo)) 
+            CopyOrMoveFile(copyInfo, queue.Count, fileCount, progress);
+    }
+
+    private void CopyOrMoveFile(CopyInformation copyInfo, int remainingFileCount, int totalFileCount, IProgress<double>? progress)
+    {
+        var source = copyInfo.SourceFile;
+        var destination = copyInfo.DestinationFile;
+
+        CreateDirectoryOfFile(destination);
+        var currentProgress = (totalFileCount - remainingFileCount) / (double)totalFileCount;
+
+        if (copyInfo.IsMove && MoveFile(source, destination))
+        {
+            progress?.Report(currentProgress);
         }
         else
         {
-            if (InvokeCopyOperation(fileToCopy, newFilePath) && copyInfo.IsMove)
-                InvokeDeleteOperation(fileToCopy);
-            _progress?.Report(currentProgress);
+            if (CopyFile(source, destination) && copyInfo.IsMove)
+                DeleteFile(source);
+            progress?.Report(currentProgress);
         }
     }
 
-    private bool InvokeCopyOperation(IFileInfo sourcePath, string destinationPath)
+    private bool CopyFile(string sourcePath, string destinationPath)
     {
         try
         {
-            sourcePath.CopyWithRetry(destinationPath);
+            _fileSystem.File.CopyWithRetry(sourcePath, destinationPath);
             return true;
         }
         catch (Exception)
@@ -114,11 +274,11 @@ internal class DirectoryCopier
         }
     }
 
-    private void InvokeDeleteOperation(IFileInfo sourcePath)
+    private void DeleteFile(string sourcePath)
     {
         try
         {
-            sourcePath.DeleteWithRetry();
+            _fileSystem.File.DeleteWithRetry(sourcePath);
         }
         catch
         {
@@ -126,11 +286,11 @@ internal class DirectoryCopier
         }
     }
 
-    private bool InvokeMoveOperation(IFileInfo sourcePath, string destinationPath)
+    private bool MoveFile(string sourcePath, string destinationPath)
     {
         try
         {
-            sourcePath.MoveWithRetry(destinationPath);
+            _fileSystem.File.MoveWithRetry(sourcePath, destinationPath);
             return true;
         }
         catch (Exception)
@@ -141,15 +301,13 @@ internal class DirectoryCopier
 
     private void CreateDirectoryOfFile(string filePath)
     {
-        var directoryPath = _fileSystem.Path.GetDirectoryName(filePath);
-        if (string.IsNullOrEmpty(directoryPath))
-            return;
-        _fileSystem.Directory.CreateDirectory(directoryPath!);
+        _fileSystem.Directory.CreateDirectory(_fileSystem.Path.GetDirectoryName(filePath)!);
     }
 
-    private struct CopyInformation
+    private readonly struct CopyInformation
     {
-        public IFileInfo File;
-        public bool IsMove;
+        public string SourceFile { get; init; }
+        public string DestinationFile { get; init; }
+        public bool IsMove { get; init; }
     }
 }
