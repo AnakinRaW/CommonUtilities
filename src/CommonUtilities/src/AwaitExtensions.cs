@@ -1,5 +1,4 @@
-﻿#if !NET5_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ public static class AwaitExtensions
     /// </param>
     /// <returns>A task whose result is the <see cref="Process.ExitCode"/> of the <paramref name="process"/>.</returns>
     // From https://github.com/dotnet/runtime
-    public static async Task<int> WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
+    public static async Task<int> WaitForExitAsyncEx(this Process process, CancellationToken cancellationToken = default)
     {
         if (process == null)
             throw new ArgumentNullException(nameof(process));
@@ -50,9 +49,7 @@ public static class AwaitExtensions
                 return process.ExitCode;
 
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
-            {
                 return await tcs.Task.ConfigureAwait(false);
-            }
         }
         finally
         {
@@ -60,4 +57,3 @@ public static class AwaitExtensions
         }
     }
 }
-#endif

@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// <summary>
 /// Runner engine, which executes all queued steps parallel.
 /// </summary>
-public class ParallelRunner: StepRunner, IParallelRunner
+public class ParallelRunner: StepRunner, ISynchronizedRunner
 {
     private readonly ConcurrentBag<Exception> _exceptions;
     private readonly Task[] _tasks;
@@ -38,6 +38,13 @@ public class ParallelRunner: StepRunner, IParallelRunner
         WorkerCount = workerCount;
         _exceptions = new ConcurrentBag<Exception>();
         _tasks = new Task[workerCount];
+    }
+
+    /// <inheritdoc/>
+    public override Task RunAsync(CancellationToken token)
+    {
+        Invoke(token);
+        return Task.WhenAll(_tasks);
     }
 
     /// <inheritdoc/>
@@ -75,6 +82,7 @@ public class ParallelRunner: StepRunner, IParallelRunner
         var canceled = false;
         while (StepQueue.TryDequeue(out var step))
         {
+            ThrowIfDisposed();
             try
             {
                 ThrowIfCancelled(_cancel);

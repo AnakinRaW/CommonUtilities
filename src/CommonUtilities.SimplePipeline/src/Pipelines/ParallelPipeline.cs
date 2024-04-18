@@ -5,7 +5,6 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// A simple pipeline that runs all steps on the thread pool in parallel.
-/// The <see cref="Pipeline.Run"/> will block until the pipeline has finished all steps.
 /// </summary>
 public abstract class ParallelPipeline : SimplePipeline<ParallelRunner>
 {
@@ -26,18 +25,5 @@ public abstract class ParallelPipeline : SimplePipeline<ParallelRunner>
     protected sealed override ParallelRunner CreateRunner()
     {
         return new ParallelRunner(_workerCount, ServiceProvider);
-    }
-
-    /// <inheritdoc/>
-    protected sealed override void OnRunning(ParallelRunner buildRunner)
-    {
-        try
-        {
-            buildRunner.Wait();
-        }
-        catch
-        {
-            // Ignore
-        }
     }
 }

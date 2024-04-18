@@ -1,6 +1,4 @@
-﻿#if !NET5_0_OR_GREATER
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -16,7 +14,7 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task Test_WaitForExitAsync_NullArgument()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsyncEx(null!));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -28,7 +26,7 @@ public class AwaitExtensionsTests
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
-        var exitCode = await p.WaitForExitAsync();
+        var exitCode = await p.WaitForExitAsyncEx();
         Assert.Equal(55, exitCode);
     }
 
@@ -42,7 +40,7 @@ public class AwaitExtensionsTests
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
         p.WaitForExit();
-        var t = p.WaitForExitAsync();
+        var t = p.WaitForExitAsyncEx();
         Assert.True(t.IsCompleted);
         Assert.Equal(55, t.Result);
     }
@@ -54,7 +52,7 @@ public class AwaitExtensionsTests
         var process = new Process();
         process.StartInfo.FileName = processName;
         process.StartInfo.CreateNoWindow = true;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsyncEx());
     }
 
     [Fact]
@@ -65,7 +63,7 @@ public class AwaitExtensionsTests
         var p = Process.Start(new ProcessStartInfo(processName) { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
         try
         {
-            var t = p.WaitForExitAsync();
+            var t = p.WaitForExitAsyncEx();
             Assert.False(t.IsCompleted);
             p.Kill();
             var exitCode = await t;
@@ -94,7 +92,7 @@ public class AwaitExtensionsTests
         try
         {
             var cts = new CancellationTokenSource();
-            var t = p.WaitForExitAsync(cts.Token);
+            var t = p.WaitForExitAsyncEx(cts.Token);
             Assert.False(t.IsCompleted);
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(() => t);
@@ -105,4 +103,3 @@ public class AwaitExtensionsTests
         }
     }
 }
-#endif

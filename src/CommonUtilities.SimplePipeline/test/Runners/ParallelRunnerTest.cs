@@ -36,7 +36,7 @@ public class ParallelRunnerTest
         });
 
 
-        runner.Run(default);
+        _ = runner.RunAsync(default);
         runner.Wait();
 
         Assert.True(ran1);
@@ -44,7 +44,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void Test_Run_NoWait()
+    public async Task Test_Run_NoWait()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -71,14 +71,19 @@ public class ParallelRunnerTest
         });
 
 
-        runner.Run(default);
+        var runTask = runner.RunAsync(default);
         Assert.False(ran1);
         Assert.False(ran2);
         b.Set();
+
+        await runTask;
+
+        Assert.True(ran1);
+        Assert.True(ran2);
     }
 
     [Fact]
-    public void Test_Wait_Timeout_ThrowsTimeoutException()
+    public async Task Test_Wait_Timeout_ThrowsTimeoutException()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -94,13 +99,16 @@ public class ParallelRunnerTest
             b.WaitOne();
         });
 
-        runner.Run(default);
+        var runnerTask = runner.RunAsync(default);
+
         Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromMilliseconds(100)));
         b.Set();
+
+        await runnerTask;
     }
 
     [Fact]
-    public void Test_Run_WithError()
+    public async Task Test_Run_WithError()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
@@ -119,8 +127,7 @@ public class ParallelRunnerTest
         }).Throws<Exception>();
 
         runner.AddStep(step.Object);
-        runner.Run(default);
-        runner.Wait(Timeout.InfiniteTimeSpan);
+        await runner.RunAsync(default);
 
         Assert.True(hasError);
         Assert.True(ran);
@@ -128,7 +135,7 @@ public class ParallelRunnerTest
     }
 
     [Fact]
-    public void Test_Run_Cancelled()
+    public async Task Test_Run_Cancelled()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(1, sc.BuildServiceProvider());
@@ -159,8 +166,7 @@ public class ParallelRunnerTest
 
         runner.AddStep(t1.Object);
         runner.AddStep(t2.Object);
-        runner.Run(cts.Token);
-        runner.Wait(Timeout.InfiniteTimeSpan);
+        await runner.RunAsync(cts.Token);
 
         Assert.True(hasError);
         Assert.True(ran);

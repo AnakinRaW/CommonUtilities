@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// <summary>
 /// Runner engine, which executes all queued <see cref="IStep"/> sequentially in the order they are queued. 
 /// </summary>
-public class StepRunner : IRunner
+public class StepRunner : DisposableObject, IRunner
 {
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
@@ -35,7 +35,7 @@ public class StepRunner : IRunner
     /// <summary>
     /// List of all steps scheduled for execution.
     /// </summary>
-    /// <remarks>Steps queued *after* <see cref="Run"/> was called, are not included.</remarks>
+    /// <remarks>Steps queued *after* <see cref="RunAsync"/> was called, are not included.</remarks>
     public IReadOnlyList<IStep> Steps => new ReadOnlyCollection<IStep>(StepList);
 
     internal bool IsCancelled { get; private set; }
@@ -54,9 +54,12 @@ public class StepRunner : IRunner
     }
 
     /// <inheritdoc/>
-    public void Run(CancellationToken token)
+    public virtual Task RunAsync(CancellationToken token)
     {
-        Invoke(token);
+        return Task.Run(() =>
+        {
+            Invoke(token);
+        }, default);
     }
 
     /// <inheritdoc/>
@@ -65,17 +68,6 @@ public class StepRunner : IRunner
         if (activity == null)
             throw new ArgumentNullException(nameof(activity));
         StepQueue.Enqueue(activity);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<IStep> GetEnumerator()
-    {
-        return StepList.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return StepList.GetEnumerator();
     }
 
     /// <summary>
@@ -88,6 +80,7 @@ public class StepRunner : IRunner
         StepList.AddRange(StepQueue);
         while (StepQueue.TryDequeue(out var step))
         {
+            ThrowIfDisposed();
             try
             {
                 ThrowIfCancelled(token);
@@ -142,5 +135,13 @@ public class StepRunner : IRunner
         token.ThrowIfCancellationRequested();
         if (IsCancelled)
             throw new OperationCanceledException(token);
+    }
+
+    /// <inheritdoc/>
+    protected override void DisposeManagedResources()
+    {
+        base.DisposeManagedResources();
+        foreach (var step in Steps) 
+            step.Dispose();
     }
 }

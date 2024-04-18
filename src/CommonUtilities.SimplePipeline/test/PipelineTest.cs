@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -9,71 +10,71 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class PipelineTest
 {
     [Fact]
-    public void Test_Prepare()
+    public async Task Test_Prepare()
     {
         var pipeline = new Mock<Pipeline>
         {
             CallBase = true
         };
 
-        pipeline.Object.Prepare();
-        pipeline.Object.Prepare();
+        await pipeline.Object.PrepareAsync();
+        await pipeline.Object.PrepareAsync();
 
-        pipeline.Protected().Verify("PrepareCore", Times.Exactly(1));
+        pipeline.Protected().Verify<Task<bool>>("PrepareCoreAsync", Times.Exactly(1));
     }
 
     [Fact]
-    public void Test_Run()
+    public async Task Test_Run()
     {
         var pipeline = new Mock<Pipeline>
         {
             CallBase = true
         };
 
-        pipeline.Protected().Setup<bool>("PrepareCore").Returns(true);
+        pipeline.Protected().Setup<Task<bool>>("PrepareCoreAsync").Returns(Task.FromResult(true));
         
-        pipeline.Object.Run();
-        pipeline.Object.Run();
+        await pipeline.Object.RunAsync();
+        await pipeline.Object.RunAsync();
 
-        pipeline.Protected().Verify<bool>("PrepareCore", Times.Exactly(1));
-        pipeline.Protected().Verify("RunCore", Times.Exactly(2), false, (CancellationToken) default);
+        pipeline.Protected().Verify<Task<bool>>("PrepareCoreAsync", Times.Exactly(1));
+        pipeline.Protected().Verify("RunCoreAsync", Times.Exactly(2), false, (CancellationToken) default);
     }
 
     [Fact]
-    public void Test_Prepare_Run()
+    public async Task Test_Prepare_Run()
     {
         var pipeline = new Mock<Pipeline>
         {
             CallBase = true
         };
 
-        pipeline.Protected().Setup<bool>("PrepareCore").Returns(true);
+        pipeline.Protected().Setup<Task<bool>>("PrepareCoreAsync").Returns(Task.FromResult(true));
 
-        pipeline.Object.Prepare();
-        pipeline.Object.Run();
-        pipeline.Object.Run();
+        await pipeline.Object.PrepareAsync();
+        await pipeline.Object.RunAsync();
+        await pipeline.Object.RunAsync();
 
-        pipeline.Protected().Verify<bool>("PrepareCore", Times.Exactly(1));
-        pipeline.Protected().Verify("RunCore", Times.Exactly(2), false, (CancellationToken)default);
+        pipeline.Protected().Verify<Task<bool>>("PrepareCoreAsync", Times.Exactly(1));
+        pipeline.Protected().Verify("RunCoreAsync", Times.Exactly(2), false, (CancellationToken)default);
     }
 
     [Fact]
-    public void Test_Run_Cancelled_ThrowsOperationCanceledException()
+    public async Task Test_Run_Cancelled_ThrowsOperationCanceledException()
     {
         var pipeline = new Mock<Pipeline>
         {
             CallBase = true
         };
 
-        pipeline.Protected().Setup<bool>("PrepareCore").Returns(true);
+        pipeline.Protected().Setup<Task<bool>>("PrepareCoreAsync").Returns(Task.FromResult(true));
 
         var cts = new CancellationTokenSource();
         cts.Cancel();
-        Assert.Throws<OperationCanceledException>(() => pipeline.Object.Run(cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await pipeline.Object.RunAsync(cts.Token));
     }
 
     [Fact]
-    public void Test_Prepare_Disposed_ThrowsObjectDisposedException()
+    public async Task Test_Prepare_Disposed_ThrowsObjectDisposedException()
     {
         var pipeline = new Mock<Pipeline>
         {
@@ -83,20 +84,20 @@ public class PipelineTest
         pipeline.Object.Dispose();
         pipeline.Object.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => pipeline.Object.Prepare());
+        await Assert.ThrowsAsync<ObjectDisposedException>(async() => await pipeline.Object.PrepareAsync());
     }
 
     [Fact]
-    public void Test_Run_Disposed_ThrowsObjectDisposedException()
+    public async Task Test_Run_Disposed_ThrowsObjectDisposedException()
     {
         var pipeline = new Mock<Pipeline>
         {
             CallBase = true
         };
 
-        pipeline.Object.Prepare();
+        await pipeline.Object.PrepareAsync();
         pipeline.Object.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => pipeline.Object.Run());
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.Object.RunAsync());
     }
 }

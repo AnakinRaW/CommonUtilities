@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base class for a simple pipeline implementation utilizing one runner and then waits for the execution to finish.
+/// Base class for a simple pipeline implementation utilizing one runner.
 /// </summary>
 /// <typeparam name="TRunner">The type of the step runner.</typeparam>
-public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRunner
+public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IRunner
 {
     /// <summary>
     /// The service provider within the pipeline.
@@ -20,7 +20,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     private readonly bool _failFast;
 
     private CancellationTokenSource? _linkedCancellationTokenSource;
-    private TRunner _buildRunner = null!;
+    private IRunner _buildRunner = null!;
 
     /// <summary>
     /// Gets or sets a value indicating whether the pipeline has encountered a failure.
@@ -54,32 +54,33 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     protected abstract TRunner CreateRunner();
 
     /// <summary>
-    /// Builds the steps in the order they should be executed within the pipeline.
+    /// Builds the steps that should be executed within the pipeline.
     /// </summary>
-    /// <returns>A list of steps in the order they should be executed.</returns>
-    protected abstract IList<IStep> BuildStepsOrdered();
+    /// <remarks>
+    /// The order of the steps might be relevant, depending on the type of <typeparamref name="TRunner"/>.
+    /// </remarks>
+    /// <returns>A task that returns a list of steps.</returns>
+    protected abstract Task<IList<IStep>> BuildSteps();
 
     /// <inheritdoc/>
-    protected sealed override bool PrepareCore()
+    protected override async Task<bool> PrepareCoreAsync()
     {
         _buildRunner = CreateRunner() ?? throw new InvalidOperationException("RunnerFactory created null value!");
-        var steps = BuildStepsOrdered();
+        var steps = await BuildSteps().ConfigureAwait(false);
         foreach (var step in steps)
             _buildRunner.AddStep(step);
         return true;
     }
 
     /// <inheritdoc/>
-    protected sealed override void RunCore(CancellationToken token)
+    protected override async Task RunCoreAsync(CancellationToken token)
     {
         try
         {
             _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
             _buildRunner.Error += OnError;
-            _buildRunner.Run(_linkedCancellationTokenSource.Token);
-
-            OnRunning(_buildRunner);
+            await _buildRunner.RunAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
         }
         finally
         {
@@ -94,19 +95,12 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
         if (!PipelineFailed)
             return;
 
-        var failedBuildSteps = _buildRunner.Steps.Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
+        var failedBuildSteps = _buildRunner.Steps
+            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
             .ToList();
 
         if (failedBuildSteps.Any())
             throw new StepFailureException(failedBuildSteps);
-    }
-
-    /// <summary>
-    /// Called after the step runner was started.
-    /// </summary>
-    /// <param name="buildRunner">The step runner.</param>
-    protected virtual void OnRunning(TRunner buildRunner)
-    {
     }
 
     /// <summary>
