@@ -164,9 +164,9 @@ public class ParallelProducerConsumerPipelineTest
 
         });
 
-        await pipeline.Object.RunAsync(cts.Token);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await pipeline.Object.RunAsync(cts.Token));
 
-        Assert.True(s2Run);
+        Assert.False(s2Run);
         pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
     }
 }
