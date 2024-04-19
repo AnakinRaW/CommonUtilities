@@ -1,28 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
 /// Execution engine to run one or many <see cref="IStep"/>s.
 /// </summary>
-public interface IRunner : IEnumerable<IStep>
+public interface IRunner : IStepQueue, IDisposable
 {
     /// <summary>
-    /// Event which gets raised if the execution of an <see cref="IStep"/> failed with an exception.
+    /// Gets raised when the execution of an <see cref="IStep"/> failed with an exception.
     /// </summary>
     event EventHandler<StepErrorEventArgs>? Error;
 
     /// <summary>
-    /// Runs all queued steps
+    /// Runs all queued steps.
     /// </summary>
-    /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
-    void Run(CancellationToken token);
-
-    /// <summary>
-    /// Queues an <see cref="IStep"/> for execution.
-    /// </summary>
-    /// <param name="activity">The step to queue.</param>
-    void Queue(IStep activity);
+    /// <param name="token">The cancellation token, allowing the runner to cancel the operation.</param>
+    /// <returns>A task that represents the completion of the operation.</returns>
+    Task RunAsync(CancellationToken token);
 }

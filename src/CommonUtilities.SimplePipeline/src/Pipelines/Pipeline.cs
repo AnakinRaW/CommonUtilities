@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
@@ -9,39 +10,39 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 public abstract class Pipeline : DisposableObject, IPipeline
 {
     private bool? _prepareSuccessful;
-
+    
     /// <inheritdoc/>
-    public bool Prepare()
+    public async Task<bool> PrepareAsync()
     {
         if (IsDisposed)
             throw new ObjectDisposedException("Pipeline already disposed");
         if (_prepareSuccessful.HasValue)
             return _prepareSuccessful.Value;
-        _prepareSuccessful = PrepareCore();
+        _prepareSuccessful = await PrepareCoreAsync().ConfigureAwait(false);
         return _prepareSuccessful.Value;
     }
 
     /// <inheritdoc/>
-    public void Run(CancellationToken token = default)
+    public async Task RunAsync(CancellationToken token = default)
     {
         if (IsDisposed)
             throw new ObjectDisposedException("Pipeline already disposed");
         token.ThrowIfCancellationRequested();
-        if (!Prepare())
+        if (!await PrepareAsync().ConfigureAwait(false))
             return;
-        RunCore(token);
+        await RunCoreAsync(token).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Performs the actual preparation of this instance.
     /// </summary>
     /// <returns><see langword="true"/> if the planning was successful; <see langword="false"/> otherwise.</returns>
-    protected abstract bool PrepareCore();
+    protected abstract Task<bool> PrepareCoreAsync();
 
     /// <summary>
     /// Implements the run logic of this instance.
     /// </summary>
     /// <remarks>It's assured this instance is already prepared when this method gets called.</remarks>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
-    protected abstract void RunCore(CancellationToken token);
+    protected abstract Task RunCoreAsync(CancellationToken token);
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -10,19 +11,18 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class TaskRunnerTest
 {
     [Fact]
-    public void Test_Run_Empty()
+    public async Task Test_Run_Empty()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());
 
-        runner.Run(default);
+        await runner.RunAsync(default);
 
         Assert.Empty(runner.Steps);
-        Assert.Empty(runner);
     }
 
     [Fact]
-    public void Test_Run_Cancelled()
+    public async Task Test_Run_Cancelled()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());
@@ -43,17 +43,16 @@ public class TaskRunnerTest
             ran = true;
         });
 
-        runner.Queue(step.Object);
-        runner.Run(cts.Token);
+        runner.AddStep(step.Object);
+        await runner.RunAsync(cts.Token);
 
         Assert.True(hasError);
         Assert.False(ran);
         Assert.Single(runner.Steps);
-        Assert.Single(runner);
     }
 
     [Fact]
-    public void Test_Run_WithError()
+    public async Task Test_Run_WithError()
     {
         var sc = new ServiceCollection();
         var runner = new StepRunner(sc.BuildServiceProvider());
@@ -71,8 +70,8 @@ public class TaskRunnerTest
             ran = true;
         }).Throws<Exception>();
 
-        runner.Queue(step.Object);
-        runner.Run(default);
+        runner.AddStep(step.Object);
+        await runner.RunAsync(default);
 
         Assert.True(hasError);
         Assert.True(ran);

@@ -5,18 +5,18 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// A step that waits for a given <see cref="IParallelRunner"/> to finish.
+/// A step that waits for a given <see cref="ISynchronizedRunner"/> to finish.
 /// </summary>
 public sealed class WaitStep : PipelineStep
 {
-    private readonly IParallelRunner _runner;
+    private readonly ISynchronizedRunner _runner;
 
     /// <summary>
     /// Initializes a new <see cref="WaitStep"/>.
     /// </summary>
     /// <param name="runner">The awaitable step runner</param>
     /// <param name="serviceProvider">The service provider.</param>
-    public WaitStep(IParallelRunner runner, IServiceProvider serviceProvider) : base(serviceProvider)
+    public WaitStep(ISynchronizedRunner runner, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,10 +10,10 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
 /// Runner engine, which executes all queued _steps parallel. Steps may be queued while step execution has been started.
-/// The execution is finished only if <see cref="Finish"/> or <see cref="FinishAndWait"/> was called explicitly.
+/// The execution can finish only if <see cref="Finish"/> was called explicitly.
 /// </summary>
-public sealed class ParallelBlockingRunner : IParallelRunner
-{
+public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchronizedRunner
+{ 
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
 
@@ -24,6 +23,9 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     private readonly int _workerCount;
     private readonly Task[] _runnerTasks;
     private CancellationToken _cancel;
+
+    /// <inheritdoc/>
+    public IReadOnlyList<IStep> Steps => _steps.ToArray();
 
     private BlockingCollection<IStep> StepQueue { get; }
 
@@ -40,7 +42,7 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentOutOfRangeException">If the number of workers is below 1.</exception>
-    public ParallelBlockingRunner(int workerCount, IServiceProvider serviceProvider)
+    public ParallelProducerConsumerRunner(int workerCount, IServiceProvider serviceProvider)
     {
         if (workerCount is < 1 or >= 64)
             throw new ArgumentException("invalid parallel worker count");
@@ -52,13 +54,15 @@ public sealed class ParallelBlockingRunner : IParallelRunner
         _exceptions = new ConcurrentBag<Exception>();
     }
 
+
     /// <inheritdoc/>
-    public void Run(CancellationToken token)
+    public Task RunAsync(CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         _cancel = token;
         for (var index = 0; index < _workerCount; ++index)
             _runnerTasks[index] = Task.Factory.StartNew(RunThreaded, CancellationToken.None);
+        return Task.WhenAll(_runnerTasks).WaitAsync(token);
     }
 
     /// <inheritdoc/>
@@ -85,26 +89,8 @@ public sealed class ParallelBlockingRunner : IParallelRunner
         StepQueue.CompleteAdding();
     }
 
-    /// <summary>
-    /// Signals, this instance does not expect any more steps and waits for finished execution.
-    /// </summary>
-    /// <param name="throwsException"></param>
-    public void FinishAndWait(bool throwsException = false)
-    {
-        Finish();
-        try
-        {
-            Wait();
-        }
-        catch
-        {
-            if (throwsException)
-                throw;
-        }
-    }
-
     /// <inheritdoc/>
-    public void Queue(IStep step)
+    public void AddStep(IStep step)
     {
         if (step is null)
             throw new ArgumentNullException(nameof(step));
@@ -112,9 +98,12 @@ public sealed class ParallelBlockingRunner : IParallelRunner
     }
 
     /// <inheritdoc/>
-    public IEnumerator<IStep> GetEnumerator()
+    protected override void DisposeManagedResources()
     {
-        return _steps.GetEnumerator();
+        base.DisposeManagedResources();
+        StepQueue.Dispose();
+        foreach (var step in Steps) 
+            step.Dispose();
     }
 
     private void RunThreaded()
@@ -123,6 +112,7 @@ public sealed class ParallelBlockingRunner : IParallelRunner
         var canceled = false;
         foreach (var step in StepQueue.GetConsumingEnumerable())
         {
+            ThrowIfDisposed();
             try
             {
                 _cancel.ThrowIfCancellationRequested();
@@ -157,11 +147,6 @@ public sealed class ParallelBlockingRunner : IParallelRunner
                 }
             }
         }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
     }
 
     private void OnError(StepErrorEventArgs e)

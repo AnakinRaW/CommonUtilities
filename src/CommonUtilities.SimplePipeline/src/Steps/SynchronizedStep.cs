@@ -4,7 +4,7 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// An awaitable step implementation.
+/// A step that can be waited for.
 /// </summary>
 public abstract class SynchronizedStep : PipelineStep
 {
@@ -22,12 +22,6 @@ public abstract class SynchronizedStep : PipelineStep
     protected SynchronizedStep(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _handle = new ManualResetEvent(false);
-    }
-
-    /// <inheritdoc/>
-    ~SynchronizedStep()
-    {
-        Dispose(false);
     }
 
     /// <summary>
@@ -53,17 +47,13 @@ public abstract class SynchronizedStep : PipelineStep
     /// Executes this step.
     /// </summary>
     /// <param name="token"></param>
-    protected abstract void SynchronizedInvoke(CancellationToken token);
+    protected abstract void RunSynchronized(CancellationToken token);
 
-    /// <summary>
-    /// Disposes managed resources of this instance.
-    /// </summary>
-    /// <param name="disposing"><see langword="true"/> is this instance gets disposed; <see langword="false"/> if it get's finalized.</param>
-    protected override void Dispose(bool disposing)
+    /// <inheritdoc />
+    protected override void DisposeManagedResources()
     {
-        if (disposing)
-            _handle.Dispose();
-        base.Dispose(disposing);
+        base.DisposeManagedResources();
+        _handle.Dispose();
     }
 
     /// <inheritdoc/>
@@ -71,7 +61,7 @@ public abstract class SynchronizedStep : PipelineStep
     {
         try
         {
-            SynchronizedInvoke(token);
+            RunSynchronized(token);
         }
         catch (Exception ex)
         {
