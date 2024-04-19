@@ -1,5 +1,4 @@
 ﻿#if !NET5_0_OR_GREATER
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -28,8 +27,8 @@ public class AwaitExtensionsTests
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
-        var exitCode = await p.WaitForExitAsync();
-        Assert.Equal(55, exitCode);
+        await p.WaitForExitAsync();
+        Assert.Equal(55, p.ExitCode);
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -44,7 +43,7 @@ public class AwaitExtensionsTests
         p.WaitForExit();
         var t = p.WaitForExitAsync();
         Assert.True(t.IsCompleted);
-        Assert.Equal(55, t.Result);
+        Assert.Equal(55, p.ExitCode);
     }
 
     [Fact]
@@ -68,8 +67,8 @@ public class AwaitExtensionsTests
             var t = p.WaitForExitAsync();
             Assert.False(t.IsCompleted);
             p.Kill();
-            var exitCode = await t;
-            Assert.Equal(expectedExitCode, exitCode);
+            await t;
+            Assert.Equal(expectedExitCode, p.ExitCode);
         }
         catch
         {

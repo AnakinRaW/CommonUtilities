@@ -33,7 +33,7 @@ public class SynchronizedStepTest
         };
 
 
-        step.Protected().Setup("SynchronizedInvoke", false, (CancellationToken)default)
+        step.Protected().Setup("RunSynchronized", false, (CancellationToken)default)
             .Callback(() => throw new Exception());
 
         Assert.Throws<Exception>(() => step.Object.Run(default));
@@ -60,7 +60,7 @@ public class SynchronizedStepTest
         cts.Cancel();
 
 
-        step.Protected().Setup("SynchronizedInvoke", false, cts.Token)
+        step.Protected().Setup("RunSynchronized", false, cts.Token)
             .Callback<CancellationToken>(t => t.ThrowIfCancellationRequested());
 
         Assert.Throws<OperationCanceledException>(() => step.Object.Run(cts.Token));
@@ -87,7 +87,7 @@ public class SynchronizedStepTest
         {
         }
 
-        protected override void SynchronizedInvoke(CancellationToken token)
+        protected override void RunSynchronized(CancellationToken token)
         {
             Task.Delay(500, token);
             Flag = true;
@@ -103,7 +103,7 @@ public class SynchronizedStepTest
             CallBase = true
         };
 
-        step.Protected().Setup("SynchronizedInvoke", false, (CancellationToken)default)
+        step.Protected().Setup("RunSynchronized", false, (CancellationToken)default)
             .Callback(() =>
             {
                 Task.Delay(1000).Wait();

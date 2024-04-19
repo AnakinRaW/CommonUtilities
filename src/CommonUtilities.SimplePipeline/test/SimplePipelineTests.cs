@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -9,10 +10,171 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
+public class ParallelProducerConsumerPipelineTest
+{
+    [Fact]
+    public async Task Test_Prepare()
+    {
+        var sp = new Mock<IServiceProvider>();
+        var pipeline = new Mock<ParallelProducerConsumerPipeline>(sp.Object, 4, true)
+        {
+            CallBase = true
+        };
+
+        await pipeline.Object.PrepareAsync();
+        await pipeline.Object.PrepareAsync();
+
+        pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
+    }
+
+    [Fact]
+    public async Task Test_Run_RunsNormally()
+    {
+        var sp = new Mock<IServiceProvider>();
+        var pipeline = new Mock<ParallelProducerConsumerPipeline>(sp.Object, 4, true)
+        {
+            CallBase = true
+        };
+
+        var stepRun = false;
+        var s = new Mock<IStep>();
+        s.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() => stepRun = true);
+
+        pipeline.Protected().Setup<Task>("BuildSteps", ItExpr.IsAny<IStepQueue>()).Callback((IStepQueue q) =>
+        {
+            q.AddStep(s.Object);
+        });
+
+        await pipeline.Object.RunAsync();
+
+        Assert.True(stepRun);
+        pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
+    }
+
+    [Fact]
+    public async Task Test_Run_DelayedAdd()
+    {
+        var sp = new Mock<IServiceProvider>();
+        var pipeline = new Mock<ParallelProducerConsumerPipeline>(sp.Object, 4, true)
+        {
+            CallBase = true
+        };
+
+        var mre = new ManualResetEventSlim();
+
+        var s1 = new Mock<IStep>();
+        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            {
+                Task.Delay(3000).Wait();
+                mre.Set();
+            }
+        });
+
+
+        var s2Run = false;
+        var s2 = new Mock<IStep>();
+        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            {
+                s2Run = true;
+            }
+        });
+
+        pipeline.Protected().Setup<Task>("BuildSteps", ItExpr.IsAny<IStepQueue>()).Callback((IStepQueue q) =>
+        {
+            q.AddStep(s1.Object);
+            mre.Wait();
+            q.AddStep(s2.Object);
+
+        });
+
+        await pipeline.Object.RunAsync();
+
+        Assert.True(s2Run);
+        pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
+    }
+
+    [Fact]
+    public async Task Test_Run_DelayedAdd_PrepareFails()
+    {
+        var sp = new Mock<IServiceProvider>();
+        var pipeline = new Mock<ParallelProducerConsumerPipeline>(sp.Object, 4, true)
+        {
+            CallBase = true
+        };
+
+        var s1 = new Mock<IStep>();
+        s1.Setup(i => i.Run(It.IsAny<CancellationToken>()));
+
+        var s2 = new Mock<IStep>();
+        s2.Setup(i => i.Run(It.IsAny<CancellationToken>()));
+
+        pipeline.Protected().Setup<Task>("BuildSteps", ItExpr.IsAny<IStepQueue>())
+            .Callback((IStepQueue q) =>
+            {
+                q.AddStep(s1.Object);
+                q.AddStep(s2.Object);
+            })
+            .Throws<Exception>();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await pipeline.Object.RunAsync());
+
+        pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
+    }
+
+
+    [Fact]
+    public async Task Test_Run_PrepareCancelled()
+    {
+        var sp = new Mock<IServiceProvider>();
+        var pipeline = new Mock<ParallelProducerConsumerPipeline>(sp.Object, 4, true)
+        {
+            CallBase = true
+        };
+
+        var cts = new CancellationTokenSource();
+        var mre = new ManualResetEventSlim();
+
+        var s1 = new Mock<IStep>();
+        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            {
+                Task.Delay(3000).Wait();
+                mre.Set();
+            }
+        });
+
+
+        var s2Run = false;
+        var s2 = new Mock<IStep>();
+        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            {
+                s2Run = true;
+            }
+        });
+
+        pipeline.Protected().Setup<Task>("BuildSteps", ItExpr.IsAny<IStepQueue>()).Callback((IStepQueue q) =>
+        {
+            q.AddStep(s1.Object);
+            mre.Wait();
+            cts.Cancel();
+            q.AddStep(s2.Object);
+
+        });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await pipeline.Object.RunAsync(cts.Token));
+
+        Assert.False(s2Run);
+        pipeline.Protected().Verify<Task>("BuildSteps", Times.Once(), ItExpr.IsAny<IStepQueue>());
+    }
+}
+
 public class SimplePipelineTests
 {
     [Fact]
-    public void Test_Run_SimplePipelineRunsNormally()
+    public async Task Test_Run_SimplePipelineRunsNormally()
     {
         var sc = new ServiceCollection();
 
@@ -23,19 +185,19 @@ public class SimplePipelineTests
             CallBase = true
         };
         pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
-        pipelineMock.Protected().Setup<IList<IStep>>("BuildStepsOrdered").Returns(new List<IStep>
+        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             new TestStep(1, "123")
-        });
+        }));
 
         var pipeline = pipelineMock.Object;
 
         var cancellationTokenSource = new CancellationTokenSource();
-        pipeline.Run(cancellationTokenSource.Token);
+        await pipeline.RunAsync(cancellationTokenSource.Token);
     }
 
     [Fact]
-    public void Test_Run_SimplePipelineFails_ThrowsStepFailureException()
+    public async Task Test_Run_SimplePipelineFails_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 
@@ -51,19 +213,19 @@ public class SimplePipelineTests
         };
 
         pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
-        pipelineMock.Protected().Setup<IList<IStep>>("BuildStepsOrdered").Returns(new List<IStep>
+        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
-            s.Object
-        });
+            s.Object,
+        }));
 
         var pipeline = pipelineMock.Object;
 
         var cancellationTokenSource = new CancellationTokenSource();
-        Assert.Throws<StepFailureException>(() => pipeline.Run(cancellationTokenSource.Token));
+        await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync(cancellationTokenSource.Token));
     }
 
     [Fact]
-    public void Test_Run_SimplePipelineFailsSlow_ThrowsStepFailureException()
+    public async Task Test_Run_SimplePipelineFailsSlow_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 
@@ -83,20 +245,20 @@ public class SimplePipelineTests
         };
 
         pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
-        pipelineMock.Protected().Setup<IList<IStep>>("BuildStepsOrdered").Returns(new List<IStep>
+        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             s1.Object,
             s2.Object
-        });
+        }));
 
         var pipeline = pipelineMock.Object;
 
-        Assert.Throws<StepFailureException>(() => pipeline.Run());
+        await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
         Assert.True(flag);
     }
 
     [Fact]
-    public void Test_Run_SimplePipelineFailsFast_ThrowsStepFailureException()
+    public async Task Test_Run_SimplePipelineFailsFast_ThrowsStepFailureException()
     {
         var sc = new ServiceCollection();
 
@@ -116,15 +278,15 @@ public class SimplePipelineTests
         };
 
         pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
-        pipelineMock.Protected().Setup<IList<IStep>>("BuildStepsOrdered").Returns(new List<IStep>
+        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             s1.Object,
             s2.Object
-        });
+        }));
 
         var pipeline = pipelineMock.Object;
 
-        Assert.Throws<StepFailureException>(() => pipeline.Run());
+        await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
         Assert.False(flag);
     }
 }

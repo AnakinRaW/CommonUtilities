@@ -9,22 +9,20 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 /// <summary>
 /// Base implementation for an <see cref="IStep"/>
 /// </summary>
-public abstract class PipelineStep : IStep
+public abstract class PipelineStep : DisposableObject, IStep
 {
-    internal bool IsDisposed { get; private set; }
-
     /// <summary>
-    /// The service provider of this step.
+    /// Gets the service provider of this step.
     /// </summary>
     protected IServiceProvider Services { get; }
 
     /// <summary>
-    /// The logger of this step.
+    /// Gets the logger of this step.
     /// </summary>
     protected ILogger? Logger { get; }
 
     /// <summary>
-    /// The exception, if any, that occurred during execution.
+    /// Gets the exception that occurred during execution or <see langword="null"/> if no error occurred.
     /// </summary>
     public Exception? Error { get; internal set; }
 
@@ -37,20 +35,7 @@ public abstract class PipelineStep : IStep
         Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
-
-    /// <inheritdoc/>
-    ~PipelineStep()
-    {
-        Dispose(false);
-    }
     
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     /// <inheritdoc/>
     public void Run(CancellationToken token)
     {
@@ -101,17 +86,6 @@ public abstract class PipelineStep : IStep
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected abstract void RunCore(CancellationToken token);
 
-    /// <summary>
-    /// Disposes managed resources of this instance.
-    /// </summary>
-    /// <param name="disposing"><see langword="true"/> is this instance gets disposed; <see langword="false"/> if it get's finalized.</param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (IsDisposed)
-            return; 
-        IsDisposed = true;
-    }
-        
     private void LogFaultException(Exception ex)
     { 
         Error = ex; 
