@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET5_0_OR_GREATER
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -14,7 +15,7 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task Test_WaitForExitAsync_NullArgument()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsyncEx(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -26,8 +27,8 @@ public class AwaitExtensionsTests
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
-        var exitCode = await p.WaitForExitAsyncEx();
-        Assert.Equal(55, exitCode);
+        await p.WaitForExitAsync();
+        Assert.Equal(55, p.ExitCode);
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -40,9 +41,9 @@ public class AwaitExtensionsTests
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
         p.WaitForExit();
-        var t = p.WaitForExitAsyncEx();
+        var t = p.WaitForExitAsync();
         Assert.True(t.IsCompleted);
-        Assert.Equal(55, t.Result);
+        Assert.Equal(55, p.ExitCode);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class AwaitExtensionsTests
         var process = new Process();
         process.StartInfo.FileName = processName;
         process.StartInfo.CreateNoWindow = true;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsyncEx());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsync());
     }
 
     [Fact]
@@ -63,11 +64,11 @@ public class AwaitExtensionsTests
         var p = Process.Start(new ProcessStartInfo(processName) { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
         try
         {
-            var t = p.WaitForExitAsyncEx();
+            var t = p.WaitForExitAsync();
             Assert.False(t.IsCompleted);
             p.Kill();
-            var exitCode = await t;
-            Assert.Equal(expectedExitCode, exitCode);
+            await t;
+            Assert.Equal(expectedExitCode, p.ExitCode);
         }
         catch
         {
@@ -92,7 +93,7 @@ public class AwaitExtensionsTests
         try
         {
             var cts = new CancellationTokenSource();
-            var t = p.WaitForExitAsyncEx(cts.Token);
+            var t = p.WaitForExitAsync(cts.Token);
             Assert.False(t.IsCompleted);
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(() => t);
@@ -103,3 +104,4 @@ public class AwaitExtensionsTests
         }
     }
 }
+#endif
