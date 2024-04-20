@@ -49,26 +49,25 @@ public class ParallelRunnerTest
         var sc = new ServiceCollection();
         var runner = new ParallelRunner(2, sc.BuildServiceProvider());
 
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
 
         var b = new ManualResetEvent(false);
 
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
-
         var ran1 = false;
-        s1.Setup(t => t.Run(default)).Callback(() =>
+        var s1 = new TestStep(_ =>
         {
             b.WaitOne();
             ran1 = true;
         });
+
         var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
+        var s2 = new TestStep(_ =>
         {
             b.WaitOne();
             ran2 = true;
         });
+
+        runner.AddStep(s1);
+        runner.AddStep(s2);
 
 
         var runTask = runner.RunAsync(default);
@@ -80,6 +79,13 @@ public class ParallelRunnerTest
 
         Assert.True(ran1);
         Assert.True(ran2);
+
+        runner.Dispose();
+
+        Assert.True(s1.IsDisposed);
+        Assert.True(s2.IsDisposed);
+
+        Assert.Equal([s1, s2], runner.Steps);
     }
 
     [Fact]

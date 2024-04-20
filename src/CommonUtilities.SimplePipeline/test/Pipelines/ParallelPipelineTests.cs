@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,32 +7,34 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class SequentialPipelineTests
+public class ParallelPipelineTests
 {
     [Fact]
-    public async Task Test_Run_SequentialPipeline_RunsInSequence()
+    public async Task Test_Run()
     {
         var sc = new ServiceCollection();
 
         var sp = sc.BuildServiceProvider();
 
-        var sb = new StringBuilder();
+        var j = 0;
 
         var s1 = new Mock<IStep>();
         s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
         {
-            sb.Append('a');
+            Task.Delay(1000);
+            Interlocked.Increment(ref j);
         });
 
         var s2 = new Mock<IStep>();
         s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
         {
-            sb.Append('b');
+            Task.Delay(1000);
+            Interlocked.Increment(ref j);
         });
 
-        var pipelineMock = new Mock<SequentialPipeline>(sp, true)
+        var pipelineMock = new Mock<ParallelPipeline>(sp, 2, true)
         {
             CallBase = true
         };
@@ -47,31 +48,33 @@ public class SequentialPipelineTests
         var pipeline = pipelineMock.Object;
 
         await pipeline.RunAsync();
-        Assert.Equal("ab", sb.ToString());
+        Assert.Equal(2, j);
     }
 
-    [Theory]
-    [InlineData(true, "")]
-    [InlineData(false, "b")]
-    public async Task Test_Run_WithError(bool failFast, string result)
+    [Fact]
+    public async Task Test_Run_WithError()
     {
         var sc = new ServiceCollection();
 
         var sp = sc.BuildServiceProvider();
 
-        var sb = new StringBuilder();
+        var j = 0;
 
         var s1 = new Mock<IStep>();
-        s1.SetupGet(s => s.Error).Returns(new Exception());
-        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Throws<Exception>();
-
-        var s2 = new Mock<IStep>();
-        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
         {
-            sb.Append('b');
+            Task.Delay(1000);
+            Interlocked.Increment(ref j);
         });
 
-        var pipelineMock = new Mock<SequentialPipeline>(sp, failFast)
+        var s2 = new Mock<IStep>();
+        s2.SetupGet(s => s.Error).Returns(new Exception());
+        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            Task.Delay(1000);
+        }).Throws<Exception>();
+
+        var pipelineMock = new Mock<ParallelPipeline>(sp, 2, true)
         {
             CallBase = true
         };
@@ -85,6 +88,6 @@ public class SequentialPipelineTests
         var pipeline = pipelineMock.Object;
 
         await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
-        Assert.Equal(result, sb.ToString());
+        Assert.Equal(1, j);
     }
 }

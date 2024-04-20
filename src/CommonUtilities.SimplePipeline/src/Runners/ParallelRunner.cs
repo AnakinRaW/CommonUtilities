@@ -51,9 +51,6 @@ public class ParallelRunner: StepRunner, ISynchronizedRunner
     public void Wait()
     {
         Wait(Timeout.InfiniteTimeSpan);
-        var exception = Exception;
-        if (exception != null)
-            throw exception;
     }
 
     /// <inheritdoc/>
@@ -61,6 +58,10 @@ public class ParallelRunner: StepRunner, ISynchronizedRunner
     {
         if (!Task.WaitAll(_tasks, timeout))
             throw new TimeoutException();
+
+        var exception = Exception;
+        if (exception != null)
+            throw exception;
     }
 
     /// <summary>

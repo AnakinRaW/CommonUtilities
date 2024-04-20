@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
@@ -12,79 +12,94 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <remarks>
 /// Useful, if preparation is work intensive.
 /// </remarks>
-public abstract class ParallelProducerConsumerPipeline : DisposableObject, IPipeline
+public abstract class ParallelProducerConsumerPipeline : Pipeline
 {
     private readonly bool _failFast;
     private CancellationTokenSource? _linkedCancellationTokenSource;
     private readonly ParallelProducerConsumerRunner _runner;
 
-    private bool? _prepareSuccessful;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the pipeline has encountered a failure.
-    /// </summary>
-    protected bool PipelineFailed { get; set; }
-
-
+    private Exception? _preparationException;
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="ParallelProducerConsumerPipeline"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider for dependency injection within the pipeline.</param>
     /// <param name="workerCount">The number of worker threads to be used for parallel execution.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
-    protected ParallelProducerConsumerPipeline(IServiceProvider serviceProvider, int workerCount = 4, bool failFast = true)
+    protected ParallelProducerConsumerPipeline(int workerCount, bool failFast, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _failFast = failFast;
         _runner = new ParallelProducerConsumerRunner(workerCount, serviceProvider);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> PrepareAsync()
-    {
-        ThrowIfDisposed();
-        if (_prepareSuccessful.HasValue)
-            return _prepareSuccessful.Value;
-
-        await BuildSteps(_runner).ConfigureAwait(false);
-       
-        _prepareSuccessful = true;
-        return _prepareSuccessful.Value;
-    }
-
-    /// <inheritdoc/>
-    public async Task RunAsync(CancellationToken token = default)
+    public sealed override async Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
         token.ThrowIfCancellationRequested();
 
-        if (_prepareSuccessful is false)
+        if (PrepareSuccessful is false)
             return;
+
+        _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        if (PrepareSuccessful is null)
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await PrepareAsync().ConfigureAwait(false);
+                    if (!result)
+                    {
+                        PipelineFailed = true;
+                        _linkedCancellationTokenSource?.Cancel();
+                    }
+                }
+                catch (Exception e)
+                {
+                    PipelineFailed = true;
+                    _preparationException = e;
+                }
+                finally
+                {
+                    _runner.Finish();
+                }
+            }, token).Forget();
+        }
 
         try
         {
-            _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            await RunCoreAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            PipelineFailed = true;
+            throw;
+        }
+    }
 
-            if (_prepareSuccessful is null)
-            {
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        var result = await PrepareAsync().ConfigureAwait(false);
-                        if (!result)
-                            _linkedCancellationTokenSource?.Cancel();
-                    }
-                    finally
-                    {
-                        _runner.Finish();
-                    }
-                }, token).Forget();
-            }
+    /// <summary>
+    /// Builds the steps in the order they should be executed within the pipeline.
+    /// </summary>
+    /// <returns>A list of steps in the order they should be executed.</returns>
+    protected abstract IAsyncEnumerable<IStep> BuildSteps();
 
+    /// <inheritdoc/>
+    protected override async Task<bool> PrepareCoreAsync()
+    {
+        await foreach (var step in BuildSteps().ConfigureAwait(false)) 
+            _runner.AddStep(step);
+        return true;
+    }
 
-
+    /// <inheritdoc/>
+    protected override async Task RunCoreAsync(CancellationToken token)
+    {
+        try
+        {
             _runner.Error += OnError;
-            await _runner.RunAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            await _runner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
@@ -96,25 +111,14 @@ public abstract class ParallelProducerConsumerPipeline : DisposableObject, IPipe
             }
         }
 
-        if (!PipelineFailed && _prepareSuccessful.HasValue && _prepareSuccessful.Value)
+        if (!PipelineFailed)
             return;
 
-        if (_prepareSuccessful is not true)
-            throw new InvalidOperationException("Preparation of the pipeline failed.");
+        if (_preparationException is not null)
+            throw _preparationException;
 
-        var failedBuildSteps = _runner.Steps
-            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
-            .ToList();
-
-        if (failedBuildSteps.Any())
-            throw new StepFailureException(failedBuildSteps);
+        ThrowIfAnyStepsFailed(_runner.Steps);
     }
-
-    /// <summary>
-    /// Builds the steps in the order they should be executed within the pipeline.
-    /// </summary>
-    /// <returns>A list of steps in the order they should be executed.</returns>
-    protected abstract Task BuildSteps(IStepQueue queue);
 
     /// <summary>
     /// Called when an error occurs within a step.
@@ -126,5 +130,12 @@ public abstract class ParallelProducerConsumerPipeline : DisposableObject, IPipe
         PipelineFailed = true;
         if (_failFast || e.Cancel)
             _linkedCancellationTokenSource?.Cancel();
+    }
+
+    /// <inheritdoc />
+    protected override void DisposeManagedResources()
+    {
+        base.DisposeManagedResources();
+        _runner.Dispose();
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +69,8 @@ public class ParallelProducerConsumerRunnerTest
         await runner.RunAsync(default);
         Assert.NotNull(runner.Exception);
         Assert.True(ran2);
+
+        Assert.Equal([s1.Object, s2.Object], new HashSet<IStep>(runner.Steps));
     }
 
     [Fact]
@@ -180,10 +184,10 @@ public class ParallelProducerConsumerRunnerTest
 
         var runTask = runner.RunAsync(default);
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             runner.AddStep(s3.Object);
-            Task.Delay(1000);
+            await Task.Delay(1000);
             runner.Finish();
         });
 
@@ -240,5 +244,51 @@ public class ParallelProducerConsumerRunnerTest
         Assert.True(ran1);
         Assert.True(ran2);
         Assert.True(ran3);
+    }
+
+    [Fact]
+    public async Task Test_Run_AddDelayed_Cancelled()
+    {
+        var sc = new ServiceCollection();
+        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+
+        var tcs = new TaskCompletionSource<int>();
+
+        var s1 = new Mock<IStep>();
+        var s2 = new Mock<IStep>();
+
+        runner.AddStep(s1.Object);
+
+        var cts = new CancellationTokenSource();
+
+        var ran1 = false;
+        s1.Setup(t => t.Run(cts.Token)).Callback(() =>
+        {
+            ran1 = true;
+            tcs.SetResult(0);
+        });
+
+        var ran2 = false;
+        s2.Setup(t => t.Run(cts.Token)).Callback(() =>
+        {
+            ran2 = true;
+        });
+
+        var runTask = runner.RunAsync(cts.Token);
+
+        Task.Run(async () =>
+        {
+            await tcs.Task.ConfigureAwait(false);
+            cts.Cancel();
+            runner.AddStep(s2.Object);
+            runner.Finish();
+        }).Forget();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await runTask);
+
+        Assert.True(ran1);
+        Assert.False(ran2);
+
+        Assert.Equal([s1.Object], runner.Steps);
     }
 }
