@@ -12,7 +12,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Prepare()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };
@@ -26,7 +27,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Run()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };
@@ -43,7 +45,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Prepare_Run()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };
@@ -61,7 +64,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Run_Cancelled_ThrowsOperationCanceledException()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };
@@ -76,7 +80,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Prepare_Disposed_ThrowsObjectDisposedException()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };
@@ -90,7 +95,8 @@ public class PipelineTest
     [Fact]
     public async Task Test_Run_Disposed_ThrowsObjectDisposedException()
     {
-        var pipeline = new Mock<Pipeline>
+        var sp = new Mock<IServiceProvider>().Object;
+        var pipeline = new Mock<Pipeline>(sp)
         {
             CallBase = true
         };

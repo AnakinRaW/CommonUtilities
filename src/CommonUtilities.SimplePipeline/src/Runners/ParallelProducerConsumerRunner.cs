@@ -69,9 +69,6 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     public void Wait()
     {
         Wait(Timeout.InfiniteTimeSpan);
-        var exception = Exception;
-        if (exception != null)
-            throw exception;
     }
 
     /// <inheritdoc/>
@@ -79,6 +76,10 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     {
         if (!Task.WaitAll(_runnerTasks, timeout))
             throw new TimeoutException();
+
+        var exception = Exception;
+        if (exception != null)
+            throw exception;
     }
 
     /// <summary>

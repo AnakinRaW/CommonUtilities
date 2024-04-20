@@ -1,31 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base class for a simple pipeline implementation utilizing one runner.
+/// Base class for a simple pipeline implementation utilizing one <see cref="StepRunner"/>.
 /// </summary>
 /// <typeparam name="TRunner">The type of the step runner.</typeparam>
-public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IRunner
+public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRunner
 {
-    /// <summary>
-    /// The service provider within the pipeline.
-    /// </summary>
-    protected readonly IServiceProvider ServiceProvider;
-    
-    private readonly bool _failFast;
+   private readonly bool _failFast;
 
     private CancellationTokenSource? _linkedCancellationTokenSource;
     private IRunner _buildRunner = null!;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the pipeline has encountered a failure.
-    /// </summary>
-    protected bool PipelineFailed { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimplePipeline{TRunner}"/> class.
@@ -35,9 +25,8 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IRunner
     /// <remarks>
     /// The <paramref name="failFast"/> parameter determines whether the pipeline should stop executing immediately upon encountering the first failure.
     /// </remarks>
-    protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true)
+    protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
     {
-        ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _failFast = failFast;
     }
 
@@ -95,12 +84,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IRunner
         if (!PipelineFailed)
             return;
 
-        var failedBuildSteps = _buildRunner.Steps
-            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
-            .ToList();
-
-        if (failedBuildSteps.Any())
-            throw new StepFailureException(failedBuildSteps);
+        ThrowIfAnyStepsFailed(_buildRunner.Steps);
     }
 
     /// <summary>
@@ -113,5 +97,12 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IRunner
         PipelineFailed = true;
         if (_failFast || e.Cancel)
             _linkedCancellationTokenSource?.Cancel();
+    }
+
+    /// <inheritdoc />
+    protected override void DisposeManagedResources()
+    {
+        base.DisposeManagedResources();
+        _buildRunner.Dispose();
     }
 }

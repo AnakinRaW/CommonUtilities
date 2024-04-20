@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class TaskRunnerTest
+public class StepRunnerTest
 {
     [Fact]
     public async Task Test_Run_Empty()
@@ -75,5 +75,38 @@ public class TaskRunnerTest
 
         Assert.True(hasError);
         Assert.True(ran);
+    }
+
+    [Fact]
+    public async Task Test_Run()
+    {
+        var sc = new ServiceCollection();
+        var runner = new StepRunner(sc.BuildServiceProvider());
+
+        var hasError = false;
+        runner.Error += (_, __) =>
+        {
+            hasError = true;
+        };
+
+        var ran1 = false;
+        var ran2 = false;
+        var step1 = new TestStep(_ => ran1 = true);
+        var step2 = new TestStep(_ => ran2 = true);
+
+        runner.AddStep(step1);
+        runner.AddStep(step2);
+        await runner.RunAsync(default);
+
+        Assert.False(hasError);
+        Assert.True(ran1);
+        Assert.True(ran2);
+
+        runner.Dispose();
+
+        Assert.True(step1.IsDisposed);
+        Assert.True(step2.IsDisposed);
+
+        Assert.Equal([step1, step2], runner.Steps);
     }
 }

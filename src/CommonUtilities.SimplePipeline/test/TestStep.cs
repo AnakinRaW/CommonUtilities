@@ -4,8 +4,9 @@ using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class TestStep : IProgressStep
+public class TestStep : DisposableObject, IProgressStep
 {
+    private readonly Action<CancellationToken> _action;
     public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
 
     public IStepProgressReporter ProgressReporter { get; }
@@ -22,13 +23,13 @@ public class TestStep : IProgressStep
         Text = text;
     }
 
-    public void Dispose()
+    public TestStep(Action<CancellationToken> action)
     {
-        throw new NotImplementedException();
+        _action = action;
     }
 
     public void Run(CancellationToken token)
     {
-        throw new NotImplementedException();
+        _action?.Invoke(token);
     }
 }
