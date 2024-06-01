@@ -120,11 +120,4 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
         base.DisposeManagedResources();
         _runner.Dispose();
     }
-
-    /// <inheritdoc />
-    protected override void DisposeManagedResources()
-    {
-        base.DisposeManagedResources();
-        _runner.Dispose();
-    }
 }
