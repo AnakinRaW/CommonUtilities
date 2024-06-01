@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class ParallelProducerConsumerRunnerTest
 {
     [Fact]
-    public void Test_Run_WaitNotFinished()
+    public async void Test_Run_WaitNotFinished()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
@@ -23,24 +23,25 @@ public class ParallelProducerConsumerRunnerTest
         runner.AddStep(s1.Object);
         runner.AddStep(s2.Object);
 
-        var ran1 = false;
+        var tsc1 = new TaskCompletionSource<int>();
+        var tsc2 = new TaskCompletionSource<int>();
+
         s1.Setup(t => t.Run(default)).Callback(() =>
         {
-            ran1 = true;
+            tsc1.SetResult(1);
         });
-        var ran2 = false;
         s2.Setup(t => t.Run(default)).Callback(() =>
         {
-            ran2 = true;
+            tsc2.SetResult(1);
         });
-
-
+        
+        
         _ = runner.RunAsync(default);
 
-        Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromSeconds(2)));
+        await tsc1.Task;
+        await tsc1.Task;
 
-        Assert.True(ran1);
-        Assert.True(ran2);
+        Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromSeconds(2)));
     }
 
     [Fact]
