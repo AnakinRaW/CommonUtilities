@@ -86,4 +86,11 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
         base.DisposeManagedResources();
         _buildRunner.Dispose();
     }
+
+    /// <inheritdoc />
+    protected override void DisposeManagedResources()
+    {
+        base.DisposeManagedResources();
+        _buildRunner.Dispose();
+    }
 }
