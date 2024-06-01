@@ -13,6 +13,8 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 public abstract class Pipeline : DisposableObject, IPipeline
 {
+    private CancellationTokenSource? _linkedCancellationTokenSource;
+
     /// <summary>
     /// The service provider of the <see cref="SimplePipeline{TRunner}"/>.
     /// </summary>
@@ -32,6 +34,11 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// Gets or sets a value indicating whether the pipeline has encountered a failure.
     /// </summary>
     public bool PipelineFailed { get; protected set; }
+
+    /// <summary>
+    /// Gets a value indicating the pipeline shall abort execution on the first received error.
+    /// </summary>
+    protected virtual bool FailFast => false;
 
     /// <summary>
     /// 
@@ -62,13 +69,34 @@ public abstract class Pipeline : DisposableObject, IPipeline
 
         try
         {
-            await RunCoreAsync(token).ConfigureAwait(false);
+
+            try
+            {
+                _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                await RunCoreAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (_linkedCancellationTokenSource is not null)
+                {
+                    _linkedCancellationTokenSource.Dispose();
+                    _linkedCancellationTokenSource = null;
+                }
+            }
         }
         catch (Exception)
         {
             PipelineFailed = true;
             throw;
         }
+    }
+
+    /// <summary>
+    /// Cancels the pipeline
+    /// </summary>
+    public void Cancel()
+    {
+        _linkedCancellationTokenSource?.Cancel();
     }
 
     /// <inheritdoc/>
@@ -103,5 +131,18 @@ public abstract class Pipeline : DisposableObject, IPipeline
 
         if (failedBuildSteps.Any())
             throw new StepFailureException(failedBuildSteps);
+    }
+
+    /// <summary>
+    /// The default event handler that can be used when an error occurs within a step.
+    /// <see cref="PipelineFailed"/> is set to <see langword="true"/>. When <see cref="FailFast"/> is <see langword="true"/>, the pipeline gets cancelled.
+    /// </summary>
+    /// <param name="sender">The sender of the event.</param>
+    /// <param name="e">The event arguments.</param>
+    protected virtual void OnError(object sender, StepErrorEventArgs e)
+    {
+        PipelineFailed = true;
+        if (FailFast || e.Cancel)
+            Cancel();
     }
 }

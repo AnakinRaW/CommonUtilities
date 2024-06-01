@@ -13,13 +13,14 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// Useful, if preparation is work intensive.
 /// </remarks>
 public abstract class ParallelProducerConsumerPipeline : Pipeline
-{
-    private readonly bool _failFast;
-    private CancellationTokenSource? _linkedCancellationTokenSource;
+{ 
     private readonly ParallelProducerConsumerRunner _runner;
 
     private Exception? _preparationException;
-    
+
+    /// <inheritdoc />
+    protected override bool FailFast { get; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ParallelProducerConsumerPipeline"/> class.
     /// </summary>
@@ -28,7 +29,7 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
     protected ParallelProducerConsumerPipeline(int workerCount, bool failFast, IServiceProvider serviceProvider) : base(serviceProvider)
     {
-        _failFast = failFast;
+        FailFast = failFast;
         _runner = new ParallelProducerConsumerRunner(workerCount, serviceProvider);
     }
 
@@ -41,8 +42,6 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
         if (PrepareSuccessful is false)
             return;
 
-        _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-
         if (PrepareSuccessful is null)
         {
             Task.Run(async () =>
@@ -53,7 +52,7 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
                     if (!result)
                     {
                         PipelineFailed = true;
-                        _linkedCancellationTokenSource?.Cancel();
+                        Cancel();
                     }
                 }
                 catch (Exception e)
@@ -70,7 +69,7 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
 
         try
         {
-            await RunCoreAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            await RunCoreAsync(token).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -104,11 +103,6 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
         finally
         {
             _runner.Error -= OnError;
-            if (_linkedCancellationTokenSource is not null)
-            {
-                _linkedCancellationTokenSource.Dispose();
-                _linkedCancellationTokenSource = null;
-            }
         }
 
         if (!PipelineFailed)
@@ -118,18 +112,6 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
             throw _preparationException;
 
         ThrowIfAnyStepsFailed(_runner.Steps);
-    }
-
-    /// <summary>
-    /// Called when an error occurs within a step.
-    /// </summary>
-    /// <param name="sender">The sender of the event.</param>
-    /// <param name="e">The event arguments.</param>
-    protected virtual void OnError(object sender, StepErrorEventArgs e)
-    {
-        PipelineFailed = true;
-        if (_failFast || e.Cancel)
-            _linkedCancellationTokenSource?.Cancel();
     }
 
     /// <inheritdoc />
