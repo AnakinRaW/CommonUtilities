@@ -11,11 +11,11 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 /// <typeparam name="TRunner">The type of the step runner.</typeparam>
 public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRunner
-{
-   private readonly bool _failFast;
-
-    private CancellationTokenSource? _linkedCancellationTokenSource;
+{ 
     private IRunner _buildRunner = null!;
+
+    /// <inheritdoc />
+    protected override bool FailFast { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SimplePipeline{TRunner}"/> class.
@@ -27,7 +27,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     /// </remarks>
     protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
     {
-        _failFast = failFast;
+        FailFast = failFast;
     }
 
     /// <inheritdoc/>
@@ -66,37 +66,18 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     {
         try
         {
-            _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-
             _buildRunner.Error += OnError;
-            await _buildRunner.RunAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            await _buildRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
             _buildRunner.Error -= OnError;
-            if (_linkedCancellationTokenSource is not null)
-            {
-                _linkedCancellationTokenSource.Dispose();
-                _linkedCancellationTokenSource = null;
-            }
         }
 
         if (!PipelineFailed)
             return;
 
         ThrowIfAnyStepsFailed(_buildRunner.Steps);
-    }
-
-    /// <summary>
-    /// Called when an error occurs within a step.
-    /// </summary>
-    /// <param name="sender">The sender of the event.</param>
-    /// <param name="e">The event arguments.</param>
-    protected virtual void OnError(object sender, StepErrorEventArgs e)
-    {
-        PipelineFailed = true;
-        if (_failFast || e.Cancel)
-            _linkedCancellationTokenSource?.Cancel();
     }
 
     /// <inheritdoc />
