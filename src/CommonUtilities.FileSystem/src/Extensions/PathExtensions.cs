@@ -73,17 +73,17 @@ public static partial class PathExtensions
     }
 
     /// <summary>
-    /// Checks whether a path is rooted, but not absolute, to a drive e.g, "C:" or "C:my/path"
+    /// Checks whether a character span is rooted, but not absolute, to a drive e.g, "C:" or "C:my/path"
     /// </summary>
     /// <remarks>
     /// Only works on Windows. For Linux systems, this method will always return <see langword="false"/>.
     /// </remarks>
     /// <param name="fsPath">The file system's path instance.</param>
-    /// <param name="path">The path to check.</param>
+    /// <param name="path">The character span to check.</param>
     /// <param name="driveLetter">If <paramref name="path"/> is drive relative the drive's letter will be stored into this variable.
     /// <see langword="null"/> if <paramref name="path"/> is not drive relative.</param>
     /// <returns>Return <see langword="true"/> if <paramref name="path"/> is relative, but not absolute to a drive; otherwise, <see langword="false"/>.</returns>
-    public static bool IsDriveRelative(this IPath fsPath, string? path, [NotNullWhen(true)] out char? driveLetter)
+    public static bool IsDriveRelative(this IPath fsPath, ReadOnlySpan<char> path, [NotNullWhen(true)] out char? driveLetter)
     {
         driveLetter = null;
 
@@ -110,6 +110,22 @@ public static partial class PathExtensions
             return false;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether a path is rooted, but not absolute, to a drive e.g, "C:" or "C:my/path"
+    /// </summary>
+    /// <remarks>
+    /// Only works on Windows. For Linux systems, this method will always return <see langword="false"/>.
+    /// </remarks>
+    /// <param name="fsPath">The file system's path instance.</param>
+    /// <param name="path">The path to check.</param>
+    /// <param name="driveLetter">If <paramref name="path"/> is drive relative the drive's letter will be stored into this variable.
+    /// <see langword="null"/> if <paramref name="path"/> is not drive relative.</param>
+    /// <returns>Return <see langword="true"/> if <paramref name="path"/> is relative, but not absolute to a drive; otherwise, <see langword="false"/>.</returns>
+    public static bool IsDriveRelative(this IPath fsPath, string? path, [NotNullWhen(true)] out char? driveLetter)
+    {
+        return fsPath.IsDriveRelative(path.AsSpan(), out driveLetter);
     }
 
     internal static ReadOnlySpan<char> TrimTrailingSeparators(ReadOnlySpan<char> path, DirectorySeparatorKind separatorKind = DirectorySeparatorKind.System)
@@ -147,16 +163,6 @@ public static partial class PathExtensions
             default:
                 throw new ArgumentOutOfRangeException(nameof(separatorKind), separatorKind, null);
         }
-    }
-
-    internal static string EnsureTrailingSeparatorInternal(string input)
-    {
-        var stringBuilder = new ValueStringBuilder(stackalloc char[260]);
-        stringBuilder.Append(input);
-        EnsureTrailingSeparatorInternal(ref stringBuilder);
-        var result = stringBuilder.ToString();
-        stringBuilder.Dispose();
-        return result;
     }
 
 

@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System;
+using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -31,7 +32,9 @@ public class IsDriveRelativePathTest
     [InlineData(@"C:test/a\a", true, 'C')]
     public void Test_IsDriveRelative_Windows(string? path, bool expected, char? expectedDriveLetter = null)
     {
-        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path, out var letter));
+        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path.AsSpan(), out var letter));
+        Assert.Equal(expectedDriveLetter, letter);
+        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path, out letter));
         Assert.Equal(expectedDriveLetter, letter);
     }
 
@@ -58,7 +61,9 @@ public class IsDriveRelativePathTest
     [InlineData(@"C:test/a\a", false)]
     public void Test_IsDriveRelative_Linux(string path, bool expected)
     {
-        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path, out var letter));
+        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path.AsSpan(), out var letter));
+        Assert.Null(letter);
+        Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path, out letter));
         Assert.Null(letter);
     }
 }
