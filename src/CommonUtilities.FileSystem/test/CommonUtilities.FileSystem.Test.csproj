@@ -11,6 +11,7 @@
 	<PropertyGroup>
 		<RootNamespace>AnakinRaW.CommonUtilities.FileSystem.Test</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.FileSystem.Test</AssemblyName>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>

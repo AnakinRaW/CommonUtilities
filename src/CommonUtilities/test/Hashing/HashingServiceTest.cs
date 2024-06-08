@@ -66,6 +66,7 @@ public class HashingServiceTest
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash(someStream, notExistingProvider));
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash("", Encoding.ASCII, notExistingProvider));
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), notExistingProvider));
+        Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash("".AsSpan(), new Span<byte>(someDestination), Encoding.ASCII, notExistingProvider));
         Assert.Throws<HashProviderNotFoundException>(() => _hashingService.GetHash(someSource, notExistingProvider));
     }
 
@@ -100,6 +101,7 @@ public class HashingServiceTest
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(new ReadOnlySpan<byte>(someSource), someDestination.AsSpan(), provider));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, someDestination.AsSpan(), provider));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), provider));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("".AsSpan(), new Span<byte>(someDestination), Encoding.ASCII, provider));
     }
 
     [Fact]
@@ -133,6 +135,7 @@ public class HashingServiceTest
         Assert.Throws<InvalidOperationException>(() => _hashingService.GetHash(someStream, provider));
         Assert.Throws<InvalidOperationException>(() => _hashingService.GetHash("", Encoding.ASCII, provider));
         Assert.Throws<InvalidOperationException>(() => _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(someDestination), provider));
+        Assert.Throws<InvalidOperationException>(() => _hashingService.GetHash("".AsSpan(), new Span<byte>(someDestination), Encoding.ASCII, provider));
         Assert.Throws<InvalidOperationException>(() => _hashingService.GetHash(someSource, provider));
     }
 
@@ -183,6 +186,9 @@ public class HashingServiceTest
         Assert.Equal(expectedHashExact, _hashingService.GetHash("", Encoding.ASCII, provider));
 
         Assert.Equal(1, _hashingService.GetHash("", Encoding.ASCII, new Span<byte>(destination), provider));
+        Assert.Equal(expectedHashJoint, destination);
+
+        Assert.Equal(1, _hashingService.GetHash("".AsSpan(), new Span<byte>(destination), Encoding.ASCII, provider));
         Assert.Equal(expectedHashJoint, destination);
 
         Assert.Equal(expectedHashExact, _hashingService.GetHash(someSource, provider));
@@ -256,6 +262,9 @@ public class HashingServiceTest
         Assert.Equal(expectedHash, _hashingService.GetHash(input, Encoding.ASCII, hashType));
 
         Assert.Equal(expectedSize, _hashingService.GetHash(input, Encoding.ASCII, new Span<byte>(destination), hashType));
+        Assert.Equal(expectedHash, destination);
+
+        Assert.Equal(expectedSize, _hashingService.GetHash(input.AsSpan(), new Span<byte>(destination), Encoding.ASCII, hashType));
         Assert.Equal(expectedHash, destination);
 
         Assert.Equal(expectedHash, _hashingService.GetHash(someSource, hashType));

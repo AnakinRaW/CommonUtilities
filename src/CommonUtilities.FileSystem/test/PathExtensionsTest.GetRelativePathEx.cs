@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -7,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetRelativePathExTest
 {
-    private readonly MockFileSystem _fileSystem = new();
+    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData(@"C:\", @"C:\", @".")]
@@ -75,16 +76,17 @@ public class GetRelativePathExTest
     [InlineData(@"C:\a", @"X:a", @"X:\a")]
     public void Test_GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
     {
-        _fileSystem.WithDrive("C:").WithDrive("X:");
-        _fileSystem.Initialize().WithSubdirectory("C:\\current");
-        _fileSystem.Directory.SetCurrentDirectory("C:\\current");
-        var result = _fileSystem.Path.GetRelativePathEx(root, path);
+        var fileSystem = new MockFileSystem();
+        fileSystem.WithDrive("C:").WithDrive("X:");
+        fileSystem.Initialize().WithSubdirectory("C:\\current");
+        fileSystem.Directory.SetCurrentDirectory("C:\\current");
+        var result = fileSystem.Path.GetRelativePathEx(root, path);
         Assert.Equal(expected, result);
 
         Assert.Equal(
-            _fileSystem.Path.GetFullPath(path).TrimEnd(_fileSystem.Path.DirectorySeparatorChar),
-            _fileSystem.Path.GetFullPath(_fileSystem.Path.Combine(_fileSystem.Path.GetFullPath(root), result))
-                .TrimEnd(_fileSystem.Path.DirectorySeparatorChar),
+            fileSystem.Path.GetFullPath(path).TrimEnd(fileSystem.Path.DirectorySeparatorChar),
+            fileSystem.Path.GetFullPath(fileSystem.Path.Combine(fileSystem.Path.GetFullPath(root), result))
+                .TrimEnd(fileSystem.Path.DirectorySeparatorChar),
             StringComparer.OrdinalIgnoreCase);
     }
 

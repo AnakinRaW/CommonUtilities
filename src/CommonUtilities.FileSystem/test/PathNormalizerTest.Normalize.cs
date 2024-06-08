@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using AnakinRaW.CommonUtilities.FileSystem.Normalization;
 using Xunit;
@@ -8,6 +9,37 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 public class PathNormalizerTest
 {
     [Fact]
+    public void Test_Normalize_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize(null!, new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            PathNormalizer.Normalize("", new PathNormalizeOptions());
+        });
+    }
+
+
+    [Fact]
+    public void Test_Normalize_Span_TooShort()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            Span<char> buffer = new char[10];
+            return PathNormalizer.Normalize(((string)null!).AsSpan(), buffer, new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            Span<char> buffer = new char[10];
+            return PathNormalizer.Normalize("".AsSpan(), buffer, new PathNormalizeOptions());
+        });
+    }
+
+    [Fact]
     public void Test_Normalize()
     {
         foreach (var testData in NormalizeTestDataSource())
@@ -16,8 +48,16 @@ public class PathNormalizerTest
             Assert.Equal(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
                 result);
-        }
 
+
+            Span<char> buffer = new char[testData.Input.Length + 10];
+            var charsWritten = PathNormalizer.Normalize(testData.Input.AsSpan(), buffer, testData.Options);
+
+            Assert.Equal(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
+                buffer.Slice(0, charsWritten).ToString());
+
+        }
     }
 
     private static IEnumerable<NormalizeTestData> NormalizeTestDataSource()
@@ -199,7 +239,6 @@ public class PathNormalizerTest
                     UnifySeparatorKind = DirectorySeparatorKind.Linux,
                 }
         };
-
         yield return new NormalizeTestData
         {
             Input = "a/b\\C",
@@ -212,7 +251,6 @@ public class PathNormalizerTest
                     UnifySeparatorKind = DirectorySeparatorKind.Linux // Ensure this option is not altering the result
                 }
         };
-
         yield return new NormalizeTestData
         {
             Input = "a/b\\C\\",
@@ -224,6 +262,46 @@ public class PathNormalizerTest
                     TrailingDirectorySeparatorBehavior = TrailingDirectorySeparatorBehavior.Ensure,
                     UnifySeparatorKind = DirectorySeparatorKind.Windows // Ensure this option is not altering the result
                 }
+        };
+
+
+        // LongStrings
+        yield return new NormalizeTestData
+        {
+            Input = new string('a', 300),
+            ExpectedLinux = new string('a', 300),
+            ExpectedWindows = new string('a', 300),
+            Options = new PathNormalizeOptions()
+        };
+        yield return new NormalizeTestData
+        {
+            Input = new string('a', 300),
+            ExpectedLinux = new string('a', 300) + "/",
+            ExpectedWindows = new string('a', 300) + "\\",
+            Options = new PathNormalizeOptions()
+            {
+                TrailingDirectorySeparatorBehavior = TrailingDirectorySeparatorBehavior.Ensure
+            }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = new string('a', 300) + "/",
+            ExpectedLinux = new string('a', 300),
+            ExpectedWindows = new string('a', 300),
+            Options = new PathNormalizeOptions()
+            {
+                TrailingDirectorySeparatorBehavior = TrailingDirectorySeparatorBehavior.Trim
+            }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = new string('a', 300) + "/",
+            ExpectedLinux = new string('A', 300) + "/",
+            ExpectedWindows = new string('A', 300) + "/",
+            Options = new PathNormalizeOptions
+            {
+                UnifyCase = UnifyCasingKind.UpperCaseForce
+            }
         };
     }
 

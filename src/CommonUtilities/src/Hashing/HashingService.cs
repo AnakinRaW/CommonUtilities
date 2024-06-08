@@ -170,19 +170,24 @@ public sealed class HashingService : IHashingService
     /// <inheritdoc />
     public int GetHash(string stringData, Encoding encoding, Span<byte> destination, HashTypeKey hashType)
     {
+        return GetHash(stringData.AsSpan(), destination, encoding, hashType);
+    }
+
+    /// <inheritdoc />
+    public int GetHash(ReadOnlySpan<char> stringData, Span<byte> destination, Encoding encoding, HashTypeKey hashType)
+    {
         if (stringData == null)
             throw new ArgumentNullException(nameof(stringData));
         if (encoding == null)
             throw new ArgumentNullException(nameof(encoding));
 
-        var stringSpan = stringData.AsSpan();
-        var maxByteSize = encoding.GetMaxByteCount(stringSpan.Length);
+        var maxByteSize = encoding.GetMaxByteCount(stringData.Length);
 
         byte[]? encodedBytes = null;
         try
         {
             var buffer = maxByteSize > 256 ? encodedBytes = ArrayPool<byte>.Shared.Rent(maxByteSize) : stackalloc byte[maxByteSize];
-            var bytesToHash = encoding.GetBytesReadOnly(stringSpan, buffer);
+            var bytesToHash = encoding.GetBytesReadOnly(stringData, buffer);
 
             return GetHash(bytesToHash, destination, hashType);
         }
