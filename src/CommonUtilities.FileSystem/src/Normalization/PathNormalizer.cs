@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using AnakinRaW.CommonUtilities.FileSystem.Utilities;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Normalization;
 
@@ -20,77 +21,121 @@ public static class PathNormalizer
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static string Normalize(string path, PathNormalizeOptions options)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            if (path is null)
-                throw new ArgumentNullException(path);
-            throw new ArgumentException("The value cannot be an empty string.", path);
-        }
-
-        path = options.TrailingDirectorySeparatorBehavior switch
-        {
-            TrailingDirectorySeparatorBehavior.Trim => PathExtensions.TrimTrailingSeparators(path.AsSpan(), options.UnifySeparatorKind),
-            TrailingDirectorySeparatorBehavior.Ensure => PathExtensions.EnsureTrailingSeparatorInternal(path),
-            _ => path
-        };
-
-        // Only do for DirectorySeparatorKind.System, cause for other kinds it will be done at the very end anyway.
-        if (options.UnifyDirectorySeparators && options.UnifySeparatorKind == DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, DirectorySeparatorKind.System);
-
-        path = NormalizeCasing(path, options.UnifyCase);
-
-        // NB: As previous steps may add new separators (such as GetFullPath) we need to re-apply slash normalization
-        // if the desired DirectorySeparatorKind is not DirectorySeparatorKind.System
-        if (options.UnifyDirectorySeparators && options.UnifySeparatorKind != DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, options.UnifySeparatorKind);
-
-        return path;
+        var stringBuilder = new ValueStringBuilder(stackalloc char[260]);
+        Normalize(path.AsSpan(), ref stringBuilder, options);
+        var result = stringBuilder.ToString();
+        stringBuilder.Dispose();
+        return result;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string NormalizeCasing(string path, UnifyCasingKind casing)
+    /// <summary>
+    /// Normalizes a given character span that represents a file path to a destination according to given normalization rules.
+    /// </summary>
+    /// <param name="path">The path to normalize</param>
+    /// <param name="destination">The destination span which contains the normalized path.</param>
+    /// <param name="options">The options how to normalize.</param>
+    /// <returns>The number of characters written into the destination span.</returns>
+    /// <remarks>This method populates <paramref name="destination"/> even if <paramref name="destination"/> is too small.</remarks>
+    /// <exception cref="ArgumentException">If the <paramref name="destination"/> is too small.</exception>
+    public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, PathNormalizeOptions options)
     {
-        if (casing == UnifyCasingKind.None)
-            return path;
-
-        if (!PathExtensions.IsFileSystemCaseInsensitive.Value && !casing.IsForce())
-            return path;
-
-        if (casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.LowerCase)
-            return path.ToLowerInvariant();
-
-        if (casing is UnifyCasingKind.UpperCase or UnifyCasingKind.UpperCaseForce)
-            return path.ToUpperInvariant();
-
-        throw new ArgumentOutOfRangeException(nameof(casing));
+        var stringBuilder = new ValueStringBuilder(destination);
+        Normalize(path, ref stringBuilder, options);
+        if (!stringBuilder.TryCopyTo(destination, out var charsWritten))
+            throw new ArgumentException("Cannot copy to destination span", nameof(destination));
+        return charsWritten;
     }
 
-    private static string GetPathWithDirectorySeparator(string path, DirectorySeparatorKind separatorKind)
+    internal static void Normalize(ReadOnlySpan<char> path, ref ValueStringBuilder sb, PathNormalizeOptions options)
     {
-        switch (separatorKind)
+        if (path == null)
+            throw new ArgumentNullException(nameof(path));
+        if (path.Length == 0)
+            throw new ArgumentException(nameof(path));
+        
+        switch (options.TrailingDirectorySeparatorBehavior)
         {
-            case DirectorySeparatorKind.System:
-                return PathExtensions.IsUnixLikePlatform ? GetPathWithForwardSlashes(path) : GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Windows:
-                return GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Linux:
-                return GetPathWithForwardSlashes(path);
+            case TrailingDirectorySeparatorBehavior.Trim:
+                var trimmedPath = PathExtensions.TrimTrailingSeparators(path, options.UnifySeparatorKind);
+                sb.Append(trimmedPath);
+                break;
+            case TrailingDirectorySeparatorBehavior.Ensure:
+                sb.Append(path);
+                PathExtensions.EnsureTrailingSeparatorInternal(ref sb);
+                break;
+            case TrailingDirectorySeparatorBehavior.None:
+                sb.Append(path);
+                break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(separatorKind));
+                throw new IndexOutOfRangeException();
+        }
+
+        // As the trailing directory normalization might add new separators, this step must come after.
+        if (options.UnifyDirectorySeparators)
+            GetPathWithDirectorySeparator(sb.RawChars, options.UnifySeparatorKind);
+
+        NormalizeCasing(sb.RawChars, options.UnifyCase);
+    }
+
+    private static bool RequiresCasing(UnifyCasingKind casingOption)
+    {
+        if (casingOption == UnifyCasingKind.None)
+            return false;
+        if (!PathExtensions.IsFileSystemCaseInsensitive.Value && !casingOption.IsForce())
+            return false;
+        return true;
+    }
+
+    private static unsafe void NormalizeCasing(Span<char> path, UnifyCasingKind casing)
+    {
+        if (!RequiresCasing(casing))
+            return;
+
+        delegate*<char, char> transformation;
+        if (casing is UnifyCasingKind.LowerCase or UnifyCasingKind.LowerCaseForce)
+            transformation = &ToLower;
+        else
+            transformation = &ToUpper;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            var c = path[i];
+            path[i] = transformation(c);
+        }
+    }
+
+    private static char ToLower(char c)
+    {
+        return char.ToLowerInvariant(c);
+    }
+
+    private static char ToUpper(char c)
+    {
+        return char.ToUpperInvariant(c);
+    }
+
+    private static void GetPathWithDirectorySeparator(Span<char> pathSpan, DirectorySeparatorKind separatorKind)
+    {
+        var separatorChar = GetSeparatorChar(separatorKind);
+
+        for (var i = 0; i < pathSpan.Length; i++)
+        {
+            var c = pathSpan[i];
+            if (c is '\\' or '/')
+                pathSpan[i] = separatorChar;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithBackSlashes(string path)
+    private static char GetSeparatorChar(DirectorySeparatorKind separatorKind)
     {
-        return path.Replace('/', '\\');
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithForwardSlashes(string path)
-    {
-        return path.Replace('\\', '/');
+        return separatorKind switch
+        {
+            DirectorySeparatorKind.System => PathExtensions.IsUnixLikePlatform ? '/' : '\\',
+            DirectorySeparatorKind.Windows => '\\',
+            DirectorySeparatorKind.Linux => '/',
+            _ => throw new ArgumentOutOfRangeException(nameof(separatorKind))
+        };
     }
 
     private static bool IsForce(this UnifyCasingKind casing)
