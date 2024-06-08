@@ -89,10 +89,10 @@ public class GetPathRootTest
         { @"\\?\C:\foo\bar.txt", @"\\?\C:\" }
     };
 
-    [Theory,
-     MemberData(nameof(TestData_GetPathRoot_Windows)),
-     MemberData(nameof(TestData_GetPathRoot_Unc)),
-     MemberData(nameof(TestData_GetPathRoot_DevicePaths))]
+    [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
+    [MemberData(nameof(TestData_GetPathRoot_Windows))]
+    [MemberData(nameof(TestData_GetPathRoot_Unc))]
+    [MemberData(nameof(TestData_GetPathRoot_DevicePaths))]
     public void GetPathRoot_Span(string value, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.GetPathRoot(value));
@@ -100,6 +100,4 @@ public class GetPathRootTest
         Assert.Equal(expected, _fileSystem.Path.GetPathRoot(value.AsSpan()).ToString());
         Assert.True(_fileSystem.Path.IsPathRooted(value.AsSpan()));
     }
-
-
 }
