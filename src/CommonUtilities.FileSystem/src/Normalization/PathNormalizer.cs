@@ -34,7 +34,9 @@ public static class PathNormalizer
     /// <param name="path">The path to normalize</param>
     /// <param name="destination">The destination span which contains the normalized path.</param>
     /// <param name="options">The options how to normalize.</param>
-    /// <returns>The number of characters written into the destination span. If the destination is too small, returns -1.</returns>
+    /// <returns>The number of characters written into the destination span.</returns>
+    /// <remarks>This method populates <paramref name="destination"/> even if <paramref name="destination"/> is too small.</remarks>
+    /// <exception cref="ArgumentException">If the <paramref name="destination"/> is too small.</exception>
     public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, PathNormalizeOptions options)
     {
         var stringBuilder = new ValueStringBuilder(destination);
@@ -68,6 +70,7 @@ public static class PathNormalizer
                 throw new IndexOutOfRangeException();
         }
 
+        // As the trailing directory normalization might add new separators, this step must come after.
         if (options.UnifyDirectorySeparators)
             GetPathWithDirectorySeparator(sb.RawChars, options.UnifySeparatorKind);
 

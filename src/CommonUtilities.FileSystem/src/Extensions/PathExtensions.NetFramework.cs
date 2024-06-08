@@ -2,6 +2,7 @@
 
 using System.IO.Abstractions;
 using System;
+using System.IO;
 
 namespace AnakinRaW.CommonUtilities.FileSystem;
 
@@ -23,7 +24,7 @@ public static partial class PathExtensions
     /// <returns>The characters after the last directory separator character in <paramref name="path"/>.</returns>
     /// <remarks>
     /// Under .NET Framework and .NET Standard 2.0 this method behaves like .NET Core for file names with ":", such as
-    /// "C:\file.txt:stream" --> "file.txt:stream" whereas in .NET Framework the result would be "stream".
+    /// "C:\file.txt:stream" --> "file.txt:stream" whereas in .NET Framework <see cref="Path.GetFileName"/> the result would be "stream".
     /// </remarks>
     public static ReadOnlySpan<char> GetFileName(this IPath _, ReadOnlySpan<char> path)
     {
