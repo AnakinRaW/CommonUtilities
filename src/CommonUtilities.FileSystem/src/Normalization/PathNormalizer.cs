@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using AnakinRaW.CommonUtilities.FileSystem.Utilities;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Normalization;
 
@@ -45,70 +46,96 @@ public static class PathNormalizer
         return charsWritten;
     }
 
-        path = options.TrailingDirectorySeparatorBehavior switch
-        {
-            TrailingDirectorySeparatorBehavior.Trim => PathExtensions.TrimTrailingSeparators(path.AsSpan(), options.UnifySeparatorKind),
-            TrailingDirectorySeparatorBehavior.Ensure => PathExtensions.EnsureTrailingSeparatorInternal(path),
-            _ => path
-        };
-
-        // Only do for DirectorySeparatorKind.System, cause for other kinds it will be done at the very end anyway.
-        if (options.UnifyDirectorySeparators && options.UnifySeparatorKind == DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, DirectorySeparatorKind.System);
-
-        path = NormalizeCasing(path, options.UnifyCase);
-
-        // NB: As previous steps may add new separators (such as GetFullPath) we need to re-apply slash normalization
-        // if the desired DirectorySeparatorKind is not DirectorySeparatorKind.System
-        if (options.UnifyDirectorySeparators && options.UnifySeparatorKind != DirectorySeparatorKind.System)
-            path = GetPathWithDirectorySeparator(path, options.UnifySeparatorKind);
-
-        return path;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string NormalizeCasing(string path, UnifyCasingKind casing)
+    internal static void Normalize(ReadOnlySpan<char> path, ref ValueStringBuilder sb, PathNormalizeOptions options)
     {
-        if (casing == UnifyCasingKind.None)
-            return path;
-
-        if (!PathExtensions.IsFileSystemCaseInsensitive.Value && !casing.IsForce())
-            return path;
-
-        if (casing is UnifyCasingKind.LowerCaseForce or UnifyCasingKind.LowerCase)
-            return path.ToLowerInvariant();
-
-        if (casing is UnifyCasingKind.UpperCase or UnifyCasingKind.UpperCaseForce)
-            return path.ToUpperInvariant();
-
-        throw new ArgumentOutOfRangeException(nameof(casing));
-    }
-
-    private static string GetPathWithDirectorySeparator(string path, DirectorySeparatorKind separatorKind)
-    {
-        switch (separatorKind)
+        if (path == null)
+            throw new ArgumentNullException(nameof(path));
+        if (path.Length == 0)
+            throw new ArgumentException(nameof(path));
+        
+        switch (options.TrailingDirectorySeparatorBehavior)
         {
-            case DirectorySeparatorKind.System:
-                return PathExtensions.IsUnixLikePlatform ? GetPathWithForwardSlashes(path) : GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Windows:
-                return GetPathWithBackSlashes(path);
-            case DirectorySeparatorKind.Linux:
-                return GetPathWithForwardSlashes(path);
+            case TrailingDirectorySeparatorBehavior.Trim:
+                var trimmedPath = PathExtensions.TrimTrailingSeparators(path, options.UnifySeparatorKind);
+                sb.Append(trimmedPath);
+                break;
+            case TrailingDirectorySeparatorBehavior.Ensure:
+                sb.Append(path);
+                PathExtensions.EnsureTrailingSeparatorInternal(ref sb);
+                break;
+            case TrailingDirectorySeparatorBehavior.None:
+                sb.Append(path);
+                break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(separatorKind));
+                throw new IndexOutOfRangeException();
+        }
+
+        // As the trailing directory normalization might add new separators, this step must come after.
+        if (options.UnifyDirectorySeparators)
+            GetPathWithDirectorySeparator(sb.RawChars, options.UnifySeparatorKind);
+
+        NormalizeCasing(sb.RawChars, options.UnifyCase);
+    }
+
+    private static bool RequiresCasing(UnifyCasingKind casingOption)
+    {
+        if (casingOption == UnifyCasingKind.None)
+            return false;
+        if (!PathExtensions.IsFileSystemCaseInsensitive.Value && !casingOption.IsForce())
+            return false;
+        return true;
+    }
+
+    private static unsafe void NormalizeCasing(Span<char> path, UnifyCasingKind casing)
+    {
+        if (!RequiresCasing(casing))
+            return;
+
+        delegate*<char, char> transformation;
+        if (casing is UnifyCasingKind.LowerCase or UnifyCasingKind.LowerCaseForce)
+            transformation = &ToLower;
+        else
+            transformation = &ToUpper;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            var c = path[i];
+            path[i] = transformation(c);
+        }
+    }
+
+    private static char ToLower(char c)
+    {
+        return char.ToLowerInvariant(c);
+    }
+
+    private static char ToUpper(char c)
+    {
+        return char.ToUpperInvariant(c);
+    }
+
+    private static void GetPathWithDirectorySeparator(Span<char> pathSpan, DirectorySeparatorKind separatorKind)
+    {
+        var separatorChar = GetSeparatorChar(separatorKind);
+
+        for (var i = 0; i < pathSpan.Length; i++)
+        {
+            var c = pathSpan[i];
+            if (c is '\\' or '/')
+                pathSpan[i] = separatorChar;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithBackSlashes(string path)
+    private static char GetSeparatorChar(DirectorySeparatorKind separatorKind)
     {
-        return path.Replace('/', '\\');
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetPathWithForwardSlashes(string path)
-    {
-        return path.Replace('\\', '/');
+        return separatorKind switch
+        {
+            DirectorySeparatorKind.System => PathExtensions.IsUnixLikePlatform ? '/' : '\\',
+            DirectorySeparatorKind.Windows => '\\',
+            DirectorySeparatorKind.Linux => '/',
+            _ => throw new ArgumentOutOfRangeException(nameof(separatorKind))
+        };
     }
 
     private static bool IsForce(this UnifyCasingKind casing)

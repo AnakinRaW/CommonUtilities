@@ -95,6 +95,19 @@ public interface IHashingService
     int GetHash(string stringData, Encoding encoding, Span<byte> destination, HashTypeKey hashType);
 
     /// <summary>
+    /// Computes the hash of a character span using the specified algorithm.
+    /// </summary>
+    /// <param name="stringData">The character span to hash.</param>
+    /// <param name="destination">The buffer to receive the hash value.</param>
+    /// <param name="encoding">The encoding to interpret the string</param>
+    /// <param name="hashType">The hash type data.</param>
+    /// <returns>The total number of bytes written to <paramref name="destination"/>.</returns>
+    /// <exception cref="InvalidOperationException">The buffer in destination is too small to hold the calculated hash size.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="stringData"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The buffer in <paramref name="destination"/> is too small to hold the calculated hash size.</exception>
+    int GetHash(ReadOnlySpan<char> stringData, Span<byte> destination, Encoding encoding, HashTypeKey hashType);
+
+    /// <summary>
     /// Asynchronously computes the hash of a file using the specified algorithm.
     /// </summary>
     /// <param name="file">The file to hash.</param>

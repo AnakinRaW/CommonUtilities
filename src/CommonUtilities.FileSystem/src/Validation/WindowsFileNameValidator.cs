@@ -27,8 +27,13 @@ public class WindowsFileNameValidator : FileNameValidator
         //(char)31,
     ];
 
-    /// <inheritdoc />
-    public override FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName)
+    /// <summary>
+    /// Checks whether a string represent a valid file name
+    /// </summary>
+    /// <param name="fileName">The string to validate.</param>
+    /// <param name="checkWindowsReservedNames">Determines whether the check shall include Windows reserved file names (e.g, AUX, LPT1, etc.).</param>
+    /// <returns></returns>
+    public FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName, bool checkWindowsReservedNames)
     {
         if (fileName.Length == 0)
             return FileNameValidationResult.NullOrEmpty;
@@ -41,15 +46,25 @@ public class WindowsFileNameValidator : FileNameValidator
         if (ContainsInvalidChars(fileName))
             return FileNameValidationResult.InvalidCharacter;
 
+        if (checkWindowsReservedNames)
+        {
 #if NET7_0_OR_GREATER
-        if (RegexInvalidName.IsMatch(fileName))
-            return FileNameValidationResult.SystemReserved;
+            if (RegexInvalidName.IsMatch(fileName))
+                return FileNameValidationResult.SystemReserved;
 #else
-        if (RegexInvalidName.IsMatch(fileName.ToString()))
-            return FileNameValidationResult.SystemReserved;
+            if (RegexInvalidName.IsMatch(fileName.ToString()))
+                return FileNameValidationResult.SystemReserved;
 #endif
 
+        }
+
         return FileNameValidationResult.Valid;
+    }
+
+    /// <inheritdoc />
+    public override FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName)
+    {
+        return IsValidFileName(fileName, true);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
