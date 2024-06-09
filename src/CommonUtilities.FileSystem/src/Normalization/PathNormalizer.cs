@@ -20,12 +20,30 @@ public static class PathNormalizer
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static string Normalize(string path, PathNormalizeOptions options)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            if (path is null)
-                throw new ArgumentNullException(path);
-            throw new ArgumentException("The value cannot be an empty string.", path);
-        }
+        var stringBuilder = new ValueStringBuilder(stackalloc char[PathExtensions.MaxShortPath]);
+        Normalize(path.AsSpan(), ref stringBuilder, options);
+        var result = stringBuilder.ToString();
+        stringBuilder.Dispose();
+        return result;
+    }
+
+    /// <summary>
+    /// Normalizes a given character span that represents a file path to a destination according to given normalization rules.
+    /// </summary>
+    /// <param name="path">The path to normalize</param>
+    /// <param name="destination">The destination span which contains the normalized path.</param>
+    /// <param name="options">The options how to normalize.</param>
+    /// <returns>The number of characters written into the destination span.</returns>
+    /// <remarks>This method populates <paramref name="destination"/> even if <paramref name="destination"/> is too small.</remarks>
+    /// <exception cref="ArgumentException">If the <paramref name="destination"/> is too small.</exception>
+    public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, PathNormalizeOptions options)
+    {
+        var stringBuilder = new ValueStringBuilder(destination);
+        Normalize(path, ref stringBuilder, options);
+        if (!stringBuilder.TryCopyTo(destination, out var charsWritten))
+            throw new ArgumentException("Cannot copy to destination span", nameof(destination));
+        return charsWritten;
+    }
 
         path = options.TrailingDirectorySeparatorBehavior switch
         {

@@ -20,10 +20,11 @@ public static class PathExtensions
     private const string ThisDirectory = ".";
     private const string ParentRelativeDirectory = "..";
 
+    internal const int MaxShortPath = 260;
+
     internal static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
     internal static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
     internal static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
-    internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
 
     private static readonly char[] PathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
@@ -213,7 +214,7 @@ public static class PathExtensions
         if (index == 0)
             return path;
 
-        var relativePath = string.Empty;
+        var sb = new ValueStringBuilder(stackalloc char[MaxShortPath]);
 
         // add backup notation for remaining base path levels beyond the index
         var remainingParts = rootParts.Length - index;
