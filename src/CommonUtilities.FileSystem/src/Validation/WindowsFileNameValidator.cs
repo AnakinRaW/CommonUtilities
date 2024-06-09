@@ -18,7 +18,7 @@ public class WindowsFileNameValidator : FileNameValidator
         new("^(COM\\d|CLOCK\\$|LPT\\d|AUX|NUL|CON|PRN|(.*[\\ud800-\\udfff]+.*))$", RegexOptions.IgnoreCase);
 
     // From dotnet/runtime Path.Windows.cs
-    private static char[] InvalidFileNameChars =>
+    private static readonly char[] InvalidFileNameChars =
     [
         '\"', '<', '>', '|',  ':', '*', '?', '\\', '/',
         //'\0', (char)1, (char)2, (char)3, (char)4, (char)5, (char)6, (char)7, (char)8, (char)9, (char)10,
@@ -92,7 +92,6 @@ public class WindowsFileNameValidator : FileNameValidator
 
         return false;
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool EdgesValid(ReadOnlySpan<char> value, out bool whiteSpace)

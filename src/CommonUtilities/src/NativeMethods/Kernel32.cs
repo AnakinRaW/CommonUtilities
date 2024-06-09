@@ -13,6 +13,7 @@ internal static class Kernel32
 
     internal static string? GetModuleFileName(IntPtr hModule)
     {
+        // 260 is the MaxShortPath length
         var builder = new StringBuilder(260);
 
         uint length;

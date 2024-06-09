@@ -10,11 +10,62 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 public static partial class PathExtensions
 {
     // \\?\, \\.\, \??\
-    internal const int DevicePrefixLength = 4;
+    private const int DevicePrefixLength = 4;
     // \\
-    internal const int UncPrefixLength = 2;
+    private const int UncPrefixLength = 2;
     // \\?\UNC\, \\.\UNC\
-    internal const int UncExtendedPrefixLength = 8;
+    private const int UncExtendedPrefixLength = 8;
+
+    /// <summary>
+    /// Determines whether the path represented by the specified character span includes a file name extension.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="path">The path to search for an extension.</param>
+    /// <returns><see langword="true"/> if the characters that follow the last directory separator character or volume separator
+    /// in the path include a period (".") followed by one or more characters; otherwise, <see langword="false"/>.</returns>
+    public static bool HasExtension(this IPath _, ReadOnlySpan<char> path)
+    {
+        for (var i = path.Length - 1; i >= 0; i--)
+        {
+            var ch = path[i];
+            if (ch == '.')
+                return i != path.Length - 1;
+            if (IsAnyDirectorySeparator(ch))
+                break;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the extension of a file path that is represented by a read-only character span.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="path">The file path from which to get the extension.</param>
+    /// <returns>The extension of the specified path (including the period, "."), or Empty if <paramref name="path"/> does not have extension information.</returns>
+    /// <remarks>
+    /// This method obtains the extension of <paramref name="path"/> by searching <paramref name="path"/> for a period ("."),
+    /// starting from the last character in the read-only span and continuing toward its first character.
+    /// If a period is found before a DirectorySeparatorChar or AltDirectorySeparatorChar character,
+    /// the returned read-only span contains the period and the characters after it; otherwise, <see cref="ReadOnlySpan{T}.Empty"/> is returned.
+    /// </remarks>
+    public static ReadOnlySpan<char> GetExtension(this IPath _, ReadOnlySpan<char> path)
+    {
+        var length = path.Length;
+
+        for (var i = length - 1; i >= 0; i--)
+        {
+            var ch = path[i];
+            if (ch == '.')
+            {
+                return i != length - 1
+                    ? path.Slice(i, length - i)
+                    : ReadOnlySpan<char>.Empty;
+            }
+            if (IsAnyDirectorySeparator(ch))
+                break;
+        }
+        return ReadOnlySpan<char>.Empty;
+    }
 
     /// <summary>
     /// Returns the file name and extension of a file path that is represented by a read-only character span.

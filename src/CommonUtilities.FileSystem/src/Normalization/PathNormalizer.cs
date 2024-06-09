@@ -21,7 +21,7 @@ public static class PathNormalizer
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static string Normalize(string path, PathNormalizeOptions options)
     {
-        var stringBuilder = new ValueStringBuilder(stackalloc char[260]);
+        var stringBuilder = new ValueStringBuilder(stackalloc char[PathExtensions.MaxShortPath]);
         Normalize(path.AsSpan(), ref stringBuilder, options);
         var result = stringBuilder.ToString();
         stringBuilder.Dispose();
