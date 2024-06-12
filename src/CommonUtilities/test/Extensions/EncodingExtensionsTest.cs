@@ -4,7 +4,7 @@ using System.Text;
 using AnakinRaW.CommonUtilities.Extensions;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.Test;
+namespace AnakinRaW.CommonUtilities.Test.Extensions;
 
 public class EncodingExtensionsTest
 {
@@ -85,7 +85,7 @@ public class EncodingExtensionsTest
     {
         ForEachEncoding(e =>
         {
-            Assert.Equal(0, e.GetByteCount(default(ReadOnlySpan<char>)));
+            Assert.Equal(0, e.GetByteCount(ReadOnlySpan<char>.Empty));
         });
     }
 
@@ -97,7 +97,7 @@ public class EncodingExtensionsTest
         ForEachEncoding(e =>
         {
             // Force compiler to use EncodingExtensions instead of implicit casting to byte[]
-            Assert.Equal(string.Empty, EncodingExtensions.GetString(e, default(ReadOnlySpan<byte>)));
+            Assert.Equal(string.Empty, EncodingExtensions.GetString(e, ReadOnlySpan<byte>.Empty));
         });
     }
 
@@ -108,6 +108,22 @@ public class EncodingExtensionsTest
         Assert.Equal("\0", EncodingExtensions.GetString(Encoding.ASCII, new byte[] { 00 }.AsSpan()));
         Assert.Equal("012", EncodingExtensions.GetString(Encoding.ASCII, "012"u8.ToArray().AsSpan()));
         Assert.Equal("?", EncodingExtensions.GetString(Encoding.ASCII, new byte[] { 255 }.AsSpan()));
+    }
+
+    [Fact]
+    public void Test_GetChars()
+    {
+        Span<char> buffer = stackalloc char[10];
+
+        // Force compiler to use EncodingExtensions instead of implicit casting to byte[]
+        Assert.Equal(1, EncodingExtensions.GetChars(Encoding.ASCII, new byte[] { 00 }.AsSpan(), buffer));
+        Assert.Equal("\0", buffer.Slice(0, 1).ToString());
+
+        Assert.Equal(3, EncodingExtensions.GetChars(Encoding.ASCII, "012"u8.ToArray().AsSpan(), buffer));
+        Assert.Equal("012", buffer.Slice(0, 3).ToString());
+
+        Assert.Equal(1, EncodingExtensions.GetChars(Encoding.ASCII, new byte[] { 255 }.AsSpan(), buffer));
+        Assert.Equal("?", buffer.Slice(0, 1).ToString());
     }
 #endif
 
@@ -122,6 +138,8 @@ public class EncodingExtensionsTest
         Encoding encoding = null!;
         Assert.Throws<ArgumentNullException>(() => encoding.EncodeString(""));
         Assert.Throws<ArgumentNullException>(() => encoding.EncodeString("", 0));
+        Assert.Throws<ArgumentNullException>(() => encoding!.EncodeString("".AsSpan(), Span<char>.Empty));
+        Assert.Throws<ArgumentNullException>(() => encoding!.EncodeString("".AsSpan(), Span<char>.Empty, 0));
 
         ForEachEncoding(e =>
         {
@@ -137,7 +155,8 @@ public class EncodingExtensionsTest
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => e.EncodeString("123", -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => e.EncodeString("123", int.MinValue));
-
+            Assert.Throws<ArgumentOutOfRangeException>(() => e.EncodeString("123".AsSpan(), int.MinValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => e.EncodeString("".AsSpan(), Span<char>.Empty, int.MinValue));
         });
     }
 
@@ -148,8 +167,10 @@ public class EncodingExtensionsTest
 
         foreach (var encoding in encodings)
         {
-            Assert.Equal(string.Empty, encoding.EncodeString(default(ReadOnlySpan<char>)));
-            Assert.Equal(string.Empty, encoding.EncodeString((default(ReadOnlySpan<char>)), 5));
+            Assert.Equal(string.Empty, encoding.EncodeString(ReadOnlySpan<char>.Empty));
+            Assert.Equal(string.Empty, encoding.EncodeString(ReadOnlySpan<char>.Empty, 5));
+            Assert.Equal(0, encoding.EncodeString(ReadOnlySpan<char>.Empty, Span<char>.Empty));
+            Assert.Equal(0, encoding.EncodeString(ReadOnlySpan<char>.Empty, Span<char>.Empty, 5));
         }
     }
 
@@ -164,8 +185,11 @@ public class EncodingExtensionsTest
     public void Test_EncodeString_EncodeASCII(string input, string expected)
     {
         var encoding = Encoding.ASCII;
-        var result = encoding.EncodeString(input);
-        Assert.Equal(expected, result);
+        Assert.Equal(expected, encoding.EncodeString(input));
+
+        Span<char> dest = stackalloc char[input.Length];
+        Assert.Equal(input.Length, encoding.EncodeString(input.AsSpan(), dest));
+        Assert.Equal(expected, dest.Slice(0, input.Length).ToString());
     }
 
     [Theory]
@@ -181,6 +205,10 @@ public class EncodingExtensionsTest
         var encoding = Encoding.Unicode;
         var result = encoding.EncodeString(input);
         Assert.Equal(expected, result);
+
+        Span<char> dest = stackalloc char[input.Length];
+        Assert.Equal(input.Length, encoding.EncodeString(input.AsSpan(), dest));
+        Assert.Equal(expected, dest.Slice(0, input.Length).ToString());
     }
 
     [Theory]
@@ -193,6 +221,10 @@ public class EncodingExtensionsTest
         var encoding = Encoding.ASCII;
         var result = encoding.EncodeString(input, count);
         Assert.Equal(expected, result);
+
+        Span<char> dest = stackalloc char[count];
+        Assert.Equal(input.Length, encoding.EncodeString(input.AsSpan(), dest, count));
+        Assert.Equal(expected, dest.Slice(0, input.Length).ToString());
     }
 
     [Theory]
@@ -202,14 +234,34 @@ public class EncodingExtensionsTest
     {
         var encoding = Encoding.ASCII;
         Assert.ThrowsAny<ArgumentException>(() => encoding.EncodeString(input, count));
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+        {
+            Span<char> dest = stackalloc char[10];
+            encoding.EncodeString(input.AsSpan(), dest, count);
+        });
+    }
+
+    [Fact]
+    public void Test_EncodeString_Encode_SpanTooSmall_Throws()
+    {
+        var encoding = Encoding.ASCII;
+        Assert.ThrowsAny<ArgumentException>(() => encoding.EncodeString("123".AsSpan(), Span<char>.Empty));
     }
 
     [Fact]
     public void Test_EncodeString_Encode_LongString()
     {
         var encoding = Encoding.ASCII;
-        var result = encoding.EncodeString(new string('a', 512));
-        Assert.Equal(new string('a', 512), result);
+        Assert.Equal(new string('a', 512), encoding.EncodeString(new string('a', 512)));
+        Assert.Equal(new string('a', 512), encoding.EncodeString(new string('a', 512), 1000));
+
+        Span<char> buffer = new char[1000]; 
+        Assert.Equal(512, encoding.EncodeString(new string('a', 512).AsSpan(), buffer));
+        Assert.Equal(new string('a', 512), buffer.Slice(0, 512).ToString());
+
+        Assert.Equal(512, encoding.EncodeString(new string('a', 512).AsSpan(), buffer, 1000));
+        Assert.Equal(new string('a', 512), buffer.Slice(0, 512).ToString());
     }
 
     [Fact]
@@ -219,6 +271,7 @@ public class EncodingExtensionsTest
         {
             var actualCount = e.GetByteCount("123");
             Assert.Throws<ArgumentException>(() => e.EncodeString("123", actualCount - 1));
+            Assert.Throws<ArgumentException>(() => e.EncodeString("123".AsSpan(), Span<char>.Empty, actualCount -1));
         });
     }
 

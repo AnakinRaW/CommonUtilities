@@ -23,6 +23,20 @@ public static partial class EncodingExtensions
     }
 
     /// <summary>
+    /// Decodes all the bytes in the specified read-only byte span into a character span.
+    /// </summary>
+    /// <param name="encoding">The encoding to use.</param>
+    /// <param name="bytes">A read-only span containing the sequence of bytes to decode.</param>
+    /// <param name="chars">The character span receiving the decoded bytes.</param>
+    /// <returns>The actual number of characters written at the span indicated by the <paramref name="chars"/> parameter.</returns>
+    public static unsafe int GetChars(this Encoding encoding, ReadOnlySpan<byte> bytes, Span<char> chars)
+    {
+        fixed (byte* pBytes = &GetNonNullPinnableReference(bytes))
+        fixed (char* pChar = &GetNonNullPinnableReference(chars))
+            return encoding.GetChars(pBytes, bytes.Length, pChar, chars.Length);
+    }
+
+    /// <summary>
     /// Decodes all the bytes in the specified byte span into a string.
     /// </summary>
     /// <param name="encoding">The encoding to use</param>
