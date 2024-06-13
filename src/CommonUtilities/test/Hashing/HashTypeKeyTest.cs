@@ -15,6 +15,15 @@ public class HashTypeKeyTest
     }
 
     [Fact]
+    public void Test_None()
+    {
+        var key = HashTypeKey.None;
+        Assert.Null(key.Name);
+        Assert.Equal(0, key.GetHashCode());
+        Assert.Equal(0, key.HashSize);
+    }
+
+    [Fact]
     public void Test_Ctor_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new HashTypeKey(null!, 1));

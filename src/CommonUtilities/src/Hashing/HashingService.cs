@@ -176,8 +176,6 @@ public sealed class HashingService : IHashingService
     /// <inheritdoc />
     public int GetHash(ReadOnlySpan<char> stringData, Span<byte> destination, Encoding encoding, HashTypeKey hashType)
     {
-        if (stringData == null)
-            throw new ArgumentNullException(nameof(stringData));
         if (encoding == null)
             throw new ArgumentNullException(nameof(encoding));
 
@@ -186,7 +184,9 @@ public sealed class HashingService : IHashingService
         byte[]? encodedBytes = null;
         try
         {
-            var buffer = maxByteSize > 256 ? encodedBytes = ArrayPool<byte>.Shared.Rent(maxByteSize) : stackalloc byte[maxByteSize];
+            var buffer = maxByteSize > 256
+                ? encodedBytes = ArrayPool<byte>.Shared.Rent(maxByteSize)
+                : stackalloc byte[maxByteSize];
             var bytesToHash = encoding.GetBytesReadOnly(stringData, buffer);
 
             return GetHash(bytesToHash, destination, hashType);

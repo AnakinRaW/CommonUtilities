@@ -9,8 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Testably.Abstractions.Testing;
 using Xunit;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Globalization;
+#if NET8_0_OR_GREATER
+using System.Security.Cryptography;
+#endif
 
 namespace AnakinRaW.CommonUtilities.Test.Hashing;
 
@@ -116,6 +118,37 @@ public class HashingServiceTest
 
         await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), provider));
         await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), provider));
+    }
+
+    [Theory]
+    [MemberData(nameof(ProviderKnownHashTypes))]
+    public void Test_GetHash_NullSpanShouldNotThrow(HashTypeKey hashKey)
+    {
+        ReadOnlySpan<char> nullSpan = stackalloc char[0];
+        _hashingService.GetHash(nullSpan, stackalloc byte[hashKey.HashSize], Encoding.ASCII, hashKey);
+    }
+
+    [Theory]
+    [MemberData(nameof(ProviderKnownHashTypes))]
+    public void Test_GetHash_DestinationTooSmall_ThrowsArgumentException(HashTypeKey hashKey)
+    {
+        _fileSystem.Initialize().WithFile("test.txt");
+
+        var someSource = Array.Empty<byte>();
+        var someStream = new MemoryStream(someSource);
+
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), stackalloc byte[hashKey.HashSize - 1], Encoding.ASCII, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), stackalloc byte[0], Encoding.ASCII, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), Span<byte>.Empty, Encoding.ASCII, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, stackalloc byte[hashKey.HashSize - 1], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, Span<byte>.Empty, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, stackalloc byte[hashKey.HashSize - 1], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, Span<byte>.Empty, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), stackalloc byte[hashKey.HashSize - 1], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), Span<byte>.Empty, hashKey));
     }
 
     [Fact]
@@ -348,6 +381,23 @@ public class HashingServiceTest
         yield return [HashTypeKey.SHA512, RepeatString("0102030405060708", 1024), "da1bdf4632ea5ee0724a57a9bc6fd409d7f8f7417373356281ce36f82b510da95c7dff7d64a43b3cf4854894e124f56b349749a3f76b41611c01fee739f4d923"];
     }
 
+    public static IEnumerable<object[]> ProviderKnownHashTypes()
+    {
+        yield return [HashTypeKey.MD5];
+        yield return [HashTypeKey.SHA1];
+        yield return [HashTypeKey.SHA256];
+        yield return [HashTypeKey.SHA384];
+        yield return [HashTypeKey.SHA512];
+#if NET8_0_OR_GREATER
+        if (SHA3_256.IsSupported)
+            yield return [HashTypeKey.SHA3_256];
+        if (SHA3_384.IsSupported)
+            yield return [HashTypeKey.SHA3_384];
+        if (SHA3_512.IsSupported)
+            yield return [HashTypeKey.SHA3_512];
+#endif
+    }
+
 #if NET8_0_OR_GREATER
 
     public static IEnumerable<object[]> ProviderHashTestData_SHA3_256()
@@ -377,7 +427,7 @@ public class HashingServiceTest
         yield return [HashTypeKey.SHA3_512, RepeatString("0102030405060708", 1024), "b5ec7fe7061c944b65f42a3193ebafcc3b35f063dc2ac7a5af05140b2439c425e4d9e63bc97103f704a7b6849a1986cec743ac288ca2f123e82c0ce60b714615"];
         yield return [HashTypeKey.SHA3_512, RepeatString("0102030405060708", 1025), "ea418b3d279a9b25ddc6f8a294006c63068cbd4b872163365f7d11f6f287c8291adc0e3b77999db9606a40c989d7eca405247162104feec1d5a46e59404692a2"];
     }
-
+    
 #endif
 
 
