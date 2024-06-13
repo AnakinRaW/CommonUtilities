@@ -112,7 +112,7 @@ public readonly struct HashTypeKey : IEquatable<HashTypeKey>
     /// <returns>The hash code for the current instance, or 0 if this is <see cref="None"/>.</returns>
     public override int GetHashCode()
     {
-        return Name.ToLowerInvariant().GetHashCode();
+        return Name?.ToUpperInvariant().GetHashCode() ?? 0;
     }
 
     /// <summary>
