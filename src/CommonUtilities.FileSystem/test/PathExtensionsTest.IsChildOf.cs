@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System;
+using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -35,6 +36,10 @@ public class IsChildOfTest
         _fileSystem.Initialize().WithSubdirectory("C:\\current");
         _fileSystem.Directory.SetCurrentDirectory("C:\\current");
         Assert.Equal(expected, _fileSystem.Path.IsChildOf(basePath, candidate));
+        Assert.Equal(
+            expected, 
+            _fileSystem.Path.IsChildOf(_fileSystem.Path.GetFullPath(basePath).AsSpan(), 
+                _fileSystem.Path.GetFullPath(candidate).AsSpan()));
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
@@ -49,5 +54,27 @@ public class IsChildOfTest
         _fileSystem.Initialize().WithSubdirectory("/current");
         _fileSystem.Directory.SetCurrentDirectory("/current");
         Assert.Equal(expected, _fileSystem.Path.IsChildOf(basePath, candidate));
+        Assert.Equal(
+            expected,
+            _fileSystem.Path.IsChildOf(_fileSystem.Path.GetFullPath(basePath).AsSpan(),
+                _fileSystem.Path.GetFullPath(candidate).AsSpan()));
+    }
+
+    [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
+    [InlineData("test", "/")]
+    [InlineData("/", "test")]
+    [InlineData("test", "test")]
+    public void TestIsChild_NoFullyQualifiedPathsForROS_Linux(string basePath, string candidate)
+    {
+        Assert.Throws<ArgumentException>(() => _fileSystem.Path.IsChildOf(basePath.AsSpan(), candidate.AsSpan()));
+    }
+
+    [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
+    [InlineData("test", "test")]
+    [InlineData("C:/test", "test")]
+    [InlineData("test", "C:/test")]
+    public void TestIsChild_NoFullyQualifiedPathsForROS_Windows(string basePath, string candidate)
+    {
+        Assert.Throws<ArgumentException>(() => _fileSystem.Path.IsChildOf(basePath.AsSpan(), candidate.AsSpan()));
     }
 }
