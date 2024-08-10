@@ -45,11 +45,8 @@ internal class HttpClientDownloader : DownloadProviderBase
 #else
                     using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-                    var contentLengthData = response.Content.Headers.ContentLength;
-                    if (contentLengthData is null or 0L)
-                        throw new IOException("Error: Response stream length is 0.");
-
-                    var contentLength = contentLengthData.Value;
+                    var contentLengthData = response.Content.Headers.ContentLength ?? 0;
+                    var contentLength = contentLengthData;
 
                     var requestRegistration = cancellationToken.Register(webRequest.Dispose);
                     try
@@ -98,7 +95,7 @@ internal class HttpClientDownloader : DownloadProviderBase
     {
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("defalte"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
         return request;
     }
 

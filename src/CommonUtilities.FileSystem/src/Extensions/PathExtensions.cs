@@ -299,7 +299,7 @@ public static partial class PathExtensions
 
     internal static bool PathsEqual(string path1, string path2)
     {
-        return PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));
+        return PathsEqual(path1.AsSpan(), path2.AsSpan(), Math.Max(path1.Length, path2.Length));
     }
 
     private static void CombinePathsUnchecked(ref ValueStringBuilder sb, string relativePath)
@@ -318,7 +318,7 @@ public static partial class PathExtensions
     /// <summary>
     /// True if the two paths are the same.  (but only up to the specified length)
     /// </summary>
-    private static bool PathsEqual(string path1, string path2, int length)
+    private static bool PathsEqual(ReadOnlySpan<char> path1, ReadOnlySpan<char> path2, int length)
     {
         if (path1.Length < length || path2.Length < length)
             return false;
@@ -353,11 +353,28 @@ public static partial class PathExtensions
     {
         var fullBase = _.GetFullPath(basePath);
         var fullCandidate = _.GetFullPath(candidate);
+        return _.IsChildOf(fullBase.AsSpan(), fullCandidate.AsSpan());
+    }
 
-        return fullBase.Length > 0
-               && fullCandidate.Length > fullBase.Length
-               && PathsEqual(fullCandidate, fullBase, fullBase.Length)
-               && (IsAnyDirectorySeparator(fullBase[fullBase.Length - 1]) || IsAnyDirectorySeparator(fullCandidate[fullBase.Length]));
+    /// <summary>
+    /// Determines whether a specified candidate path is a real child path to a specified base path.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="basePath">The base path-</param>
+    /// <param name="candidate">The relative path candidate.</param>
+    /// <returns><see langword="true"/> if <paramref name="candidate"/> is a child path to <paramref name="basePath"/>; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="basePath"/> or <paramref name="candidate"/> are not fully qualified.</exception>
+    public static bool IsChildOf(this IPath _, ReadOnlySpan<char> basePath, ReadOnlySpan<char> candidate)
+    {
+        if (!_.IsPathFullyQualified(basePath))
+            throw new ArgumentException("candidate must be fully qualified", nameof(basePath));
+        if (!_.IsPathFullyQualified(candidate))
+            throw new ArgumentException("candidate must be fully qualified", nameof(candidate));
+        
+        return basePath.Length > 0
+               && candidate.Length > basePath.Length
+               && PathsEqual(candidate, basePath, basePath.Length)
+               && (IsAnyDirectorySeparator(basePath[basePath.Length - 1]) || IsAnyDirectorySeparator(candidate[basePath.Length]));
     }
 
     internal static bool IsValidDriveChar(char value)
