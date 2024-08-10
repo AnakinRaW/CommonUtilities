@@ -42,6 +42,9 @@ internal class WebClientDownloader : DownloadProviderBase
             {
                 try
                 {
+#if NET || NETSTANDARD2_1
+                    await
+#endif
                     using var responseStream = webResponse.GetResponseStream();
                     var contentLength = webResponse.Headers["Content-Length"];
                     if (string.IsNullOrEmpty(contentLength))
@@ -50,7 +53,7 @@ internal class WebClientDownloader : DownloadProviderBase
                     if (totalStreamLength.Equals(0L))
                         throw new IOException("Error: Response stream length is 0.");
 
-                    var requestRegistration = cancellationToken.Register(() => webRequest!.Abort());
+                    var requestRegistration = cancellationToken.Register(webRequest.Abort);
                     try
                     {
                         summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream,
@@ -60,7 +63,11 @@ internal class WebClientDownloader : DownloadProviderBase
                     }
                     finally
                     {
+#if NET || NETSTANDARD2_1
+                        await requestRegistration.DisposeAsync();
+#else
                         requestRegistration.Dispose();
+#endif
                     }
                 }
                 catch (WebException ex)
@@ -110,6 +117,9 @@ internal class WebClientDownloader : DownloadProviderBase
         var success = false;
         try
         {
+#if NET || NETSTANDARD2_1
+            await
+#endif
             using (cancellationToken.Register(webRequest.Abort))
                 httpWebResponse = (HttpWebResponse)await webRequest.GetResponseAsync().ConfigureAwait(false);
 

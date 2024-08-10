@@ -37,7 +37,7 @@ public class WebClientDownloadTest
     {
         var outStream = new MemoryStream();
         var result = await _provider.DownloadAsync(
-            new Uri("http://speedtest.ftp.otenet.gr/files/test100k.db"),
+            new Uri("https://raw.githubusercontent.com/AnakinRaW/CommonUtilities/2ab2e6a26872974422459b0605b26222c9e126ca/README.md"),
             outStream, null, CancellationToken.None);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);

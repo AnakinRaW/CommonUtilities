@@ -58,11 +58,11 @@ public class DownloadManagerIntegrationTest
 
         var progressTriggered = false;
 
-        var summary = await manager.DownloadAsync(new Uri("http://speedtest.ftp.otenet.gr/files/test10Mb.db"), file, ProgressMethod,
+        var summary = await manager.DownloadAsync(new Uri("https://raw.githubusercontent.com/BitDoctor/speed-test-file/master/5mb.txt"), file, ProgressMethod,
             null, CancellationToken.None);
 
-        Assert.Equal(10 * 1024 * 1024, summary.DownloadedSize);
-        Assert.Equal(10 * 1024 * 1024, file.Length);
+        Assert.Equal(5 * 1024 * 1024, summary.DownloadedSize);
+        Assert.Equal(5 * 1024 * 1024, file.Length);
         Assert.True(progressTriggered);
 
         void ProgressMethod(ProgressUpdateStatus status)
@@ -193,11 +193,11 @@ public class DownloadManagerIntegrationTest
 
         var progressTriggered = false;
 
-        var summary = await manager.DownloadAsync(new Uri("http://speedtest.ftp.otenet.gr/files/test10Mb.db"), file, ProgressMethod,
+        var summary = await manager.DownloadAsync(new Uri("https://raw.githubusercontent.com/BitDoctor/speed-test-file/master/5mb.txt"), file, ProgressMethod,
             null, CancellationToken.None);
 
-        Assert.Equal(10 * 1024 * 1024, summary.DownloadedSize);
-        Assert.Equal(10 * 1024 * 1024, file.Length);
+        Assert.Equal(5 * 1024 * 1024, summary.DownloadedSize);
+        Assert.Equal(5 * 1024 * 1024, file.Length);
         Assert.True(progressTriggered);
 
         void ProgressMethod(ProgressUpdateStatus status)
