@@ -36,25 +36,22 @@ public static partial class PathExtensions
     internal static readonly Lazy<bool> IsFileSystemCaseInsensitive = new(CheckIfFileSystemIsCaseInsensitive);
 
     /// <summary>
-    /// Determines whether the specified path ends with a directory path separator
+    /// Returns a value that indicates whether the path ends in a directory separator.
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="path">The path to check.</param>
-    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
-    public static bool HasTrailingDirectorySeparator(this IPath _, string path)
+    /// <param name="path">The path to analyze.</param>
+    /// <returns><see langword="true"/> if the path ends in a directory separator; otherwise, <see langword="false"/>.</returns>
+    public static bool HasTrailingDirectorySeparator(this IPath _, [NotNullWhen(true)] string? path)
     {
-        if (path == null)
-            throw new ArgumentNullException(nameof(path));
-        return HasTrailingDirectorySeparator(path.AsSpan());
+        return path is not null && HasTrailingDirectorySeparator(path.AsSpan());
     }
 
     /// <summary>
-    /// Determines whether the specified path ends with a directory path separator.
+    /// Returns a value that indicates whether the path, specified as a read-only span, ends in a directory separator.
     /// </summary>
     /// <param name="_"></param>
-    /// <param name="path">The path to check.</param>
-    /// <returns><see langword="true"/> if <paramref name="path"/> ends with a directory path separator; otherwise, <see langword="false"/>.</returns>
+    /// <param name="path">The path to analyze.</param>
+    /// <returns><see langword="true"/> if the path ends in a directory separator; otherwise, <see langword="false"/>.</returns>
     public static bool HasTrailingDirectorySeparator(this IPath _, ReadOnlySpan<char> path)
     {
         return HasTrailingDirectorySeparator(path);
@@ -66,6 +63,36 @@ public static partial class PathExtensions
             return false;
         var last = value[value.Length - 1];
         return IsAnyDirectorySeparator(last);
+    }
+
+    /// <summary>
+    /// Returns a value that indicates whether the path starts with a directory separator.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="path">The path to analyze.</param>
+    /// <returns><see langword="true"/> if the path starts with a directory separator; otherwise, <see langword="false"/>.</returns>
+    public static bool HasLeadingDirectorySeparator(this IPath _, [NotNullWhen(true)] string? path)
+    {
+        return path is not null && HasLeadingDirectorySeparator(path.AsSpan());
+    }
+
+    /// <summary>
+    /// Returns a value that indicates whether the path, specified as a read-only span, starts with a directory separator.
+    /// </summary>
+    /// <param name="_"></param>
+    /// <param name="path">The path to analyze.</param>
+    /// <returns><see langword="true"/> if the path starts with a directory separator; otherwise, <see langword="false"/>.</returns>
+    public static bool HasLeadingDirectorySeparator(this IPath _, ReadOnlySpan<char> path)
+    {
+        return HasLeadingDirectorySeparator(path);
+    }
+
+    private static bool HasLeadingDirectorySeparator(ReadOnlySpan<char> value)
+    {
+        if (value.Length == 0)
+            return false;
+        var first = value[0];
+        return IsAnyDirectorySeparator(first);
     }
 
     private static bool IsAnyDirectorySeparator(char c)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
@@ -13,48 +14,63 @@ public class HasTrailingPathSeparatorTest
     private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
     
     [Theory]
-    [InlineData("", false)]
-    [InlineData(null, false)]
-    public void Test_HasTrailingPathSeparator(string? input, bool expected)
+    [InlineData("")]
+    [InlineData(null)]
+    public void Test_HasTrailingPathSeparator(string? input)
     {
-        if (input is null)
-            Assert.Throws<ArgumentNullException>(() => _fileSystem.Path.HasTrailingDirectorySeparator(input));
-        else
-            Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
-        Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
+        Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input));
+        Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
+#if NET
+        Assert.False(Path.EndsInDirectorySeparator(input));
+#endif
     }
 
+    public static TheoryData<string, bool> TestData_EndsInDirectorySeparator_Windows => new()
+    {
+        { @"\", true },
+        { @"/", true },
+        { @"C:\folder\", true },
+        { @"C:/folder/", true },
+        { @"C:\", true },
+        { @"C:/", true },
+        { @"\\", true },
+        { @"//", true },
+        { @"\\server\share\", true },
+        { @"\\?\UNC\a\", true },
+        { @"\\?\C:\", true },
+        { @"\\?\UNC\", true },
+        { @"folder\", true },
+        { @"folder", false },
+    };
+
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
-    [InlineData("/", true)]
-    [InlineData("\\", true)]
-    [InlineData("a", false)]
-    [InlineData("a/", true)]
-    [InlineData("a\\", true)]
-    [InlineData("a\\b", false)]
-    [InlineData("a/b", false)]
-    [InlineData("a/b\\", true)]
-    [InlineData("a\\b/", true)]
+    [MemberData(nameof(TestData_EndsInDirectorySeparator_Windows))]
     public void Test_HasTrailingPathSeparator_Windows(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
+#if NET
+        Assert.Equal(Path.EndsInDirectorySeparator(input), expected);
+#endif
     }
 
+    public static TheoryData<string, bool> TestData_EndsInDirectorySeparator_Linux => new()
+    {
+        { @"/", true },
+        { @"/folder/", true },
+        { @"//", true },
+        { @"folder", false },
+        { @"folder/", true }
+    };
+
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
-    [InlineData("/", true)]
-    [InlineData("\\", false)]
-    [InlineData("a", false)]
-    [InlineData("a/", true)]
-    [InlineData("a\\", false)]
-    [InlineData("a\\b", false)]
-    [InlineData("a/b", false)]
-    [InlineData("a/b\\", false)]
-    [InlineData("a\\b/", true)]
-    [InlineData("a\\b\\/", true)]
-    [InlineData("a\\b/\\", false)]
+    [MemberData(nameof(TestData_EndsInDirectorySeparator_Linux))]
     public void Test_HasTrailingPathSeparator_Linux(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
+#if NET
+        Assert.Equal(Path.EndsInDirectorySeparator(input), expected);
+#endif
     }
 }
