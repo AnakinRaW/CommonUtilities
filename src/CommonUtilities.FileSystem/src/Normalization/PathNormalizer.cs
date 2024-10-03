@@ -37,6 +37,8 @@ public static class PathNormalizer
     /// <returns>The number of characters written into the destination span.</returns>
     /// <remarks>This method populates <paramref name="destination"/> even if <paramref name="destination"/> is too small.</remarks>
     /// <exception cref="ArgumentException">If the <paramref name="destination"/> is too small.</exception>
+    /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
+    /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, PathNormalizeOptions options)
     {
         var stringBuilder = new ValueStringBuilder(destination);
@@ -48,7 +50,7 @@ public static class PathNormalizer
 
     internal static void Normalize(ReadOnlySpan<char> path, ref ValueStringBuilder sb, PathNormalizeOptions options)
     {
-        if (path == null)
+        if (path == ReadOnlySpan<char>.Empty)
             throw new ArgumentNullException(nameof(path));
         if (path.Length == 0)
             throw new ArgumentException(nameof(path));
