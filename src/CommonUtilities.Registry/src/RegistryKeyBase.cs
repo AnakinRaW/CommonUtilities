@@ -197,15 +197,25 @@ public abstract class RegistryKeyBase : IRegistryKey
         return DeleteKey(string.Empty, true);
     }
 
+    /// <inheritdoc />
+    public string[]? GetValueNames()
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc cref="IDisposable"/>
     public virtual void Dispose()
     {
     }
 
-    /// <inheritdoc />
-    public string[]? GetValueNames()
+    /// <summary>
+    /// Retrieves a string representation of this key.
+    /// </summary>
+    /// <returns>A string representing the key. If the specified key is invalid (cannot be found) then <see langword="null"/> is returned.</returns>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> being accessed is closed (closed keys cannot be accessed).</exception>
+    public override string ToString()
     {
-        throw new NotImplementedException();
+        return Name;
     }
 
     /// <summary>

@@ -1,0 +1,162 @@
+﻿using System;
+using Xunit;
+
+namespace AnakinRaW.CommonUtilities.Registry.Test;
+
+public abstract partial class RegistryTestsBase : IDisposable
+{
+    private const string CurrentUserKeyName = "HKEY_CURRENT_USER";
+
+    protected string TestRegistryKeyName { get; private set; }
+    protected IRegistryKey TestRegistryKey { get; private set; }
+
+    protected IRegistry Registry { get; }
+
+    protected abstract IRegistry CreateRegistry();
+
+    protected RegistryTestsBase()
+    {
+        // Create a unique name for this test class
+        TestRegistryKeyName = CreateUniqueKeyName();
+
+        // Cleanup the key in case a previous run of this test crashed and left
+        // the key behind.  The key name is specific enough to corefx that we don't
+        // need to worry about it being a real key on the user's system used
+        // for another purpose.
+        RemoveKeyIfExists(TestRegistryKeyName);
+
+        // Then create the key.
+        Registry = CreateRegistry();
+        TestRegistryKey = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(TestRegistryKeyName);
+        Assert.NotNull(TestRegistryKey);
+    }
+
+    public void Dispose()
+    {
+        TestRegistryKey.Dispose();
+        RemoveKeyIfExists(TestRegistryKeyName);
+    }
+
+    protected virtual void RemoveKeyIfExists(string keyName)
+    {
+    }
+
+    private string CreateUniqueKeyName()
+    { 
+        return "commonutulitiestest_" + GetType().Name;
+    }
+
+    public static readonly object[][] TestRegistrySubKeyNames =
+    [
+        [@"Foo", @"Foo"],
+        [@"Foo\Bar", @"Foo\Bar"],
+
+        // Multiple/trailing slashes should be removed.
+        [@"Foo", @"Foo\"],
+        [@"Foo", @"Foo\\"],
+        [@"Foo", @"Foo\\\"],
+        [@"Foo", @"Foo\\\\"],
+        [@"Foo\Bar", @"Foo\\Bar"],
+        [@"Foo\Bar", @"Foo\\\Bar"],
+        [@"Foo\Bar", @"Foo\\\\Bar"],
+        [@"Foo\Bar", @"Foo\Bar\"],
+        [@"Foo\Bar", @"Foo\Bar\\"],
+        [@"Foo\Bar", @"Foo\Bar\\\"],
+        [@"Foo\Bar", @"Foo\\Bar\"],
+        [@"Foo\Bar", @"Foo\\Bar\\"],
+        [@"Foo\Bar", @"Foo\\Bar\\\"],
+        [@"Foo\Bar", @"Foo\\\Bar\\\"],
+        [@"Foo\Bar", @"Foo\\\\Bar\\\\"],
+
+        // The name fix-up implementation uses a mark-and-sweep approach.
+        // If there are multiple slashes, any extra slash chars will be
+        // replaced with a marker char ('\uffff'), and then all '\uffff'
+        // chars will be removed, including any pre-existing '\uffff' chars.
+        InsertMarkerChar(@"Foo", @"{0}Foo\\"),
+        InsertMarkerChar(@"Foo", @"Foo{0}\\"),
+        InsertMarkerChar(@"Foo", @"Foo\\{0}"),
+        InsertMarkerChar(@"Foo", @"Fo{0}o\\"),
+        InsertMarkerChar(@"Foo", @"{0}Fo{0}o{0}\\{0}"),
+        InsertMarkerChar(@"Foo", @"{0}Foo\\\"),
+        InsertMarkerChar(@"Foo", @"Foo{0}\\\"),
+        InsertMarkerChar(@"Foo", @"Foo\\\{0}"),
+        InsertMarkerChar(@"Foo", @"Fo{0}o\\\"),
+        InsertMarkerChar(@"Foo", @"{0}Fo{0}o{0}\\\{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Foo\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo{0}\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\{0}Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\Bar{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"Fo{0}o\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\B{0}ar"),
+        InsertMarkerChar(@"Foo\Bar", @"Fo{0}o\\B{0}ar"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Fo{0}o{0}\\{0}B{0}ar{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Foo\\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo{0}\\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\\{0}Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\\Bar{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"Fo{0}o\\\Bar"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\\\B{0}ar"),
+        InsertMarkerChar(@"Foo\Bar", @"Fo{0}o\\\B{0}ar"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Fo{0}o{0}\\\{0}B{0}ar{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Foo\Bar\\"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo{0}\Bar\\"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\{0}Bar\\"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\Bar{0}\\"),
+        InsertMarkerChar(@"Foo\Bar", @"Foo\Bar\\{0}"),
+        InsertMarkerChar(@"Foo\Bar", @"Fo{0}o\B{0}ar\\"),
+        InsertMarkerChar(@"Foo\Bar", @"{0}Fo{0}o{0}\{0}B{0}ar{0}\\{0}"),
+
+        // If there aren't multiple slashes, any '\uffff' chars should remain.
+        InsertMarkerChar(@"{0}Foo"),
+        InsertMarkerChar(@"Foo{0}"),
+        InsertMarkerChar(@"Fo{0}o"),
+        InsertMarkerChar(@"{0}Fo{0}o{0}"),
+        InsertMarkerChar(@"{0}Foo\"),
+        InsertMarkerChar(@"Foo{0}\"),
+        InsertMarkerChar(@"Fo{0}o\"),
+        InsertMarkerChar(@"{0}Fo{0}o{0}\"),
+        InsertMarkerChar(@"{0}Foo\Bar"),
+        InsertMarkerChar(@"Foo{0}\Bar"),
+        InsertMarkerChar(@"Foo\{0}Bar"),
+        InsertMarkerChar(@"Foo\Bar{0}"),
+        InsertMarkerChar(@"Fo{0}o\Bar"),
+        InsertMarkerChar(@"Foo\B{0}ar"),
+        InsertMarkerChar(@"Fo{0}o\B{0}ar"),
+        InsertMarkerChar(@"{0}Fo{0}o{0}\{0}B{0}ar{0}"),
+        InsertMarkerChar(@"{0}Foo\Bar\"),
+        InsertMarkerChar(@"Foo{0}\Bar\"),
+        InsertMarkerChar(@"Foo\{0}Bar\"),
+        InsertMarkerChar(@"Foo\Bar{0}\"),
+        InsertMarkerChar(@"Fo{0}o\Bar\"),
+        InsertMarkerChar(@"Foo\B{0}ar\"),
+        InsertMarkerChar(@"Fo{0}o\B{0}ar\"),
+        InsertMarkerChar(@"{0}Fo{0}o{0}\{0}B{0}ar{0}\")
+    ];
+
+    private const char MarkerChar = '\uffff';
+
+    private static object[] InsertMarkerChar(string expected, string format)
+    {
+        var result = string.Format(format, MarkerChar);
+        return [expected, result];
+    }
+
+    private static object[] InsertMarkerChar(string format)
+    {
+        var result = string.Format(format, MarkerChar);
+        var expected = result.TrimEnd('\\');
+        return [expected, result];
+    }
+
+    protected void CreateTestRegistrySubKey(string expected)
+    {
+        Assert.Empty(TestRegistryKey.GetSubKeyNames());
+
+        using (var key = TestRegistryKey.CreateSubKey(expected))
+        {
+            Assert.NotNull(key);
+            Assert.Single(TestRegistryKey.GetSubKeyNames());
+            Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
+        }
+    }
+}

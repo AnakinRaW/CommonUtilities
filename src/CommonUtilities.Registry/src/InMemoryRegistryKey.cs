@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -15,6 +16,9 @@ public sealed class InMemoryRegistryKey : RegistryKeyBase
     private readonly Dictionary<string?, InMemoryRegistryKey> _subKeys;
     private readonly Dictionary<string?, object> _values;
     private readonly InMemoryRegistryKey? _parent;
+    private readonly string _name;
+    private bool _disposed;
+    private readonly RegistryView _view;
 
     /// <summary>
     /// Gets the name of key without the full qualified path.
@@ -25,10 +29,24 @@ public sealed class InMemoryRegistryKey : RegistryKeyBase
     public override bool IsCaseSensitive { get; }
 
     /// <inheritdoc/>
-    public override string Name { get; }
+    public override string Name
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _name;
+        }
+    }
 
     /// <inheritdoc/>
-    public override RegistryView View { get; }
+    public override RegistryView View
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _view;
+        }
+    }
 
     internal InMemoryRegistryKey(RegistryView view, string subName, InMemoryRegistryKey? parent, bool isCaseSensitive)
     {
@@ -38,11 +56,16 @@ public sealed class InMemoryRegistryKey : RegistryKeyBase
         _subKeys = new Dictionary<string?, InMemoryRegistryKey>(stringComparer);
         _values = new Dictionary<string?, object>(stringComparer);
 
-        View = view;
+        _view = view;
         SubName = subName;
         _parent = parent;
-        Name = BuildName(this, new StringBuilder(SubName));
+        _name = BuildName(this, new StringBuilder(SubName));
     }
+
+    /// <summary>
+    /// Finalizes this instance.
+    /// </summary>
+    ~InMemoryRegistryKey() => Dispose(false);
 
     /// <inheritdoc />
     public override object? GetValue(string? name)
@@ -149,5 +172,23 @@ public sealed class InMemoryRegistryKey : RegistryKeyBase
             return sb.ToString();
         sb.Insert(0, key._parent.SubName + "\\");
         return BuildName(key._parent, sb);
+    }
+
+    /// <inheritdoc cref="IDisposable"/>
+    public override void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    { 
+        _disposed = true;
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(_name, "The registry key is already disposed.");
     }
 }

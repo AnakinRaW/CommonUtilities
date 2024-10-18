@@ -21,7 +21,6 @@ public sealed class InMemoryRegistry : IRegistry
 
     private static readonly (RegistryHive, string)[] HivesAndNames =
     [
-        (RegistryHive.None, "HKEY_NONE"),
         (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
         (RegistryHive.LocalMachine, "HKEY_LOCAL_MACHINE"),
         (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT")

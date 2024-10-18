@@ -122,7 +122,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
             RegistryHive.ClassesRoot => Microsoft.Win32.RegistryHive.ClassesRoot,
             RegistryHive.LocalMachine => Microsoft.Win32.RegistryHive.LocalMachine,
             RegistryHive.CurrentUser => Microsoft.Win32.RegistryHive.CurrentUser,
-            _ => 0
+            _ => throw new ArgumentOutOfRangeException(nameof(hive), hive, null)
         };
     }
 
