@@ -25,6 +25,9 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// </summary>
     public bool IsDisposed { get; private set; }
 
+    /// <inheritdoc />
+    public override bool IsCaseSensitive => false;
+
     /// <inheritdoc/>
     public override string Name => WindowsKey.Name;
 
@@ -35,7 +38,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// Creates a new <inheritdoc cref="WindowsRegistryKey"/> from a given <see cref="RegistryKey"/>.
     /// </summary>
     /// <param name="registryKey">The internal registry key this instance represents.</param>
-    public WindowsRegistryKey(RegistryKey registryKey)
+    internal WindowsRegistryKey(RegistryKey registryKey)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new PlatformNotSupportedException("Registry is not supported on this platform.");
@@ -48,16 +51,16 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// </summary>
     ~WindowsRegistryKey() => Dispose(false);
 
-    /// <inheritdoc/>
-    public override object? GetValue(string? name, object? defaultValue)
+    /// <inheritdoc />
+    public override object? GetValue(string? name)
     {
-        return WindowsKey.GetValue(name, defaultValue);
+        return WindowsKey.GetValue(name);
     }
 
     /// <inheritdoc/>
     protected override IRegistryKey? GetKeyCore(string subPath, bool writable)
     {
-        var key = WindowsKey.OpenSubKey(subPath!, writable);
+        var key = WindowsKey.OpenSubKey(subPath, writable);
         return key is null ? null : new WindowsRegistryKey(key);
     }
 
@@ -86,6 +89,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     public override IRegistryKey? CreateSubKey(string subKey)
     {
         var winKey = WindowsKey.CreateSubKey(subKey);
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         return winKey is null ? null : new WindowsRegistryKey(winKey);
     }
 

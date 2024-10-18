@@ -2,80 +2,67 @@
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
 
-public class InMemoryRegistryKeyTest
+public class InMemoryRegistryKeyTest : RegistryTestBase
 {
-    [Fact]
-    public void Test_SetValue_GetValue_WithDefaults()
+    private static IRegistry CreateRegistry(bool caseSensitive)
     {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        key.SetValue(null, "Default");
-        key.GetValue(null!, out object value);
-        Assert.Equal("Default", value);
-        value = key.GetValue(null, "other Default")!;
-        Assert.Equal("Default", value);
+        var registry = new InMemoryRegistry(caseSensitive);
+        Assert.Equal(caseSensitive, registry.IsCaseSensitive);
+        return registry;
+    }
+
+    protected override IRegistry CreateRegistry()
+    {
+        return CreateRegistry(false);
+    }
+
+    private static IRegistryKey CreateRegistryWithKey(bool caseSensitive)
+    {
+        var registry = CreateRegistry(caseSensitive);
+        return registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+    }
+
+    protected override IRegistryKey CreateRegistryWithKey()
+    {
+        return CreateRegistryWithKey(false);
     }
 
     [Fact]
-    public void Test_GetKey_KeyNotExists()
+    public void SubName()
     {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        var subKey = key.GetKey("Missing");
-        Assert.Null(subKey);
+        var key = (InMemoryRegistryKey) CreateRegistryWithKey();
+        Assert.Equal("HKEY_CURRENT_USER", key.Name);
+        Assert.Equal("HKEY_CURRENT_USER", key.SubName);
+
+        var subKey = (InMemoryRegistryKey)key.CreateSubKey("test\\sub\\PATH");
+        Assert.Equal("HKEY_CURRENT_USER\\test\\sub\\PATH", subKey!.Name);
+        Assert.Equal("PATH", subKey!.SubName);
     }
 
     [Fact]
-    public void Test_CreateSubKey_CanCreateDeepSubKey()
+    public void GetSetValue_CaseSensitiveKey()
     {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        var subKey = key.CreateSubKey(@"Deep\SubKey");
-        Assert.NotNull(subKey);
-        Assert.Equal("SubKey", subKey!.Name);
+        using var key = CreateRegistryWithKey(true);
+        Assert.True(key.IsCaseSensitive);
+
+        key.SetValue("value", 1);
+        Assert.False(key.GetValue("VALUE", out int? value));
+        Assert.False(key.HasValue("VALue"));
+        Assert.Null(value);
+        Assert.True(key.DeleteValue("vALue"));
+        Assert.True(key.HasValue("value"));
     }
 
     [Fact]
-    public void Test_DeleteValue()
+    public void Path_CaseSensitiveKey()
     {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        var subKey = key.CreateSubKey(@"Path");
-        subKey!.SetValue("Test", true);
+        using var key = CreateRegistryWithKey(true);
+        Assert.True(key.IsCaseSensitive);
 
-        subKey.GetValue("Test", out bool value);
-        Assert.True(value);
-
-        var deleted = subKey.DeleteValue("Test");
-        Assert.True(deleted);
-    }
-
-    [Fact]
-    public void Test_DeleteValue_DeleteSubValue()
-    {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        var subKey = key.CreateSubKey(@"Path\Sub");
-        subKey!.SetValue("Test", true);
-        
-        var deleted = key.DeleteValue("Test", @"Path\Sub");
-        Assert.True(deleted);
-    }
-
-    [Fact]
-    public void Test_DeleteKey()
-    {
-        var registry = new InMemoryRegistry();
-        using var key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-        _ = key.CreateSubKey(@"Path\Sub");
-
-        var deleted = key.DeleteKey("Path", false);
-        Assert.False(deleted);
-
-        deleted = key.DeleteKey("Path", true);
-        Assert.True(deleted);
-
-        Assert.Null(key.GetKey(@"Path\Sub"));
-        Assert.Null(key.GetKey(@"Path"));
+        using var sub = key.CreateSubKey("path");
+        Assert.True(sub!.IsCaseSensitive);
+        Assert.False(key.HasPath("PATH"));
+        Assert.True(key.DeleteKey("paTH", true));
+        Assert.True(key.HasPath("path"));
     }
 }

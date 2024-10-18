@@ -11,25 +11,33 @@ public sealed class InMemoryRegistry : IRegistry
 {
     private readonly Dictionary<(RegistryView, RegistryHive), InMemoryRegistryKey> _rootKeys = new();
 
+    private static readonly ICollection<RegistryView> RegistryViews =
+        Enum.GetValues(typeof(RegistryView)).OfType<RegistryView>().ToList();
+
     /// <summary>
-    /// Creates a new registry instance.
+    /// Gets a value indicating whether sub key paths and key value names are case-sensitive.
     /// </summary>
-    public InMemoryRegistry()
+    public bool IsCaseSensitive { get; }
+
+    private static readonly (RegistryHive, string)[] HivesAndNames =
+    [
+        (RegistryHive.None, "HKEY_NONE"),
+        (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
+        (RegistryHive.LocalMachine, "HKEY_LOCAL_MACHINE"),
+        (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT")
+    ];
+
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class with specified case-sensitivity.
+    /// </summary>
+    /// <param name="isCaseSensitive">Set the case-sensitivity of this registry view. Default value is <see langword="false"/>.</param>
+    public InMemoryRegistry(bool isCaseSensitive = false)
     {
-        var hivesAndNames = new[]
-        {
-            (RegistryHive.None, string.Empty),
-            (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
-            (RegistryHive.LocalMachine, "HKEY_LOCAL_MACHINE"),
-            (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT"),
-        };
-        foreach (var (hive, name) in hivesAndNames)
-        {
-            foreach (var view in Enum.GetValues(typeof(RegistryView)).OfType<RegistryView>())
-            {
-                _rootKeys.Add((view, hive), new InMemoryRegistryKey(view, name));
-            }
-        }
+        IsCaseSensitive = isCaseSensitive;
+        foreach (var (hive, name) in HivesAndNames)
+            foreach (var view in RegistryViews)
+                _rootKeys.Add((view, hive), new InMemoryRegistryKey(view, name, null, IsCaseSensitive));
     }
 
     /// <inheritdoc/>
