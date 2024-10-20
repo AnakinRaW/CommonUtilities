@@ -76,7 +76,7 @@ public abstract class RegistryKeyBase : IRegistryKey
     /// <inheritdoc/>
     public bool HasPath(string subPath)
     {
-        using var subKey = GetKey(subPath);
+        using var subKey = OpenSubKey(subPath);
         return subKey is not null;
     }
 
@@ -89,7 +89,7 @@ public abstract class RegistryKeyBase : IRegistryKey
     }
 
     /// <inheritdoc/>
-    public abstract IRegistryKey? GetKey(string name, bool writable = false);
+    public abstract IRegistryKey? OpenSubKey(string name, bool writable = false);
     
     /// <inheritdoc/>
     public T? GetValueOrSetDefault<T>(string? name, T? defaultValue, out bool defaultValueUsed)

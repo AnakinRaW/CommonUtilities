@@ -18,7 +18,7 @@ public partial class RegistryTestsBase
         TestRegistryKey.SetValue(valueName, 42);
 
         // Should throw because RegistryKey is readonly
-        using (var rk = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).GetKey(TestRegistryKeyName, false))
+        using (var rk = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).OpenSubKey(TestRegistryKeyName, false))
         {
             Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteValue(valueName));
         }

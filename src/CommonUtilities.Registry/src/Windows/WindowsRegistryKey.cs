@@ -57,7 +57,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     }
 
     /// <inheritdoc/>
-    public override IRegistryKey? GetKey(string subPath, bool writable = false)
+    public override IRegistryKey? OpenSubKey(string subPath, bool writable = false)
     {
         if (subPath == null) 
             throw new ArgumentNullException(nameof(subPath));

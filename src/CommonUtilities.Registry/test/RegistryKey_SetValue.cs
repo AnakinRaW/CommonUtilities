@@ -131,7 +131,7 @@ public partial class RegistryTestsBase
     {
         using var sub = TestRegistryKey.CreateSubKey("sub", true);
         TestRegistryKey.DeleteKey("sub", true);
-        Assert.Null(TestRegistryKey.GetKey("sub"));
+        Assert.Null(TestRegistryKey.OpenSubKey("sub"));
         Assert.Throws<IOException>(() => sub.SetValue("name", 123));
     }
 }

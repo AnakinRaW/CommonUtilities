@@ -127,7 +127,6 @@ public interface IRegistryKey : IDisposable
     /// <param name="name">The name of the key.</param>
     void DeleteValue(string? name);
 
-    // TODO: Rename to OpenSubKey
     /// <summary>
     /// Retrieves a specified subkey, and specifies whether write access is to be applied to the key.
     /// </summary>
@@ -145,7 +144,7 @@ public interface IRegistryKey : IDisposable
     /// To obtain the current RegistryKey object, specify an empty string ("") for <paramref name="name"/>.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
-    IRegistryKey? GetKey(string name, bool writable = false);
+    IRegistryKey? OpenSubKey(string name, bool writable = false);
 
     /// <summary>
     /// Creates a new subkey or opens an existing subkey with the specified access.

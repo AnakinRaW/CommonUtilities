@@ -22,7 +22,7 @@ public partial class RegistryTestsBase
         }
 
         // Should throw because RegistryKey is readonly
-        using (var rk = TestRegistryKey.GetKey(string.Empty, false))
+        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, false))
         {
             Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteKey(name, false));
         }
@@ -45,7 +45,7 @@ public partial class RegistryTestsBase
         Assert.Single(TestRegistryKey.GetSubKeyNames());
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, false);
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
         Assert.Empty(TestRegistryKey.GetSubKeyNames());
     }
 
@@ -62,7 +62,7 @@ public partial class RegistryTestsBase
         foreach (var subKeyName in subKeyNames)
         {
             TestRegistryKey.DeleteKey(subKeyName, false);
-            Assert.Null(TestRegistryKey.GetKey(subKeyName));
+            Assert.Null(TestRegistryKey.OpenSubKey(subKeyName));
         }
     }
 
@@ -81,7 +81,7 @@ public partial class RegistryTestsBase
 
         TestRegistryKey.DeleteKey("this", false);
        
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
         Assert.Single(TestRegistryKey.GetSubKeyNames());
     }
 

@@ -23,7 +23,7 @@ public partial class RegistryTestsBase
 
         TestRegistryKey.SetValue(valueName, expected);
 
-        using var rk = TestRegistryKey.GetKey(string.Empty, writable: false);
+        using var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false);
 
         Assert.Equal(expected, rk.GetValueOrSetDefault(valueName, TestData.DefaultValue, out var defaultUsed));
         Assert.False(defaultUsed);
@@ -34,7 +34,7 @@ public partial class RegistryTestsBase
     public void GetValueOrSetDefault_NonWritableKeyShouldThrowWhenSettingValue()
     {
         const string valueName = "Test";
-        using var rk = TestRegistryKey.GetKey(string.Empty, writable: false);
+        using var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false);
 
         Assert.Throws<UnauthorizedAccessException>(() => rk.GetValueOrSetDefault(valueName, TestData.DefaultValue, out _));
         Assert.False(TestRegistryKey.HasValue(valueName));

@@ -20,7 +20,7 @@ public partial class RegistryTestsBase
             .DeleteKey(string.Empty, true));
 
         // Should throw because RegistryKey is readonly
-        using (var rk = TestRegistryKey.GetKey(string.Empty, false))
+        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, false))
         {
             Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteKey(name, true));
         }
@@ -85,7 +85,7 @@ public partial class RegistryTestsBase
             using var created = rk.CreateSubKey(TestRegistryKeyName);
             rk.DeleteKey(selfName, true);
         }
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public partial class RegistryTestsBase
             rk.DeleteKey("", true);
         }
 
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -113,11 +113,11 @@ public partial class RegistryTestsBase
             using var created = rk.CreateSubKey(TestRegistryKeyName);
             created.SetValue("Value", 42);
 
-            using var rk2 = TestRegistryKey.GetKey(TestRegistryKeyName);
+            using var rk2 = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
             rk.DeleteKey("", true);
         }
 
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -125,11 +125,11 @@ public partial class RegistryTestsBase
     {
         // Creating new SubKey and deleting it
         using var created = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
-        using var opened = TestRegistryKey.GetKey(TestRegistryKeyName);
+        using var opened = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
         Assert.NotNull(opened);
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public partial class RegistryTestsBase
         }
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public partial class RegistryTestsBase
         }
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public partial class RegistryTestsBase
         Assert.Equal(2, TestRegistryKey.GetSubKeyNames().Length);
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
-        Assert.Null(TestRegistryKey.GetKey(TestRegistryKeyName));
+        Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
 
         Assert.Single(TestRegistryKey.GetSubKeyNames());
     }

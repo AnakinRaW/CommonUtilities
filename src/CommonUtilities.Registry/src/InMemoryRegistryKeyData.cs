@@ -109,7 +109,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         var fixedPath = FixupName(subPath);
 
         // The calling method already assures the key exists.
-        var key = (InMemoryRegistryKey?)GetKey(fixedPath, writable: false);
+        var key = (InMemoryRegistryKey?)OpenSubKey(fixedPath, writable: false);
         if (key == null)
             return;
 
@@ -196,7 +196,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
     }
 
     /// <inheritdoc/>
-    public override IRegistryKey? GetKey(string subPath, bool writable = false)
+    public override IRegistryKey? OpenSubKey(string subPath, bool writable = false)
     {
         if (subPath == null)
             throw new ArgumentNullException(nameof(subPath));

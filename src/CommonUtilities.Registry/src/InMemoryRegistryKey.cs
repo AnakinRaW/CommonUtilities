@@ -118,7 +118,7 @@ public sealed class InMemoryRegistryKey : IRegistryKey
     }
 
     /// <inheritdoc/>
-    public IRegistryKey? GetKey(string name, bool writable = false)
+    public IRegistryKey? OpenSubKey(string name, bool writable = false)
     {
         ThrowIfDisposed();
         return KeyData.GetKeyCore(_name, name, writable);

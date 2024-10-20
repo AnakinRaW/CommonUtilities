@@ -32,7 +32,7 @@ public partial class RegistryTestsBase
             {
                 var keyName = MixUpperAndLowerCase(TestRegistryKeyName) + (useSeparator ? "\\" : "");
 
-                key = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).GetKey(keyName);
+                key = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).OpenSubKey(keyName);
 
                 if (IsCaseSensitive)
                 {

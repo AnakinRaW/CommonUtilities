@@ -15,12 +15,12 @@ public partial class RegistryTestsBase
         if (HasPathLimits)
         {
             Assert.Throws<ArgumentException>(() => TestRegistryKey.CreateSubKey(keyName));
-            Assert.Throws<ArgumentException>(() => TestRegistryKey.GetKey(keyName));
+            Assert.Throws<ArgumentException>(() => TestRegistryKey.OpenSubKey(keyName));
         }
         else
         {
             Assert.NotNull(TestRegistryKey.CreateSubKey(keyName));
-            Assert.NotNull(TestRegistryKey.GetKey(keyName));
+            Assert.NotNull(TestRegistryKey.OpenSubKey(keyName));
         }
     }
 
@@ -31,7 +31,7 @@ public partial class RegistryTestsBase
         var keyName = new string('a', maxValueNameLength) + "\\" + new string('b', maxValueNameLength);
 
         Assert.NotNull(TestRegistryKey.CreateSubKey(keyName));
-        Assert.NotNull(TestRegistryKey.GetKey(keyName));
+        Assert.NotNull(TestRegistryKey.OpenSubKey(keyName));
     }
 
     [Fact]

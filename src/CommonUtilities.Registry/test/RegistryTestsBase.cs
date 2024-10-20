@@ -158,7 +158,7 @@ public abstract partial class RegistryTestsBase : IDisposable
 
     protected void Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, Func<IRegistryKey> createSubKey)
     {
-        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Null(TestRegistryKey.OpenSubKey(expected));
         Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
 
         using var key = createSubKey();
@@ -172,12 +172,12 @@ public abstract partial class RegistryTestsBase : IDisposable
         CreateTestRegistrySubKey(expected);
 
         deleteSubKey();
-        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Null(TestRegistryKey.OpenSubKey(expected));
     }
 
     protected void Verify_DeleteSubKey_KeyDoesNotExists_DoesNotThrow(string expected, Action deleteSubKey)
     {
-        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Null(TestRegistryKey.OpenSubKey(expected));
         Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
 
         deleteSubKey();
@@ -195,7 +195,7 @@ public abstract partial class RegistryTestsBase : IDisposable
 
     protected void Verify_OpenSubKey_KeyDoesNotExist_ReturnsNull(string expected, Func<IRegistryKey> openSubKey)
     {
-        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Null(TestRegistryKey.OpenSubKey(expected));
         Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
 
         Assert.Null(openSubKey());

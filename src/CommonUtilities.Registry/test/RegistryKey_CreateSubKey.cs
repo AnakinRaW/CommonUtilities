@@ -91,7 +91,7 @@ public partial class RegistryTestsBase
         using var created = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
         Assert.NotNull(created);
 
-        using var opened = TestRegistryKey.GetKey(TestRegistryKeyName);
+        using var opened = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
         Assert.NotNull(opened);
 
         Assert.Single(TestRegistryKey.GetSubKeyNames()!);
@@ -104,7 +104,7 @@ public partial class RegistryTestsBase
         using var subkey1 = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
         Assert.NotNull(subkey1);
 
-        using var subkey2 = TestRegistryKey.GetKey(TestRegistryKeyName);
+        using var subkey2 = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
         Assert.NotNull(subkey2);
 
         using var subkey3 = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
@@ -120,7 +120,7 @@ public partial class RegistryTestsBase
         using var created = TestRegistryKey.CreateSubKey(subkeyName);
         Assert.NotNull(created);
 
-        using var opened = TestRegistryKey.GetKey(subkeyName);
+        using var opened = TestRegistryKey.OpenSubKey(subkeyName);
         Assert.NotNull(opened);
     }
 
@@ -140,7 +140,7 @@ public partial class RegistryTestsBase
         using var created = TestRegistryKey.CreateSubKey(subkeyName);
         Assert.NotNull(created);
 
-        using var opened = TestRegistryKey.GetKey(subkeyName);
+        using var opened = TestRegistryKey.OpenSubKey(subkeyName);
         Assert.NotNull(opened);
 
         //However, we are interested in ensuring that there are no buffer overflow issues with a deeply nested keys
@@ -148,7 +148,7 @@ public partial class RegistryTestsBase
         var rk = TestRegistryKey;
         for (var i = 0; i < 3; i++)
         {
-            rk = rk.GetKey(subkeyName, true);
+            rk = rk.OpenSubKey(subkeyName, true);
             Assert.NotNull(rk);
             keys.Add(rk);
 
@@ -187,7 +187,7 @@ public partial class RegistryTestsBase
     {
         using var sub = TestRegistryKey.CreateSubKey("sub", true);
         TestRegistryKey.DeleteKey("sub", true);
-        Assert.Null(TestRegistryKey.GetKey("sub"));
+        Assert.Null(TestRegistryKey.OpenSubKey("sub"));
         Assert.Throws<IOException>(() => sub.CreateSubKey("subsub"));
     }
 
