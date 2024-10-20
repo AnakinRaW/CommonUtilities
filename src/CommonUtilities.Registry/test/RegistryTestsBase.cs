@@ -4,6 +4,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
 
+// Test Suite based on https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Win32.Registry/tests
 public abstract partial class RegistryTestsBase : IDisposable
 {
     private const string CurrentUserKeyName = "HKEY_CURRENT_USER";
