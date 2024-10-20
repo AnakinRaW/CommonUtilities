@@ -8,8 +8,11 @@ using System.Runtime.Versioning;
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 /// <summary>
-/// Windows specific Registry implementation of <see cref="IRegistry"/>
+/// Windows specific Registry implementation of <see cref="IRegistry"/>.
 /// </summary>
+/// <remarks>
+/// Key and value names are case-insensitive.
+/// </remarks>
 #if NET8_0_OR_GREATER
 [SupportedOSPlatform("windows")]
 #endif
@@ -20,6 +23,9 @@ public sealed class WindowsRegistry : IRegistry
     /// </summary>
     public static readonly IRegistry Default = new WindowsRegistry();
 
+    /// <inheritdoc />
+    public bool IsCaseSensitive => false;
+
     /// <inheritdoc/>
     public IRegistryKey OpenBaseKey(RegistryHive hive, RegistryView view)
     {
@@ -28,6 +34,6 @@ public sealed class WindowsRegistry : IRegistry
 
         if (view == RegistryView.DefaultOperatingSystem)
             view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
-        return new WindowsRegistryKey(RegistryKey.OpenBaseKey(WindowsRegistryKey.ConvertHive(hive), WindowsRegistryKey.ConvertView(view)));
+        return new WindowsRegistryKey(RegistryKey.OpenBaseKey(WindowsRegistryKey.ConvertHive(hive), WindowsRegistryKey.ConvertView(view)), true);
     }
 }

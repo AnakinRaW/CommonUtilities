@@ -11,23 +11,46 @@ public sealed class InMemoryRegistry : IRegistry
 {
     private readonly Dictionary<(RegistryView, RegistryHive), InMemoryRegistryKey> _rootKeys = new();
 
+    private static readonly ICollection<RegistryView> RegistryViews =
+        Enum.GetValues(typeof(RegistryView)).OfType<RegistryView>().ToList();
+
+    private static readonly (RegistryHive, string)[] HivesAndNames =
+    [
+        (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
+        (RegistryHive.LocalMachine, "HKEY_LOCAL_MACHINE"),
+        (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT")
+    ];
+
     /// <summary>
-    /// Creates a new registry instance.
+    /// Gets a value indicating whether sub key paths and key value names are case-sensitive.
     /// </summary>
-    public InMemoryRegistry()
+    public bool IsCaseSensitive { get; }
+
+    /// <summary>
+    /// Gets the option flags this <see cref="InMemoryRegistry"/> was created with.
+    /// </summary>
+    public InMemoryRegistryCreationFlags Flags { get; }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class.
+    /// </summary>
+    public InMemoryRegistry() : this(InMemoryRegistryCreationFlags.Default)
     {
-        var hivesAndNames = new[]
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class.
+    /// </summary>
+    public InMemoryRegistry(InMemoryRegistryCreationFlags creationFlags)
+    {
+        IsCaseSensitive = creationFlags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
+        Flags = creationFlags;
+        foreach (var (hive, name) in HivesAndNames)
         {
-            (RegistryHive.None, string.Empty),
-            (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
-            (RegistryHive.LocalMachine, "HKEY_LOCAL_MACHINE"),
-            (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT"),
-        };
-        foreach (var (hive, name) in hivesAndNames)
-        {
-            foreach (var view in Enum.GetValues(typeof(RegistryView)).OfType<RegistryView>())
+            foreach (var view in RegistryViews)
             {
-                _rootKeys.Add((view, hive), new InMemoryRegistryKey(view, name));
+                var keyData = new InMemoryRegistryKeyData(view, name, null, creationFlags, true);
+                _rootKeys.Add((view, hive), new InMemoryRegistryKey(keyData.Name, keyData, true));
             }
         }
     }

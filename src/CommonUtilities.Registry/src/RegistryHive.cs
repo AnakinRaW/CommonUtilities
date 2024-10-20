@@ -6,10 +6,6 @@
 public enum RegistryHive
 {
     /// <summary>
-    /// Represents NO base key.
-    /// </summary>
-    None,
-    /// <summary>
     /// Represents the HKEY_CLASSES_ROOT base key.
     /// </summary>
     ClassesRoot,

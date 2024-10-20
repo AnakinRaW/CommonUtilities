@@ -5,7 +5,6 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 // From https://github.com/microsoft/vs-threading
-
 internal class NoMessagePumpSyncContext : SynchronizationContext
 {
     public NoMessagePumpSyncContext()
