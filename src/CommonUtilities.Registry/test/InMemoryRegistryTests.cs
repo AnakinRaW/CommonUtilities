@@ -1,4 +1,6 @@
-﻿namespace AnakinRaW.CommonUtilities.Registry.Test;
+﻿using Xunit;
+
+namespace AnakinRaW.CommonUtilities.Registry.Test;
 
 public abstract class InMemoryRegistryTestsBase : RegistryTestsBase
 {
@@ -12,7 +14,9 @@ public abstract class InMemoryRegistryTestsBase : RegistryTestsBase
             flags |= InMemoryRegistryCreationFlags.UseWindowsLengthLimits;
         if (HasPathLimits)
             flags |= InMemoryRegistryCreationFlags.OnlyUseWindowsDataTypes;
-        return new InMemoryRegistry(flags);
+        var registry = flags == InMemoryRegistryCreationFlags.Default ? new InMemoryRegistry() : new InMemoryRegistry(flags);
+        Assert.Equal(flags, registry.Flags);
+        return registry;
     }
 }
 

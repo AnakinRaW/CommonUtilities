@@ -26,7 +26,10 @@ public sealed class InMemoryRegistry : IRegistry
     /// </summary>
     public bool IsCaseSensitive { get; }
 
-    internal InMemoryRegistryCreationFlags Flags { get; }
+    /// <summary>
+    /// Gets the option flags this <see cref="InMemoryRegistry"/> was created with.
+    /// </summary>
+    public InMemoryRegistryCreationFlags Flags { get; }
 
     /// <summary>
     /// Creates a new instance of the <see cref="InMemoryRegistry"/> class.
@@ -41,6 +44,7 @@ public sealed class InMemoryRegistry : IRegistry
     public InMemoryRegistry(InMemoryRegistryCreationFlags creationFlags)
     {
         IsCaseSensitive = creationFlags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
+        Flags = creationFlags;
         foreach (var (hive, name) in HivesAndNames)
         {
             foreach (var view in RegistryViews)
