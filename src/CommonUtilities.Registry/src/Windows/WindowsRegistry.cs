@@ -34,6 +34,6 @@ public sealed class WindowsRegistry : IRegistry
 
         if (view == RegistryView.DefaultOperatingSystem)
             view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
-        return new WindowsRegistryKey(RegistryKey.OpenBaseKey(WindowsRegistryKey.ConvertHive(hive), WindowsRegistryKey.ConvertView(view)));
+        return new WindowsRegistryKey(RegistryKey.OpenBaseKey(WindowsRegistryKey.ConvertHive(hive), WindowsRegistryKey.ConvertView(view)), true);
     }
 }

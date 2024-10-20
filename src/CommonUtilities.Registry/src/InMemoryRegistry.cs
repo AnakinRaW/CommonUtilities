@@ -35,8 +35,13 @@ public sealed class InMemoryRegistry : IRegistry
     {
         IsCaseSensitive = isCaseSensitive;
         foreach (var (hive, name) in HivesAndNames)
+        {
             foreach (var view in RegistryViews)
-                _rootKeys.Add((view, hive), new InMemoryRegistryKey(view, name, null, IsCaseSensitive));
+            {
+                var keyData = new InMemoryRegistryKeyData(view, name, null, IsCaseSensitive, true);
+                _rootKeys.Add((view, hive), new InMemoryRegistryKey(keyData.Name, keyData, true));
+            }
+        }
     }
 
     /// <inheritdoc/>

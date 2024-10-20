@@ -6,9 +6,11 @@ namespace AnakinRaW.CommonUtilities.Registry.Test;
 public abstract partial class RegistryTestsBase : IDisposable
 {
     private const string CurrentUserKeyName = "HKEY_CURRENT_USER";
+    private const char MarkerChar = '\uffff';
 
-    protected string TestRegistryKeyName { get; private set; }
-    protected IRegistryKey TestRegistryKey { get; private set; }
+
+    protected string TestRegistryKeyName { get; }
+    protected IRegistryKey TestRegistryKey { get; }
 
     protected IRegistry Registry { get; }
 
@@ -35,15 +37,6 @@ public abstract partial class RegistryTestsBase : IDisposable
     {
         TestRegistryKey.Dispose();
         RemoveKeyIfExists(TestRegistryKeyName);
-    }
-
-    protected virtual void RemoveKeyIfExists(string keyName)
-    {
-    }
-
-    private string CreateUniqueKeyName()
-    { 
-        return "commonutulitiestest_" + GetType().Name;
     }
 
     public static readonly object[][] TestRegistrySubKeyNames =
@@ -132,9 +125,80 @@ public abstract partial class RegistryTestsBase : IDisposable
         InsertMarkerChar(@"Fo{0}o\B{0}ar\"),
         InsertMarkerChar(@"{0}Fo{0}o{0}\{0}B{0}ar{0}\")
     ];
+    
+    protected virtual void RemoveKeyIfExists(string keyName)
+    {
+    }
 
-    private const char MarkerChar = '\uffff';
+    protected void CreateTestRegistrySubKey(string expected)
+    {
+        Assert.Empty(TestRegistryKey.GetSubKeyNames());
 
+        using var key = TestRegistryKey.CreateSubKey(expected);
+        Assert.NotNull(key);
+        Assert.Single(TestRegistryKey.GetSubKeyNames());
+        Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
+    }
+
+    protected void Verify_CreateSubKey_KeyExists_OpensKeyWithFixedUpName(string expected, Func<IRegistryKey> createSubKey)
+    {
+        CreateTestRegistrySubKey(expected);
+
+        using var key = createSubKey();
+        Assert.NotNull(key);
+        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
+    }
+
+    protected void Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, Func<IRegistryKey> createSubKey)
+    {
+        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+
+        using var key = createSubKey();
+        Assert.NotNull(key);
+        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
+    }
+
+    protected void Verify_DeleteSubKey_KeyExists_KeyDeleted(string expected, Action deleteSubKey)
+    {
+        CreateTestRegistrySubKey(expected);
+
+        deleteSubKey();
+        Assert.Null(TestRegistryKey.GetKey(expected));
+    }
+
+    protected void Verify_DeleteSubKey_KeyDoesNotExists_DoesNotThrow(string expected, Action deleteSubKey)
+    {
+        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+
+        deleteSubKey();
+    }
+
+    protected void Verify_OpenSubKey_KeyExists_OpensWithFixedUpName(string expected, Func<IRegistryKey> openSubKey)
+    {
+        CreateTestRegistrySubKey(expected);
+
+        using var key = openSubKey();
+        Assert.NotNull(key);
+        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
+    }
+
+    protected void Verify_OpenSubKey_KeyDoesNotExist_ReturnsNull(string expected, Func<IRegistryKey> openSubKey)
+    {
+        Assert.Null(TestRegistryKey.GetKey(expected));
+        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+
+        Assert.Null(openSubKey());
+    }
+
+    private string CreateUniqueKeyName()
+    {
+        return "commonutulitiestest_" + GetType().Name;
+    }
     private static object[] InsertMarkerChar(string expected, string format)
     {
         var result = string.Format(format, MarkerChar);
@@ -146,17 +210,5 @@ public abstract partial class RegistryTestsBase : IDisposable
         var result = string.Format(format, MarkerChar);
         var expected = result.TrimEnd('\\');
         return [expected, result];
-    }
-
-    protected void CreateTestRegistrySubKey(string expected)
-    {
-        Assert.Empty(TestRegistryKey.GetSubKeyNames());
-
-        using (var key = TestRegistryKey.CreateSubKey(expected))
-        {
-            Assert.NotNull(key);
-            Assert.Single(TestRegistryKey.GetSubKeyNames());
-            Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
-        }
     }
 }

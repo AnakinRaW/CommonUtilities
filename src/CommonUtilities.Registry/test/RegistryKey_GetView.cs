@@ -14,4 +14,10 @@ public partial class RegistryTestsBase
             return TestRegistryKey.View;
         });
     }
+
+    [Fact]
+    public void GetView_Test()
+    {
+        Assert.Equal(RegistryView.Default, TestRegistryKey.View);
+    }
 }
