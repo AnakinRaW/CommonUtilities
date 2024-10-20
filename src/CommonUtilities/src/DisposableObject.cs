@@ -15,7 +15,7 @@ public abstract class DisposableObject : IDisposable
     private EventHandler? _disposing;
 
     /// <summary>
-    /// Event which get's raised when the instance is getting disposed.
+    /// Event which gets raised when the instance is getting disposed.
     /// <remarks>The event is not triggered when the object is finalized by the GC.</remarks>
     /// </summary>
     public event EventHandler Disposing

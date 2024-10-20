@@ -42,20 +42,25 @@ public static class AwaitExtensions
         }
 
         var tcs = new TaskCompletionSource<EmptyStruct>();
-        void Handler(object o, EventArgs eventArgs) => tcs.TrySetResult(default);
         try
         {
-            process.Exited += Handler!;
+            process.Exited += Handler;
             if (process.HasExited)
                 return;
-
+#if NETSTANDARD2_1
+            await 
+#endif
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
                 await tcs.Task.ConfigureAwait(false);
         }
         finally
         {
-            process.Exited -= Handler!;
+            process.Exited -= Handler;
         }
+
+        return;
+
+        void Handler(object o, EventArgs eventArgs) => tcs.TrySetResult(default);
     }
 
     private readonly struct EmptyStruct;

@@ -62,7 +62,7 @@ public static class DirectoryExtensions
                 fs.Directory.Delete(destination, true);
         }
 
-        return new DirectoryCopier(fs).MoveDirectory(source, destination, progress, null);
+        return new DirectoryCopier(fs).MoveDirectory(source, destination, progress);
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public static class DirectoryExtensions
                 fs.Directory.Delete(destination, true);
         }
 
-        new DirectoryCopier(fs).CopyDirectory(source, destination, progress, null);
+        new DirectoryCopier(fs).CopyDirectory(source, destination, progress);
     }
 
     /// <summary>

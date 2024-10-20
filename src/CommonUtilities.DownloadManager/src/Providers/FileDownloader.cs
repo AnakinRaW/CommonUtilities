@@ -12,7 +12,7 @@ internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProvid
     protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        if (!uri.IsFile && !uri.IsUnc)
+        if (uri is { IsFile: false, IsUnc: false })
             throw new ArgumentException("Expected file or UNC path", nameof(uri));
         return new DownloadResult
         {

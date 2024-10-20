@@ -21,7 +21,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedKinds">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, DownloadKind supportedKinds) : this(name, new []{supportedKinds})
+    protected DownloadProviderBase(string name, DownloadKind supportedKinds) : this(name, [supportedKinds])
     {
     }
 
@@ -34,7 +34,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     {
         ThrowHelper.ThrowIfNullOrEmpty(name);
         Name = name;
-        _supportedSources = new HashSet<DownloadKind>(supportedSources);
+        _supportedSources = [..supportedSources];
     }
 
     /// <inheritdoc/>

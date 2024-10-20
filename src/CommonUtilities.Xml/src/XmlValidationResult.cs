@@ -29,7 +29,7 @@ public sealed class XmlValidationResult : IEnumerable<XmlValidationError>
     public XmlValidationResult(Exception exception)
     {
         Exception = exception ?? throw new ArgumentNullException(nameof(exception));
-        _errors = Enumerable.Empty<XmlValidationError>();
+        _errors = [];
     }
 
     /// <summary>

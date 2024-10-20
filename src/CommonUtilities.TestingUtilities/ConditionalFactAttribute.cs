@@ -2,7 +2,7 @@
 
 namespace AnakinRaW.CommonUtilities.Testing;
 
-public class PlatformSpecificFactAttribute : FactAttribute
+public sealed class PlatformSpecificFactAttribute : FactAttribute
 {
     public PlatformSpecificFactAttribute(params TestPlatformIdentifier[] platformIds)
     {
@@ -14,7 +14,7 @@ public class PlatformSpecificFactAttribute : FactAttribute
     }
 }
 
-public class PlatformSpecificTheoryAttribute : TheoryAttribute
+public sealed class PlatformSpecificTheoryAttribute : TheoryAttribute
 {
     public PlatformSpecificTheoryAttribute(params TestPlatformIdentifier[] platformIds)
     {

@@ -75,7 +75,7 @@ public sealed class DownloadManager : IDownloadManager
 
         _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
 
-        if (!uri.IsFile && !uri.IsUnc)
+        if (uri is { IsFile: false, IsUnc: false })
         {
             if (!string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase) && 
                 !string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
@@ -107,6 +107,7 @@ public sealed class DownloadManager : IDownloadManager
         }
     }
 
+    // ReSharper disable once UnusedMember.Global
     internal void RemoveAllEngines()
     {
         _allProviders.Clear();
