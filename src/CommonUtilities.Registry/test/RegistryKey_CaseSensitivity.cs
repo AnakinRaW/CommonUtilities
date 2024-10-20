@@ -6,8 +6,6 @@ namespace AnakinRaW.CommonUtilities.Registry.Test;
 
 public partial class RegistryTestsBase
 {
-    public abstract bool IsCaseSensitive { get; }
-
     [Fact]
     public void IsCaseSensitive_Test()
     {

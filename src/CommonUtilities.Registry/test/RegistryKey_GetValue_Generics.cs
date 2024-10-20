@@ -84,9 +84,17 @@ public partial class RegistryTestsBase
     
     
     [Fact]
-    public void GetValue_Generic_ConvertToEnum()
+    public void GetValue_Generic_Enum()
     {
         TestRegistryKey.SetValue("TestEnum", MyEnum.B);
+        var value = TestRegistryKey.GetValue<MyEnum>("TestEnum");
+        Assert.Equal(MyEnum.B, value);
+    }
+
+    [Fact]
+    public void GetValue_Generic_ConvertToEnum()
+    {
+        TestRegistryKey.SetValue("TestEnum", "b");
         var value = TestRegistryKey.GetValue<MyEnum>("TestEnum");
         Assert.Equal(MyEnum.B, value);
     }
@@ -101,9 +109,29 @@ public partial class RegistryTestsBase
         Assert.Equal(expectedValue, value);
     }
 
-    internal enum MyEnum
+    [Fact]
+    public void GetValue_Generic_WithUInt64()
     {
-        A,
-        B
+        // This will be written as REG_SZ
+        const string testValueName = "UInt64";
+        const ulong expected = ulong.MaxValue;
+
+        TestRegistryKey.SetValue(testValueName, expected);
+        Assert.Equal(expected, TestRegistryKey.GetValue<ulong>(testValueName));
+        TestRegistryKey.DeleteValue(testValueName);
+    }
+
+    [Fact]
+    public void GetValue_Generic_CannotConvertType()
+    {
+        const string testValueName = "testFailedConversion";
+
+        TestRegistryKey.SetValue(testValueName, "abc");
+
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<ulong>(testValueName));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<int>(testValueName));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<byte[]>(testValueName));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<MyEnum>(testValueName));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<bool>(testValueName));
     }
 }

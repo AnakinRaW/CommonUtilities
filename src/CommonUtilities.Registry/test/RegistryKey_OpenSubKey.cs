@@ -48,6 +48,16 @@ public partial class RegistryTestsBase
         Assert.Empty(TestRegistryKey.GetSubKeyNames());
     }
 
+    [Fact]
+    public void OpenSubKey_DisposedKeyDoesNotDeleteData()
+    {
+        var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
+        rk.SetValue(null, TestData.DefaultValue);
+        rk.Dispose();
+
+        Assert.NotNull(TestRegistryKey.GetKey(TestRegistryKeyName));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("\\")]

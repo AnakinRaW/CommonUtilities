@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,11 +12,17 @@ namespace AnakinRaW.CommonUtilities.Registry;
 /// </summary>
 internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 {
+    private const int MaxKeyLength = 255;
+    private const int MaxValueLength = 16_383;
     private const char Separator = '\\';
 
     private readonly Dictionary<string, InMemoryRegistryKeyData> _subKeys;
     private readonly Dictionary<string, object> _values;
     private readonly InMemoryRegistryKeyData? _parent;
+    private readonly InMemoryRegistryCreationFlags _flags;
+
+    private readonly bool _usePathLimit;
+    private readonly bool _useTypeLimit;
 
     internal bool IsSystemKey { get; }
 
@@ -37,20 +44,24 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         RegistryView view, 
         string subName, 
         InMemoryRegistryKeyData? parent,
-        bool isCaseSensitive, 
+        InMemoryRegistryCreationFlags flags, 
         bool isSystemKey)
     {
-        IsCaseSensitive = isCaseSensitive;
-        IsSystemKey = isSystemKey;
-
+        var isCaseSensitive = flags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
         var stringComparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        
         _subKeys = new Dictionary<string, InMemoryRegistryKeyData>(stringComparer);
         _values = new Dictionary<string, object>(stringComparer);
-
-        View = view;
-        SubName = subName;
         _parent = parent;
-        Name = BuildFromHierarchyName(parent, SubName);
+        _flags = flags;
+        _usePathLimit = flags.HasFlag(InMemoryRegistryCreationFlags.UseWindowsLengthLimits);
+        _useTypeLimit = flags.HasFlag(InMemoryRegistryCreationFlags.OnlyUseWindowsDataTypes);
+
+        Name = BuildFromHierarchyName(parent, subName);
+        SubName = subName;
+        View = view;
+        IsCaseSensitive = isCaseSensitive;
+        IsSystemKey = isSystemKey;
     }
 
     /// <inheritdoc />
@@ -73,9 +84,16 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             throw new ArgumentNullException(nameof(value));
 
         ThrowIfNotExist();
+        
+        name ??= string.Empty;
 
-        var valueName = name ?? string.Empty;
-        _values[valueName] = value;
+        if (_usePathLimit && name.Length > MaxValueLength)
+            throw new ArgumentException("Registry value names should not be greater than 16,383 characters.");
+
+        if (_useTypeLimit)
+            ValidateType(value);
+
+        _values[name] = value;
     }
 
     /// <inheritdoc/>
@@ -137,7 +155,9 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 
         ThrowIfNotExist();
 
-        var currentKey = this;
+        // The Windows implementation first performs the length check and then normalizes the subKey
+        if (_usePathLimit)
+            ValidateKeyName(subKey);
 
         subKey = FixupName(subKey);
 
@@ -145,10 +165,12 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             return new InMemoryRegistryKey(BuildSubKeyName(currentName, subKey), this, writable);
 
         var subKeyNames = subKey.Split(Separator);
+        var currentKey = this;
+
         foreach (var subKeyName in subKeyNames)
         {
             if (!currentKey._subKeys.ContainsKey(subKeyName))
-                currentKey._subKeys[subKeyName] = new InMemoryRegistryKeyData(View, subKeyName, currentKey, currentKey.IsCaseSensitive, false);
+                currentKey._subKeys[subKeyName] = new InMemoryRegistryKeyData(View, subKeyName, currentKey, currentKey._flags, false);
             currentKey = currentKey._subKeys[subKeyName];
         }
 
@@ -185,6 +207,10 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
     {
         if (subPath == null)
             throw new ArgumentNullException(nameof(subPath));
+
+        // The Windows implementation first performs the length check and then normalizes the subKey
+        if (_usePathLimit)
+            ValidateKeyName(subPath);
 
         subPath = FixupName(subPath);
 
@@ -228,6 +254,43 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
     }
 
     // Shamelessly copied from https://github.com/dotnet/runtime
+    private static void ValidateKeyName([NotNull] string? name)
+    {
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+
+        var nextSlash = name.IndexOf("\\", StringComparison.OrdinalIgnoreCase);
+        var current = 0;
+        while (nextSlash != -1)
+        {
+            if (nextSlash - current > MaxKeyLength)
+                throw new ArgumentException();
+            current = nextSlash + 1;
+            nextSlash = name.IndexOf("\\", current, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (name.Length - current > MaxKeyLength)
+            throw new ArgumentException();
+    }
+
+    private static void ValidateType(object value)
+    {
+        if (value is not Array or byte[])
+            return;
+        if (value is string[] stringArr)
+        {
+            foreach (var s in stringArr)
+            {
+                if (s is null)
+                    throw new ArgumentException("RegistryKey.SetValue does not allow a String[] that contains a null String reference.");
+            }
+
+            return;
+        }
+        throw new ArgumentException($"RegistryKey.SetValue does not support arrays of type '{value.GetType()}'. Only Byte[] and String[] are supported.");
+    }
+
+    // Shamelessly copied from https://github.com/dotnet/runtime
     private static string FixupName(string name)
     {
         if (!name.Contains('\\'))
@@ -242,7 +305,6 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 
         return sb.ToString();
     }
-
 
     // Shamelessly copied from https://github.com/dotnet/runtime
     private static void FixupPath(StringBuilder path)

@@ -91,10 +91,22 @@ public sealed class InMemoryRegistryKey : IRegistryKey
     public T? GetValueOrSetDefault<T>(string? name, T? defaultValue, out bool defaultValueUsed)
     {
         ThrowIfDisposed();
-        
-        // TODO: Should be able to get the value even if not writeable
+
+        var value = GetValueOrDefault(name, defaultValue, out var exists);
+        if (exists)
+        {
+            defaultValueUsed = false;
+            return value;
+        }
+
+        defaultValueUsed = true;
+
+        if (value is null)
+            return value;
+
         ThrowIfNotWritable();
-        return KeyData.GetValueOrSetDefault(name, defaultValue, out defaultValueUsed);
+        KeyData.SetValue(name, value);
+        return value;
     }
 
     /// <inheritdoc/>

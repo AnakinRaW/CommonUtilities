@@ -9,7 +9,13 @@ public abstract partial class RegistryTestsBase : IDisposable
     private const char MarkerChar = '\uffff';
 
 
+    public abstract bool IsCaseSensitive { get; }
+    public abstract bool HasPathLimits { get; }
+    public abstract bool HasTypeLimits { get; }
+
+
     protected string TestRegistryKeyName { get; }
+
     protected IRegistryKey TestRegistryKey { get; }
 
     protected IRegistry Registry { get; }

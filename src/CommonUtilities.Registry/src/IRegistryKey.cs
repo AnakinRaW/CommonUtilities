@@ -94,6 +94,7 @@ public interface IRegistryKey : IDisposable
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">The type of <typeparamref name="T"/> did not match the stored registry data type. Therefore, the data could not be converted properly.</exception>
     T? GetValueOrDefault<T>(string? name, T? defaultValue, out bool valueExists);
 
     /// <summary>

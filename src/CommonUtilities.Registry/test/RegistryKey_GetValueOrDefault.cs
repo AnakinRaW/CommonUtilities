@@ -79,6 +79,19 @@ public partial class RegistryTestsBase
     }
 
     [Fact]
+    public void GetValueOrDefault_WithUInt64()
+    {
+        // This will be written as REG_SZ
+        const string testValueName = "UInt64";
+        const ulong expected = ulong.MaxValue;
+
+        TestRegistryKey.SetValue(testValueName, expected);
+        Assert.Equal(expected, TestRegistryKey.GetValueOrDefault<ulong>(testValueName, 0l, out var exists));
+        Assert.True(exists);
+        TestRegistryKey.DeleteValue(testValueName);
+    }
+
+    [Fact]
     public void GetValueOrDefault_GetDefaultValueTest()
     {
         bool exists;
@@ -112,10 +125,19 @@ public partial class RegistryTestsBase
     }
 
     [Fact]
-    public void GetValueOrDefault_ConvertToEnum()
+    public void GetValueOrDefault_Enum()
     {
         TestRegistryKey.SetValue("TestEnum", MyEnum.B);
-        var value = TestRegistryKey.GetValueOrDefault<MyEnum>("TestEnum", MyEnum.A, out var exists);
+        var value = TestRegistryKey.GetValueOrDefault("TestEnum", MyEnum.A, out var exists);
+        Assert.Equal(MyEnum.B, value);
+        Assert.True(exists);
+    }
+
+    [Fact]
+    public void GetValueOrDefault_ConvertToEnum()
+    {
+        TestRegistryKey.SetValue("TestEnum", "b");
+        var value = TestRegistryKey.GetValueOrDefault("TestEnum", MyEnum.A, out var exists);
         Assert.Equal(MyEnum.B, value);
         Assert.True(exists);
     }
@@ -129,5 +151,19 @@ public partial class RegistryTestsBase
         var value = TestRegistryKey.GetValueOrDefault("flag", false, out var exists);
         Assert.True(exists);
         Assert.Equal(expectedValue, value);
+    }
+
+    [Fact]
+    public void GetValueOrDefault_CannotConvertType()
+    {
+        const string testValueName = "testFailedConversion";
+
+        TestRegistryKey.SetValue(testValueName, "abc");
+
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrDefault(testValueName, 0uL, out _));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrDefault(testValueName, 0, out _));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrDefault(testValueName, new byte[] { 0x0 }, out _));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrDefault(testValueName, MyEnum.A, out _));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrDefault(testValueName, false, out _));
     }
 }

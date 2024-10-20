@@ -31,6 +31,15 @@ public partial class RegistryTestsBase
     }
 
     [Fact]
+    public void GetValue_DisposedKeyDoesNotDeleteData()
+    {
+        var rk = TestRegistryKey.GetKey(string.Empty, true);
+        rk.SetValue(null, TestData.DefaultValue);
+        rk.Dispose();
+        Assert.Equal(TestData.DefaultValue, TestRegistryKey.GetValue(null));
+    }
+
+    [Fact]
     public void GetValue_RegistryKeyGetValueMultiStringDoesNotDiscardZeroLengthStrings()
     {
         const string valueName = "Test";

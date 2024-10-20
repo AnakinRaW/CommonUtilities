@@ -60,44 +60,18 @@ public abstract class RegistryKeyBase : IRegistryKey
         if (result is T t)
             return t;
 
-        if (typeof(T).IsEnum)
-            return (T)Enum.Parse(typeof(T), result.ToString());
+        try
+        {
+            if (typeof(T).IsEnum)
+                return (T)Enum.Parse(typeof(T), result.ToString(), true);
 
-        return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
+            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
+        }
+        catch (Exception e)
+        {
+            throw new ArgumentException($"Unable to convert registry value '{result}' to type {typeof(T)}", e);
+        }
     }
-
-    ///// <inheritdoc/>
-    //public bool GetValueOrDefault<T>(string? name, string subPath, out T result, T? defaultValue)
-    //{
-    //    object? resultValue = defaultValue;
-    //    var valueReceived = TryKeyOperation(subPath, key =>
-    //    {
-    //        var value = key?.GetValue(name);
-    //        if (value is null)
-    //            return false;
-    //        try
-    //        {
-    //            if (value is T t)
-    //            {
-    //                resultValue = t;
-    //                return true;
-    //            }
-    //            if (typeof(T).IsEnum)
-    //            {
-    //                resultValue = Enum.Parse(typeof(T), value.ToString());
-    //                return true;
-    //            }
-    //            resultValue = (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
-    //            return true;
-    //        }
-    //        catch (Exception)
-    //        {
-    //            return false;
-    //        }
-    //    }, false, false);
-    //    result = (T) resultValue!;
-    //    return valueReceived;
-    //}
 
     /// <inheritdoc/>
     public bool HasPath(string subPath)

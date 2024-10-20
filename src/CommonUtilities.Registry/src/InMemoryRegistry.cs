@@ -14,11 +14,6 @@ public sealed class InMemoryRegistry : IRegistry
     private static readonly ICollection<RegistryView> RegistryViews =
         Enum.GetValues(typeof(RegistryView)).OfType<RegistryView>().ToList();
 
-    /// <summary>
-    /// Gets a value indicating whether sub key paths and key value names are case-sensitive.
-    /// </summary>
-    public bool IsCaseSensitive { get; }
-
     private static readonly (RegistryHive, string)[] HivesAndNames =
     [
         (RegistryHive.CurrentUser, "HKEY_CURRENT_USER"),
@@ -26,19 +21,31 @@ public sealed class InMemoryRegistry : IRegistry
         (RegistryHive.ClassesRoot, "HKEY_CLASSES_ROOT")
     ];
 
+    /// <summary>
+    /// Gets a value indicating whether sub key paths and key value names are case-sensitive.
+    /// </summary>
+    public bool IsCaseSensitive { get; }
+
+    internal InMemoryRegistryCreationFlags Flags { get; }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class with specified case-sensitivity.
+    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class.
     /// </summary>
-    /// <param name="isCaseSensitive">Set the case-sensitivity of this registry view. Default value is <see langword="false"/>.</param>
-    public InMemoryRegistry(bool isCaseSensitive = false)
+    public InMemoryRegistry() : this(InMemoryRegistryCreationFlags.Default)
     {
-        IsCaseSensitive = isCaseSensitive;
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="InMemoryRegistry"/> class.
+    /// </summary>
+    public InMemoryRegistry(InMemoryRegistryCreationFlags creationFlags)
+    {
+        IsCaseSensitive = creationFlags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
         foreach (var (hive, name) in HivesAndNames)
         {
             foreach (var view in RegistryViews)
             {
-                var keyData = new InMemoryRegistryKeyData(view, name, null, IsCaseSensitive, true);
+                var keyData = new InMemoryRegistryKeyData(view, name, null, creationFlags, true);
                 _rootKeys.Add((view, hive), new InMemoryRegistryKey(keyData.Name, keyData, true));
             }
         }
@@ -52,4 +59,33 @@ public sealed class InMemoryRegistry : IRegistry
             throw new InvalidOperationException($"Cannot find {view} root key for hive '{hive}'");
         return rootKey;
     }
+}
+
+
+/// <summary>
+/// 
+/// </summary>
+[Flags]
+public enum InMemoryRegistryCreationFlags
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    Default = 0,
+    /// <summary>
+    /// 
+    /// </summary>
+    CaseSensitive = 1,
+    /// <summary>
+    /// 
+    /// </summary>
+    UseWindowsLengthLimits = 2,
+    /// <summary>
+    /// 
+    /// </summary>
+    OnlyUseWindowsDataTypes = 4,
+    /// <summary>
+    /// 
+    /// </summary>
+    WindowsLike = UseWindowsLengthLimits | OnlyUseWindowsDataTypes
 }
