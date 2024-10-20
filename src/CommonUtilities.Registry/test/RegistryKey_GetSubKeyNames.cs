@@ -30,7 +30,7 @@ public partial class RegistryTestsBase
         // [] Creating new SubKeys and get the names
         var expectedSubKeyNames = Enumerable.Range(1, 9).Select(x => "BLAH_" + x).ToArray();
         foreach (var subKeyName in expectedSubKeyNames) 
-            TestRegistryKey.CreateSubKey(subKeyName).Dispose();
+            TestRegistryKey.CreateSubKey(subKeyName)!.Dispose();
 
         Assert.Equal(expectedSubKeyNames, TestRegistryKey.GetSubKeyNames());
     }

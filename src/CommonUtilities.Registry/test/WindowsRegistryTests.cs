@@ -1,7 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.Registry.Windows;
 using Microsoft.Win32;
 using Xunit;
-using System;
 using AnakinRaW.CommonUtilities.Testing;
 
 #if NET
@@ -50,7 +49,7 @@ public class WindowsRegistryTests : RegistryTestsBase
         var wRegistryKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(TestRegistryKeyName);
 
         TestRegistryKey.SetValue("Test", true);
-        Assert.NotNull(wRegistryKey.GetValue("Test"));
+        Assert.NotNull(wRegistryKey!.GetValue("Test"));
 
         TestRegistryKey.DeleteValue("Test");
         Assert.Null(wRegistryKey.GetValue("Test"));

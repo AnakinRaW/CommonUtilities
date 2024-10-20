@@ -16,6 +16,8 @@ public abstract class InMemoryRegistryTestsBase : RegistryTestsBase
     }
 }
 
+// ReSharper disable once UnusedMember.Global
+// ReSharper disable once InconsistentNaming
 public class InMemoryRegistryTests_Default : InMemoryRegistryTestsBase
 {
     public override bool IsCaseSensitive => false;
@@ -23,6 +25,8 @@ public class InMemoryRegistryTests_Default : InMemoryRegistryTestsBase
     public override bool HasTypeLimits => false;
 }
 
+// ReSharper disable once UnusedMember.Global
+// ReSharper disable once InconsistentNaming
 public class InMemoryRegistryTests_LikeWindows : InMemoryRegistryTestsBase
 {
     public override bool IsCaseSensitive => false;
@@ -30,6 +34,8 @@ public class InMemoryRegistryTests_LikeWindows : InMemoryRegistryTestsBase
     public override bool HasTypeLimits => true;
 }
 
+// ReSharper disable once UnusedMember.Global
+// ReSharper disable once InconsistentNaming
 public class InMemoryRegistryTests_CaseISensitive : InMemoryRegistryTestsBase
 {
     public override bool IsCaseSensitive => true;

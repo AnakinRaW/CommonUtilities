@@ -36,11 +36,11 @@ public partial class RegistryTestsBase
     }
     
     [Theory]
-    [MemberData(nameof(GetValue_TestValueTypes))]
+    [MemberData(nameof(GetValueTestValueTypes))]
     public void GetValue_Generic_TestGetValueWithValueTypes(string valueName, object testValue)
     {
         TestRegistryKey.SetValue(valueName, testValue);
-        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue<object>(valueName).ToString());
+        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue<object>(valueName)!.ToString());
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -86,17 +86,17 @@ public partial class RegistryTestsBase
     [Fact]
     public void GetValue_Generic_Enum()
     {
-        TestRegistryKey.SetValue("TestEnum", MyEnum.B);
-        var value = TestRegistryKey.GetValue<MyEnum>("TestEnum");
-        Assert.Equal(MyEnum.B, value);
+        TestRegistryKey.SetValue("TestEnum", TestData.MyEnum.B);
+        var value = TestRegistryKey.GetValue<TestData.MyEnum>("TestEnum");
+        Assert.Equal(TestData.MyEnum.B, value);
     }
 
     [Fact]
     public void GetValue_Generic_ConvertToEnum()
     {
         TestRegistryKey.SetValue("TestEnum", "b");
-        var value = TestRegistryKey.GetValue<MyEnum>("TestEnum");
-        Assert.Equal(MyEnum.B, value);
+        var value = TestRegistryKey.GetValue<TestData.MyEnum>("TestEnum");
+        Assert.Equal(TestData.MyEnum.B, value);
     }
 
     [Theory]
@@ -131,7 +131,7 @@ public partial class RegistryTestsBase
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<ulong>(testValueName));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<int>(testValueName));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<byte[]>(testValueName));
-        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<MyEnum>(testValueName));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<TestData.MyEnum>(testValueName));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValue<bool>(testValueName));
     }
 }

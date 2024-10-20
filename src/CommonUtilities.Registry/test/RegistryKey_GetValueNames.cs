@@ -28,7 +28,7 @@ public partial class RegistryTestsBase
     public void GetValueNames_Test()
     {
         // [] Add several values and get the values then check the names
-        Assert.Equal(expected: 0, actual: TestRegistryKey.GetValueNames().Length);
+        Assert.Empty(TestRegistryKey.GetValueNames());
 
         string[] expected = [TestRegistryKeyName];
         foreach (var valueName in expected) 
@@ -37,7 +37,7 @@ public partial class RegistryTestsBase
         Assert.Equal(expected, TestRegistryKey.GetValueNames());
 
         TestRegistryKey.DeleteValue(TestRegistryKeyName);
-        Assert.Equal(expected: 0, actual: TestRegistryKey.GetValueNames().Length);
+        Assert.Empty(TestRegistryKey.GetValueNames());
     }
 
     [Fact]

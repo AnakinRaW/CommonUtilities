@@ -21,9 +21,9 @@ public partial class RegistryTestsBase
         else
         {
             TestRegistryKey.SetValue("StringArr", value: new string[1]);
-            Assert.Equal([null!], TestRegistryKey.GetValue<string[]>("StringArr"));
+            Assert.Equal([null!], TestRegistryKey.GetValue<string[]>("StringArr")!);
             TestRegistryKey.SetValue("IntArray", value: new[] { 1, 2, 3 });
-            Assert.Equal([1, 2, 3], TestRegistryKey.GetValue<int[]>("IntArray"));
+            Assert.Equal([1, 2, 3], TestRegistryKey.GetValue<int[]>("IntArray")!);
         }
     }
 
@@ -31,6 +31,6 @@ public partial class RegistryTestsBase
     public void SetValue_EmptyStringArrayIsOK()
     {
         TestRegistryKey.SetValue("StringArr", value: Array.Empty<string>());
-        Assert.Equal([], TestRegistryKey.GetValue<string[]>("StringArr"));
+        Assert.Equal([], TestRegistryKey.GetValue<string[]>("StringArr")!);
     }
 }

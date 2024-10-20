@@ -20,9 +20,9 @@ public partial class RegistryTestsBase
             .DeleteKey(string.Empty, true));
 
         // Should throw because RegistryKey is readonly
-        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, false))
+        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false))
         {
-            Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteKey(name, true));
+            Assert.Throws<UnauthorizedAccessException>(() => rk!.DeleteKey(name, true));
         }
 
         // Should throw if RegistryKey is closed
@@ -82,7 +82,7 @@ public partial class RegistryTestsBase
     {
         using (var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName))
         {
-            using var created = rk.CreateSubKey(TestRegistryKeyName);
+            using var created = rk!.CreateSubKey(TestRegistryKeyName);
             rk.DeleteKey(selfName, true);
         }
         Assert.Null(TestRegistryKey.OpenSubKey(TestRegistryKeyName));
@@ -93,10 +93,10 @@ public partial class RegistryTestsBase
     {
         using (var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName))
         {
-            rk.SetValue("VAL", "Dummy");
+            rk!.SetValue("VAL", "Dummy");
             rk.SetValue(null, "Default");
             using var created = rk.CreateSubKey(TestRegistryKeyName);
-            created.SetValue("Value", 42);
+            created!.SetValue("Value", 42);
             rk.DeleteKey("", true);
         }
 
@@ -108,10 +108,10 @@ public partial class RegistryTestsBase
     {
         using (var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName))
         {
-            rk.SetValue("VAL", "Dummy");
+            rk!.SetValue("VAL", "Dummy");
             rk.SetValue(null, "Default");
             using var created = rk.CreateSubKey(TestRegistryKeyName);
-            created.SetValue("Value", 42);
+            created!.SetValue("Value", 42);
 
             using var rk2 = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
             rk.DeleteKey("", true);
@@ -136,20 +136,20 @@ public partial class RegistryTestsBase
     public void DeleteKey_Recursive_Test2()
     {
         // [] Add in multiple subkeys and then delete the root key
-        string[] subKeyNames = Enumerable.Range(1, 9).Select(x => "BLAH_" + x).ToArray();
+        var subKeyNames = Enumerable.Range(1, 9).Select(x => "BLAH_" + x).ToArray();
 
         using (var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName))
         {
             foreach (var subKeyName in subKeyNames)
             {
-                using var rk2 = rk.CreateSubKey(subKeyName);
+                using var rk2 = rk!.CreateSubKey(subKeyName);
                 Assert.NotNull(rk2);
 
                 using var rk3 = rk2.CreateSubKey("Test");
                 Assert.NotNull(rk3);
             }
 
-            Assert.Equal(subKeyNames, rk.GetSubKeyNames());
+            Assert.Equal(subKeyNames, rk!.GetSubKeyNames());
         }
 
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
@@ -166,14 +166,14 @@ public partial class RegistryTestsBase
         {
             foreach (var subKeyName in subKeyNames)
             {
-                using var rk2 = rk.CreateSubKey(subKeyName);
+                using var rk2 = rk!.CreateSubKey(subKeyName);
                 Assert.NotNull(rk2);
 
                 using var rk3 = rk2.CreateSubKey("Test");
                 Assert.NotNull(rk3);
             }
 
-            Assert.Equal(subKeyNames, rk.GetSubKeyNames());
+            Assert.Equal(subKeyNames, rk!.GetSubKeyNames());
 
             // Add multiple values to the key being deleted
             foreach (var i in Enumerable.Range(1, 9))
@@ -198,14 +198,14 @@ public partial class RegistryTestsBase
         {
             foreach (var subKeyName in subKeyNames)
             {
-                using var rk2 = rk.CreateSubKey(subKeyName);
+                using var rk2 = rk!.CreateSubKey(subKeyName);
                 Assert.NotNull(rk2);
 
                 using var rk3 = rk2.CreateSubKey("Test");
                 Assert.NotNull(rk3);
             }
 
-            Assert.Equal(subKeyNames, rk.GetSubKeyNames());
+            Assert.Equal(subKeyNames, rk!.GetSubKeyNames());
 
             // Add multiple values to the key being deleted
             foreach (var i in Enumerable.Range(1, 9))

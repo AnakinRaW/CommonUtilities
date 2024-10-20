@@ -12,19 +12,19 @@ public partial class RegistryTestsBase
         const string name = "Test";
 
         // Should throw if passed subkey name is null
-        Assert.Throws<ArgumentNullException>(() => TestRegistryKey.DeleteKey(null, false));
+        Assert.Throws<ArgumentNullException>(() => TestRegistryKey.DeleteKey(null!, false));
 
         // Should throw if subkey has child subkeys
         using (var rk = TestRegistryKey.CreateSubKey(name))
         {
-            using var subkey = rk.CreateSubKey(name);
+            using var subkey = rk!.CreateSubKey(name);
             Assert.Throws<InvalidOperationException>(() => TestRegistryKey.DeleteKey(name, false));
         }
 
         // Should throw because RegistryKey is readonly
-        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, false))
+        using (var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false))
         {
-            Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteKey(name, false));
+            Assert.Throws<UnauthorizedAccessException>(() => rk!.DeleteKey(name, false));
         }
 
         // Should throw if RegistryKey is closed
@@ -53,10 +53,8 @@ public partial class RegistryTestsBase
     public void DeleteSubKey_Test2()
     {
         var subKeyNames = Enumerable.Range(1, 9).Select(x => "BLAH_" + x).ToArray();
-        foreach (var subKeyName in subKeyNames)
-        {
-            TestRegistryKey.CreateSubKey(subKeyName).Dispose();
-        }
+        foreach (var subKeyName in subKeyNames) 
+            TestRegistryKey.CreateSubKey(subKeyName)!.Dispose();
 
         Assert.Equal(subKeyNames, TestRegistryKey.GetSubKeyNames());
         foreach (var subKeyName in subKeyNames)

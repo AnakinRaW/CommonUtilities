@@ -11,16 +11,16 @@ public partial class RegistryTestsBase
     {
         const string valueName = "TestValue";
 
-        // Should NOT throw because value doesn't exists
+        // Should NOT throw because value doesn't exist
         TestRegistryKey.DeleteValue(valueName);
 
         
         TestRegistryKey.SetValue(valueName, 42);
 
         // Should throw because RegistryKey is readonly
-        using (var rk = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).OpenSubKey(TestRegistryKeyName, false))
+        using (var rk = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).OpenSubKey(TestRegistryKeyName, writable: false))
         {
-            Assert.Throws<UnauthorizedAccessException>(() => rk.DeleteValue(valueName));
+            Assert.Throws<UnauthorizedAccessException>(() => rk!.DeleteValue(valueName));
         }
 
         // Should throw if RegistryKey is closed
@@ -58,20 +58,16 @@ public partial class RegistryTestsBase
     [Fact]
     public void DeleteValue_Test04()
     {
-        // [] Vanilla case , add a  bunch different objects and then Delete them
+        // [] Vanilla case , add a bunch of different objects and then Delete them
         var testCases = TestData.TestValueTypes.ToArray();
-        foreach (var testCase in testCases)
-        {
+        foreach (var testCase in testCases) 
             TestRegistryKey.SetValue(testCase[0].ToString(), testCase[1]);
-        }
 
         Assert.Equal(expected: testCases.Length, actual: TestRegistryKey.GetValueNames().Length);
 
-        foreach (var testCase in testCases)
-        {
+        foreach (var testCase in testCases) 
             TestRegistryKey.DeleteValue(testCase[0].ToString());
-        }
 
-        Assert.Equal(expected: 0, actual: TestRegistryKey.GetValueNames().Length);
+        Assert.Empty(TestRegistryKey.GetValueNames());
     }
 }

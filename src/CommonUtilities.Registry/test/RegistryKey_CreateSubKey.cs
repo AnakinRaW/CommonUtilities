@@ -49,7 +49,7 @@ public partial class RegistryTestsBase
         // Set the instance with the odd name
         rk.SetValue("value", 123);
         // Check on the original instance
-        Assert.Equal(123, (int)TestRegistryKey.GetValue("value"));
+        Assert.Equal(123, (int)TestRegistryKey.GetValue("value")!);
     }
 
     [Theory]
@@ -82,7 +82,7 @@ public partial class RegistryTestsBase
         Assert.Single(TestRegistryKey.GetSubKeyNames());
 
         
-        Assert.Equal(expectedName + @"\" + "sub", subKey.Name);
+        Assert.Equal(expectedName + @"\" + "sub", subKey!.Name);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public partial class RegistryTestsBase
             Assert.NotNull(rk);
             keys.Add(rk);
 
-            keys.Add(rk.CreateSubKey(subkeyName));
+            keys.Add(rk.CreateSubKey(subkeyName)!);
         }
 
         keys.ForEach(key => key.Dispose());
@@ -178,41 +178,41 @@ public partial class RegistryTestsBase
             Assert.Equal(2, rk.GetValueNames().Length);
 
             Assert.Equal(testValue, rk.GetValue(testValueName));
-            Assert.Equal(testStringValue, rk.GetValue(testStringValueName).ToString());
+            Assert.Equal(testStringValue, rk.GetValue(testStringValueName)!.ToString());
         }
     }
 
     [Fact]
     public void CreateSubeKey_OnDeletedKeyShouldThrow()
     {
-        using var sub = TestRegistryKey.CreateSubKey("sub", true);
+        using var sub = TestRegistryKey.CreateSubKey("sub", writable: true);
         TestRegistryKey.DeleteKey("sub", true);
         Assert.Null(TestRegistryKey.OpenSubKey("sub"));
-        Assert.Throws<IOException>(() => sub.CreateSubKey("subsub"));
+        Assert.Throws<IOException>(() => sub!.CreateSubKey("subsub"));
     }
 
     [Theory]
     [MemberData(nameof(TestRegistrySubKeyNames))]
     public void CreateSubKey_Writable_KeyExists_OpensKeyWithFixedUpName(string expected, string subKeyName) =>
-            Verify_CreateSubKey_KeyExists_OpensKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: true));
+            Verify_CreateSubKey_KeyExists_OpensKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: true)!);
 
 
     [Theory]
     [MemberData(nameof(TestRegistrySubKeyNames))]
     public void CreateSubKey_NonWritable_KeyExists_OpensKeyWithFixedUpName(string expected, string subKeyName) =>
-        Verify_CreateSubKey_KeyExists_OpensKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: false));
+        Verify_CreateSubKey_KeyExists_OpensKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: false)!);
 
 
     [Theory]
     [MemberData(nameof(TestRegistrySubKeyNames))]
     public void CreateSubKey_Writable_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, string subKeyName) =>
-        Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: true));
+        Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: true)!);
 
 
     [Theory]
     [MemberData(nameof(TestRegistrySubKeyNames))]
     public void CreateSubKey_NonWritable_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, string subKeyName) =>
-        Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: false));
+        Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: false)!);
 
 
 }

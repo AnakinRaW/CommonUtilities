@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
@@ -22,6 +23,7 @@ public abstract partial class RegistryTestsBase : IDisposable
 
     protected abstract IRegistry CreateRegistry();
 
+    [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
     protected RegistryTestsBase()
     {
         // Create a unique name for this test class
@@ -35,7 +37,7 @@ public abstract partial class RegistryTestsBase : IDisposable
 
         // Then create the key.
         Registry = CreateRegistry();
-        TestRegistryKey = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(TestRegistryKeyName);
+        TestRegistryKey = Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(TestRegistryKeyName)!;
         Assert.NotNull(TestRegistryKey);
     }
 

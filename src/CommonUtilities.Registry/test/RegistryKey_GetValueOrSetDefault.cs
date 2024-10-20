@@ -25,7 +25,7 @@ public partial class RegistryTestsBase
 
         using var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false);
 
-        Assert.Equal(expected, rk.GetValueOrSetDefault(valueName, TestData.DefaultValue, out var defaultUsed));
+        Assert.Equal(expected, rk!.GetValueOrSetDefault(valueName, TestData.DefaultValue, out var defaultUsed));
         Assert.False(defaultUsed);
         TestRegistryKey.DeleteValue(valueName);
     }
@@ -36,7 +36,7 @@ public partial class RegistryTestsBase
         const string valueName = "Test";
         using var rk = TestRegistryKey.OpenSubKey(string.Empty, writable: false);
 
-        Assert.Throws<UnauthorizedAccessException>(() => rk.GetValueOrSetDefault(valueName, TestData.DefaultValue, out _));
+        Assert.Throws<UnauthorizedAccessException>(() => rk!.GetValueOrSetDefault(valueName, TestData.DefaultValue, out _));
         Assert.False(TestRegistryKey.HasValue(valueName));
 
         TestRegistryKey.DeleteValue(valueName);
@@ -55,11 +55,11 @@ public partial class RegistryTestsBase
     }
     
     [Theory]
-    [MemberData(nameof(GetValue_TestValueTypes))]
+    [MemberData(nameof(GetValueTestValueTypes))]
     public void GetValueOrSetDefault_TestGetValueWithValueTypes(string valueName, object testValue)
     {
         TestRegistryKey.SetValue(valueName, testValue);
-        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValueOrSetDefault<object>(valueName, TestData.DefaultValue, out var defaultUsed).ToString());
+        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValueOrSetDefault<object>(valueName, TestData.DefaultValue, out var defaultUsed)!.ToString());
         Assert.False(defaultUsed);
         TestRegistryKey.DeleteValue(valueName);
     }
@@ -96,7 +96,7 @@ public partial class RegistryTestsBase
         const ulong expected = ulong.MaxValue;
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, TestRegistryKey.GetValueOrSetDefault<ulong>(testValueName, 0l, out var defaultUsed));
+        Assert.Equal(expected, TestRegistryKey.GetValueOrSetDefault(testValueName, 0uL, out var defaultUsed));
         Assert.False(defaultUsed);
         TestRegistryKey.DeleteValue(testValueName);
     }
@@ -135,9 +135,9 @@ public partial class RegistryTestsBase
     [Fact]
     public void GetValueOrSetDefault_Enum()
     {
-        TestRegistryKey.SetValue("TestEnum", MyEnum.B);
-        var value = TestRegistryKey.GetValueOrSetDefault("TestEnum", MyEnum.A, out var defaultUsed);
-        Assert.Equal(MyEnum.B, value);
+        TestRegistryKey.SetValue("TestEnum", TestData.MyEnum.B);
+        var value = TestRegistryKey.GetValueOrSetDefault("TestEnum", TestData.MyEnum.A, out var defaultUsed);
+        Assert.Equal(TestData.MyEnum.B, value);
         Assert.False(defaultUsed);
     }
 
@@ -145,8 +145,8 @@ public partial class RegistryTestsBase
     public void GetValueOrSetDefault_ConvertToEnum()
     {
         TestRegistryKey.SetValue("TestEnum", "b");
-        var value = TestRegistryKey.GetValueOrSetDefault("TestEnum", MyEnum.A, out var defaultUsed);
-        Assert.Equal(MyEnum.B, value);
+        var value = TestRegistryKey.GetValueOrSetDefault("TestEnum", TestData.MyEnum.A, out var defaultUsed);
+        Assert.Equal(TestData.MyEnum.B, value);
         Assert.False(defaultUsed);
     }
 
@@ -194,7 +194,7 @@ public partial class RegistryTestsBase
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, 0uL, out _));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, 0, out _));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, new byte[] { 0x0 }, out _));
-        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, MyEnum.A, out _));
+        Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, TestData.MyEnum.A, out _));
         Assert.Throws<ArgumentException>(() => TestRegistryKey.GetValueOrSetDefault(testValueName, false, out _));
     }
 }

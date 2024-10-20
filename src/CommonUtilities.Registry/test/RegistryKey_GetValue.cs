@@ -46,18 +46,18 @@ public partial class RegistryTestsBase
         string[] expected = ["", "Hello", "", "World", ""];
 
         TestRegistryKey.SetValue(valueName, expected);
-        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(valueName));
+        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(valueName)!);
         TestRegistryKey.DeleteValue(valueName);
     }
 
-    public static IEnumerable<object[]> GetValue_TestValueTypes => TestData.TestValueTypes;
+    public static IEnumerable<object[]> GetValueTestValueTypes => TestData.TestValueTypes;
 
     [Theory]
-    [MemberData(nameof(GetValue_TestValueTypes))]
+    [MemberData(nameof(GetValueTestValueTypes))]
     public void GetValue_TestGetValueWithValueTypes(string valueName, object testValue)
     {
         TestRegistryKey.SetValue(valueName, testValue);
-        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName).ToString());
+        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName)!.ToString());
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -68,7 +68,7 @@ public partial class RegistryTestsBase
         const string expected = "Here is a little test string";
 
         TestRegistryKey.SetValue(valueName, expected);
-        Assert.Equal(expected, TestRegistryKey.GetValue(valueName).ToString());
+        Assert.Equal(expected, TestRegistryKey.GetValue(valueName)!.ToString());
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -79,7 +79,7 @@ public partial class RegistryTestsBase
         byte[] expected = [1, 2, 3];
 
         TestRegistryKey.SetValue(valueName, expected);
-        Assert.Equal(expected, (byte[])TestRegistryKey.GetValue(valueName));
+        Assert.Equal(expected, (byte[])TestRegistryKey.GetValue(valueName)!);
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -95,7 +95,7 @@ public partial class RegistryTestsBase
         ];
 
         TestRegistryKey.SetValue(valueName, expected);
-        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(valueName));
+        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(valueName)!);
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -120,11 +120,11 @@ public partial class RegistryTestsBase
     }
 
     [Theory]
-    [MemberData(nameof(GetValue_TestValueTypes))]
+    [MemberData(nameof(GetValueTestValueTypes))]
     public void GetValue_Default_TestGetValueWithValueTypes(string valueName, object testValue)
     {
         TestRegistryKey.SetValue(valueName, testValue);
-        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName, null).ToString());
+        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName, null)!.ToString());
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -135,6 +135,6 @@ public partial class RegistryTestsBase
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
 
         // Assert does not throw
-        rk.GetValue("13");
+        rk!.GetValue("13");
     }
 }

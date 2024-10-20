@@ -32,14 +32,14 @@ public partial class RegistryTestsBase
         });
     }
 
-    public static IEnumerable<object[]> SetValue_TestValueTypes => TestData.TestValueTypes;
+    public static IEnumerable<object[]> SetValueTestValueTypes => TestData.TestValueTypes;
 
     [Theory]
-    [MemberData(nameof(SetValue_TestValueTypes))]
+    [MemberData(nameof(SetValueTestValueTypes))]
     public void SetValue_WithValueTypes(string valueName, object testValue)
     {
         TestRegistryKey.SetValue(valueName, testValue);
-        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName).ToString());
+        Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName)!.ToString());
         TestRegistryKey.DeleteValue(valueName);
     }
 
@@ -50,7 +50,7 @@ public partial class RegistryTestsBase
         const int expected = -5;
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, (int)TestRegistryKey.GetValue(testValueName));
+        Assert.Equal(expected, (int)TestRegistryKey.GetValue(testValueName)!);
         TestRegistryKey.DeleteValue(testValueName);
     }
 
@@ -74,7 +74,7 @@ public partial class RegistryTestsBase
         byte[] expected = [1, 2, 3];
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, (byte[])TestRegistryKey.GetValue(testValueName));
+        Assert.Equal(expected, (byte[])TestRegistryKey.GetValue(testValueName)!);
         TestRegistryKey.DeleteValue(testValueName);
     }
 
@@ -91,14 +91,14 @@ public partial class RegistryTestsBase
         ];
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(testValueName));
+        Assert.Equal(expected, (string[])TestRegistryKey.GetValue(testValueName)!);
         TestRegistryKey.DeleteValue(testValueName);
     }
 
-    public static IEnumerable<object[]> SetValue_TestEnvironment => TestData.TestEnvironment;
+    public static IEnumerable<object[]> SetValueTestEnvironment => TestData.TestEnvironment;
 
     [Theory]
-    [MemberData(nameof(SetValue_TestEnvironment))]
+    [MemberData(nameof(SetValueTestEnvironment))]
     public void SetValue_WithEnvironmentVariable(string valueName, string envVariableName, string expectedVariableValue)
     {
         // ExpandEnvironmentStrings is converting "C:\Program Files (Arm)" to "C:\Program Files (x86)".
@@ -108,7 +108,7 @@ public partial class RegistryTestsBase
         var value = "%" + envVariableName + "%";
         TestRegistryKey.SetValue(valueName, value);
 
-        var result = (string)TestRegistryKey.GetValue(valueName);
+        var result = (string)TestRegistryKey.GetValue(valueName)!;
         //we don't expand for the user, REG_SZ_EXPAND not supported
         Assert.Equal(expectedVariableValue, Environment.ExpandEnvironmentVariables(result));
         TestRegistryKey.DeleteValue(valueName);
@@ -122,16 +122,16 @@ public partial class RegistryTestsBase
         var expected = string.Empty;
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, (string)TestRegistryKey.GetValue(testValueName));
+        Assert.Equal(expected, (string)TestRegistryKey.GetValue(testValueName)!);
         TestRegistryKey.DeleteValue(testValueName);
     }
 
     [Fact]
     public void SetValue_OnDeletedKeyShouldThrow()
     {
-        using var sub = TestRegistryKey.CreateSubKey("sub", true);
+        using var sub = TestRegistryKey.CreateSubKey("sub", writable: true);
         TestRegistryKey.DeleteKey("sub", true);
         Assert.Null(TestRegistryKey.OpenSubKey("sub"));
-        Assert.Throws<IOException>(() => sub.SetValue("name", 123));
+        Assert.Throws<IOException>(() => sub!.SetValue("name", 123));
     }
 }
