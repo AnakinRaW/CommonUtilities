@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace AnakinRaW.CommonUtilities.Registry;
 
@@ -50,6 +51,7 @@ public interface IRegistryKey : IDisposable
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
     object? GetValue(string? name);
 
     /// <summary>
@@ -64,6 +66,7 @@ public interface IRegistryKey : IDisposable
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
     object? GetValue(string? name, object? defaultValue);
 
     /// <summary>
@@ -79,6 +82,7 @@ public interface IRegistryKey : IDisposable
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
     T? GetValue<T>(string? name);
 
     /// <summary>
@@ -95,6 +99,7 @@ public interface IRegistryKey : IDisposable
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
     /// <exception cref="ArgumentException">The type of <typeparamref name="T"/> did not match the stored registry data type. Therefore, the data could not be converted properly.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
     T? GetValueOrDefault<T>(string? name, T? defaultValue, out bool valueExists);
 
     /// <summary>
@@ -111,6 +116,8 @@ public interface IRegistryKey : IDisposable
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
     /// <exception cref="UnauthorizedAccessException">The <see cref="IRegistryKey"/> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="IOException">The <see cref="IRegistryKey"/> that contains the specified value has been marked for deletion.</exception>
     T? GetValueOrSetDefault<T>(string? name, T? defaultValue, out bool defaultValueUsed);
 
     /// <summary>
@@ -119,12 +126,16 @@ public interface IRegistryKey : IDisposable
     /// <param name="name">The name of the value to store.</param>
     /// <param name="value">The data to be stored.</param>
     /// <exception cref="UnauthorizedAccessException">The <see cref="IRegistryKey"/> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="IOException">The <see cref="IRegistryKey"/> that contains the specified value has been marked for deletion.</exception>
     void SetValue(string? name, object value);
 
     /// <summary>
     ///  Tries to delete a value from a registry key.
     /// </summary>
     /// <param name="name">The name of the key.</param>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> being manipulated is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="UnauthorizedAccessException">The <see cref="IRegistryKey"/> being manipulated is read-only.</exception>
     void DeleteValue(string? name);
 
     /// <summary>
@@ -144,6 +155,7 @@ public interface IRegistryKey : IDisposable
     /// To obtain the current RegistryKey object, specify an empty string ("") for <paramref name="name"/>.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> is closed.</exception>
     IRegistryKey? OpenSubKey(string name, bool writable = false);
 
     /// <summary>
@@ -158,6 +170,7 @@ public interface IRegistryKey : IDisposable
     /// If a zero-length string is specified for <paramref name="subKey"/>, the current <see cref="IRegistryKey"/> object is returned.</returns>
     /// <remarks>To obtain the current RegistryKey object, specify an empty string ("") for <paramref name="subKey"/>.</remarks>
     /// <exception cref="ArgumentNullException"><paramref name="subKey"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> on which this method is being invoked is closed (closed keys cannot be accessed).</exception>
     /// <exception cref="UnauthorizedAccessException">The <see cref="IRegistryKey"/> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
     IRegistryKey? CreateSubKey(string subKey, bool writable = true);
 
@@ -166,8 +179,12 @@ public interface IRegistryKey : IDisposable
     /// </summary>
     /// <param name="subKey">The name of the subkey to delete.</param>
     /// <param name="recursive">If set to <see langword="true"/>, deletes a subkey and any child subkeys recursively.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="subKey"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="recursive"/> is set to <see langword="false"/> and the <paramref name="subKey"/> has child subkeys.</exception>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> being manipulated is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
     void DeleteKey(string subKey, bool recursive);
-    
+
     /// <summary>
     /// Retrieves an array of strings that contains all the value names associated with this key.
     /// </summary>
@@ -180,6 +197,8 @@ public interface IRegistryKey : IDisposable
     /// <br/>
     /// A registry key can have a default value - that is, a name/value pair in which the name is the empty string (""). If a default value has been set for a registry key, the array returned by the GetValueNames method includes the empty string.
     /// </remarks>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> being manipulated is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="IOException">A system error occurred, for example the current key has been deleted.</exception>
     string[] GetValueNames();
 
     /// <summary>
@@ -187,5 +206,7 @@ public interface IRegistryKey : IDisposable
     /// </summary>
     /// <returns>An array of strings that contains the names of the subkeys.</returns>
     /// <remarks>This method does not recursively find names. It returns the names on the base level from which it was called.</remarks>
+    /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> being manipulated is closed (closed keys cannot be accessed).</exception>
+    /// <exception cref="IOException">A system error occurred, for example the current key has been deleted.</exception>
     string[] GetSubKeyNames();
 }

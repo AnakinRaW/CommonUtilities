@@ -21,7 +21,7 @@ public partial class RegistryTestsBase
             TestRegistryKey.GetValue(null, TestData.DefaultValue);
         });
     }
-
+    
     [Fact]
     public void GetValue_GetDefaultValueTest()
     {
@@ -126,5 +126,15 @@ public partial class RegistryTestsBase
         TestRegistryKey.SetValue(valueName, testValue);
         Assert.Equal(testValue.ToString(), TestRegistryKey.GetValue(valueName, null).ToString());
         TestRegistryKey.DeleteValue(valueName);
+    }
+
+    [Fact]
+    public void GetValue_GetValueFromDeletedKey()
+    {
+        using var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
+        TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
+
+        // Assert does not throw
+        rk.GetValue("13");
     }
 }
