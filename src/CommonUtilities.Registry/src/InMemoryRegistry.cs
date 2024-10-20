@@ -60,32 +60,3 @@ public sealed class InMemoryRegistry : IRegistry
         return rootKey;
     }
 }
-
-
-/// <summary>
-/// 
-/// </summary>
-[Flags]
-public enum InMemoryRegistryCreationFlags
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    Default = 0,
-    /// <summary>
-    /// 
-    /// </summary>
-    CaseSensitive = 1,
-    /// <summary>
-    /// 
-    /// </summary>
-    UseWindowsLengthLimits = 2,
-    /// <summary>
-    /// 
-    /// </summary>
-    OnlyUseWindowsDataTypes = 4,
-    /// <summary>
-    /// 
-    /// </summary>
-    WindowsLike = UseWindowsLengthLimits | OnlyUseWindowsDataTypes
-}
