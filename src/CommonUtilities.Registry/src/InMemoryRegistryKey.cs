@@ -1,120 +1,202 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
 /// In memory <see cref="IRegistryKey"/> implementation for platform independent use. 
 /// </summary>
-public sealed class InMemoryRegistryKey : RegistryKeyBase
+public sealed class InMemoryRegistryKey : IRegistryKey
 {
-    private const char Separator = '\\';
+    private bool _disposed;
 
-    private readonly Dictionary<string, InMemoryRegistryKey> _subKeys = new();
-    private readonly Dictionary<string, object> _values = new();
+    internal readonly InMemoryRegistryKeyData KeyData;
+    private readonly string _name;
+
+    private bool IsWriteable { get; }
+
+    /// <inheritdoc />
+    public bool IsCaseSensitive => KeyData.IsCaseSensitive;
 
     /// <inheritdoc/>
-    public override string Name { get; }
-
-    /// <inheritdoc/>
-    public override RegistryView View { get; }
-
-    /// <summary>
-    /// Creates a new instance of an in memory RegistryKey.
-    /// </summary>
-    /// <param name="view">The registry view this key is associated with.</param>
-    /// <param name="name">The name of the key.</param>
-    public InMemoryRegistryKey(RegistryView view, string name)
+    public string Name
     {
-        View = view;
-        Name = name;
-    }
-
-    /// <inheritdoc/>
-    public override object? GetValue(string? name, object? defaultValue)
-    {
-        var valueName = name ?? string.Empty;
-        return _values.TryGetValue(valueName, out var value) ? value : defaultValue;
-    }
-
-    /// <inheritdoc/>
-    public override void SetValue(string? name, object value)
-    {
-        var valueName = name ?? string.Empty;
-        _values[valueName] = value;
-    }
-
-    /// <inheritdoc/>
-    protected override void DeleteValueCore(string name)
-    {
-        _values.Remove(name);
-    }
-
-    /// <inheritdoc/>
-    protected override void DeleteKeyCore(string subPath, bool recursive)
-    {
-        var key = GetKeyCore(subPath, false);
-        if (key is not InMemoryRegistryKey memKey)
-            return;
-        if (memKey._subKeys.Any() && !recursive)
-            throw new InvalidOperationException();
-
-        var keyQueue = new Queue<InMemoryRegistryKey>();
-        keyQueue.Enqueue(memKey);
-        while (!keyQueue.Any())
+        get
         {
-            var keyToDelete = keyQueue.Dequeue();
-            foreach (var inMemoryRegistryKey in keyToDelete._subKeys.Values) 
-                keyQueue.Enqueue(inMemoryRegistryKey);
-            keyToDelete._subKeys.Clear();
-            keyToDelete._values.Clear();
+            ThrowIfDisposed();
+            return _name;
         }
-        _subKeys.Clear();
+    }
+
+    /// <inheritdoc/>
+    public RegistryView View
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return KeyData.View;
+        }
+    }
+
+    internal InMemoryRegistryKey(string name, InMemoryRegistryKeyData keyData, bool isWriteable)
+    {
+        _name = name ?? throw new ArgumentNullException(nameof(name));
+        KeyData = keyData ?? throw new ArgumentNullException(nameof(keyData));
+        IsWriteable = isWriteable;
+    }
+
+    /// <inheritdoc/>
+    public bool HasPath(string subPath)
+    {
+        ThrowIfDisposed();
+        return KeyData.HasPath(subPath);
+    }
+
+    /// <inheritdoc/>
+    public bool HasValue(string? name)
+    {
+        ThrowIfDisposed();
+        return KeyData.HasValue(name);
+    }
+
+    /// <inheritdoc/>
+    public object? GetValue(string? name)
+    {
+        ThrowIfDisposed();
+        return KeyData.GetValue(name);
+    }
+
+    /// <inheritdoc/>
+    public object? GetValue(string? name, object? defaultValue)
+    {
+        ThrowIfDisposed();
+        return KeyData.GetValue(name, defaultValue);
     }
 
     /// <inheritdoc />
-    public override IRegistryKey? CreateSubKey(string subKey)
+    public T? GetValue<T>(string? name)
     {
-        try
-        {
-            var currentKey = this;
-            var subKeyNames = subKey.Split(Separator);
-            foreach (var subKeyName in subKeyNames)
-            {
-                var subKeyNameLower = subKeyName.ToLower();
-                if (!currentKey._subKeys.ContainsKey(subKeyNameLower))
-                    currentKey._subKeys[subKeyNameLower] = new InMemoryRegistryKey(View, subKeyName);
-                currentKey = currentKey._subKeys[subKeyNameLower];
-            }
+        ThrowIfDisposed();
+        return KeyData.GetValue<T>(name);
+    }
 
-            return currentKey;
-        }
-        catch
+    /// <inheritdoc />
+    public T? GetValueOrDefault<T>(string? name, T? defaultValue, out bool valueExists)
+    {
+        ThrowIfDisposed();
+        return KeyData.GetValueOrDefault(name, defaultValue, out valueExists);
+    }
+
+
+    /// <inheritdoc/>
+    public T? GetValueOrSetDefault<T>(string? name, T? defaultValue, out bool defaultValueUsed)
+    {
+        ThrowIfDisposed();
+
+        var value = GetValueOrDefault(name, defaultValue, out var exists);
+        if (exists)
         {
-            return null;
+            defaultValueUsed = false;
+            return value;
         }
+
+        defaultValueUsed = true;
+
+        if (value is null)
+            return value;
+
+        ThrowIfNotWritable();
+        KeyData.SetValue(name, value);
+        return value;
     }
 
     /// <inheritdoc/>
-    public override string[] GetSubKeyNames()
+    public void SetValue(string? name, object value)
     {
-        return _subKeys.Values.Select(v => v.Name).ToArray();
+        ThrowIfDisposed();
+        ThrowIfNotWritable();
+        KeyData.SetValue(name, value);
     }
 
     /// <inheritdoc/>
-    protected override IRegistryKey? GetKeyCore(string subPath, bool writable)
+    public IRegistryKey? OpenSubKey(string name, bool writable = false)
     {
-        var currentKey = this;
-        var subKeyNames = subPath.Split(Separator);
-        foreach (var subKeyName in subKeyNames)
-        {
-            var subKeyNameLower = subKeyName.ToLower();
-            if (currentKey._subKeys.ContainsKey(subKeyNameLower) == false)
-                return null;
-            currentKey = currentKey._subKeys[subKeyNameLower];
-        }
+        ThrowIfDisposed();
+        return KeyData.GetKeyCore(_name, name, writable);
+    }
 
-        return currentKey;
+    /// <inheritdoc />
+    public IRegistryKey CreateSubKey(string subKey, bool writable = true)
+    {
+        ThrowIfDisposed();
+        ThrowIfNotWritable();
+        return KeyData.CreateSubKey(_name, subKey, writable);
+    }
+
+    /// <inheritdoc />
+    public void DeleteValue(string? name)
+    {
+        ThrowIfDisposed();
+        ThrowIfNotWritable();
+        KeyData.DeleteValue(name);
+    }
+
+    /// <inheritdoc />
+    public void DeleteKey(string subKey, bool recursive)
+    {
+        ThrowIfDisposed();
+        ThrowIfNotWritable();
+        KeyData.DeleteKey(subKey, recursive);
+    }
+
+    /// <inheritdoc/>
+    public string[] GetValueNames()
+    {
+        ThrowIfDisposed();
+        return KeyData.GetValueNames();
+    }
+
+    /// <inheritdoc/>
+    public string[] GetSubKeyNames()
+    {
+        ThrowIfDisposed();
+        return KeyData.GetSubKeyNames();
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        ThrowIfDisposed();
+        return KeyData.ToString();
+    }
+
+    /// <summary>
+    /// Finalizes this instance.
+    /// </summary>
+    ~InMemoryRegistryKey() => Dispose(false);
+
+
+    /// <inheritdoc cref="IDisposable"/>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool _)
+    {
+        if (!KeyData.IsSystemKey)
+            _disposed = true;
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(KeyData.Name, "The registry key is already disposed.");
+    }
+
+    private void ThrowIfNotWritable()
+    {
+        if (!IsWriteable)
+            throw new UnauthorizedAccessException("Cannot write to the registry key.");
     }
 }

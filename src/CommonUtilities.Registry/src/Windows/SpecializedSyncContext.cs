@@ -4,7 +4,6 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 // From https://github.com/microsoft/vs-threading
-
 internal readonly struct SpecializedSyncContext : IDisposable
 {
     private readonly bool _initialized;

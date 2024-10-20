@@ -15,6 +15,8 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 #endif
 public sealed class WindowsRegistryKey : RegistryKeyBase
 {
+    private readonly bool _writeable;
+
     /// <summary>
     /// Returns the underlying <see cref="RegistryKey"/> of this instance.
     /// </summary>
@@ -25,22 +27,22 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// </summary>
     public bool IsDisposed { get; private set; }
 
+    /// <inheritdoc />
+    public override bool IsCaseSensitive => false;
+
     /// <inheritdoc/>
     public override string Name => WindowsKey.Name;
 
     /// <inheritdoc/>
     public override RegistryView View => ConvertView(WindowsKey.View);
 
-    /// <summary>
-    /// Creates a new <inheritdoc cref="WindowsRegistryKey"/> from a given <see cref="RegistryKey"/>.
-    /// </summary>
-    /// <param name="registryKey">The internal registry key this instance represents.</param>
-    public WindowsRegistryKey(RegistryKey registryKey)
+    internal WindowsRegistryKey(RegistryKey registryKey, bool writeable)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new PlatformNotSupportedException("Registry is not supported on this platform.");
 
         WindowsKey = registryKey ?? throw new ArgumentNullException(nameof(registryKey));
+        _writeable = writeable;
     }
 
     /// <summary>
@@ -48,34 +50,51 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     /// </summary>
     ~WindowsRegistryKey() => Dispose(false);
 
-    /// <inheritdoc/>
-    public override object? GetValue(string? name, object? defaultValue)
+    /// <inheritdoc />
+    public override object? GetValue(string? name)
     {
-        return WindowsKey.GetValue(name, defaultValue);
+        return WindowsKey.GetValue(name);
     }
 
     /// <inheritdoc/>
-    protected override IRegistryKey? GetKeyCore(string subPath, bool writable)
+    public override IRegistryKey? OpenSubKey(string subPath, bool writable = false)
     {
-        var key = WindowsKey.OpenSubKey(subPath!, writable);
-        return key is null ? null : new WindowsRegistryKey(key);
+        if (subPath == null) 
+            throw new ArgumentNullException(nameof(subPath));
+
+        var key = WindowsKey.OpenSubKey(subPath, writable);
+        return key is null ? null : new WindowsRegistryKey(key, writable);
+    }
+
+    /// <inheritdoc />
+    public override string[] GetValueNames()
+    {
+        return WindowsKey.GetValueNames();
     }
 
     /// <inheritdoc/>
     public override void SetValue(string? name, object value)
     {
+        if (!_writeable)
+            throw new UnauthorizedAccessException();
         WindowsKey.SetValue(name, value);
     }
 
     /// <inheritdoc/>
-    protected override void DeleteValueCore(string name)
+    protected override void DeleteValueCore(string? name)
     {
-        WindowsKey.DeleteValue(name, false);
+        if (!_writeable)
+            throw new UnauthorizedAccessException();
+
+        WindowsKey.DeleteValue(name ?? string.Empty, false);
     }
 
     /// <inheritdoc/>
     protected override void DeleteKeyCore(string subPath, bool recursive)
     {
+        if (!_writeable)
+            throw new UnauthorizedAccessException();
+
         if (recursive)
             WindowsKey.DeleteSubKeyTree(subPath, false);
         else
@@ -83,10 +102,14 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
     }
 
     /// <inheritdoc/>
-    public override IRegistryKey? CreateSubKey(string subKey)
+    public override IRegistryKey? CreateSubKey(string subKey, bool writable = true)
     {
-        var winKey = WindowsKey.CreateSubKey(subKey);
-        return winKey is null ? null : new WindowsRegistryKey(winKey);
+        if (!_writeable)
+            throw new UnauthorizedAccessException();
+
+        var winKey = WindowsKey.CreateSubKey(subKey, writable);
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        return winKey is null ? null : new WindowsRegistryKey(winKey, writable);
     }
 
     /// <inheritdoc/>
@@ -118,7 +141,7 @@ public sealed class WindowsRegistryKey : RegistryKeyBase
             RegistryHive.ClassesRoot => Microsoft.Win32.RegistryHive.ClassesRoot,
             RegistryHive.LocalMachine => Microsoft.Win32.RegistryHive.LocalMachine,
             RegistryHive.CurrentUser => Microsoft.Win32.RegistryHive.CurrentUser,
-            _ => 0
+            _ => throw new ArgumentOutOfRangeException(nameof(hive), hive, null)
         };
     }
 

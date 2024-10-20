@@ -6,6 +6,11 @@
 public interface IRegistry
 {
     /// <summary>
+    /// Gets a value indicating whether sub key paths and key value names are case-sensitive.
+    /// </summary>
+    public bool IsCaseSensitive { get; }
+
+    /// <summary>
     /// Opens a new <see cref="IRegistryKey"/> that represents the requested key on the local machine
     /// with the specified view.
     /// </summary>
