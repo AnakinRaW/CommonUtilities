@@ -67,7 +67,7 @@ public static class WindowsFileSystemExtensions
         try
         {
             using var registryKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
-            using var subKey = registryKey.CreateSubKey(sessionManagerKeyPath);
+            using var subKey = registryKey.CreateSubKey(sessionManagerKeyPath)!;
             var stringBuilder = new StringBuilder("\\??\\" + source + "\0");
             if (!string.IsNullOrEmpty(destination))
                 stringBuilder.Append("\\??\\" + destination);

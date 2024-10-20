@@ -15,15 +15,12 @@ internal static class ProcessElevationWindows
         var processToken = OpenProcessToken(Process.GetCurrentProcess().Handle);
         try
         {
-            try
-            {
-                var elevation = AdvApi32.GetTokenElevation(processToken);
-                return elevation.TokenIsElevated;
-            }
-            catch (Exception e) when (e.HResult == ErrorInvalidParameter)
-            {
-                return false;
-            }
+            var elevation = AdvApi32.GetTokenElevation(processToken);
+            return elevation.TokenIsElevated;
+        }
+        catch (Exception e) when (e.HResult == ErrorInvalidParameter)
+        {
+            return false;
         }
         finally
         {
