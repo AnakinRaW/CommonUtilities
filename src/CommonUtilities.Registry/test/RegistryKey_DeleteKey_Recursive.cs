@@ -223,4 +223,36 @@ public partial class RegistryTestsBase
 
         Assert.Single(TestRegistryKey.GetSubKeyNames());
     }
+
+    [Fact]
+    public void DeleteSubKey_Recursive_OpenedKeyBecomesInvalidAndDoesNotReturnWhenRecreated()
+    {
+        var subKeyName = $"{TestRegistryKeyName}\\sub";
+
+        TestRegistryKey.CreateSubKey(subKeyName);
+
+        var baseKey = TestRegistryKey.OpenSubKey(TestRegistryKeyName)!;
+
+        Assert.NotNull(baseKey.OpenSubKey("sub"));
+        Assert.NotNull(baseKey.OpenSubKey(""));
+
+        // Delete the key
+        TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
+
+        Assert.Null(baseKey.OpenSubKey("sub"));
+        Assert.Null(baseKey.OpenSubKey(""));
+
+        // Re-Create the key
+        TestRegistryKey.CreateSubKey(subKeyName);
+
+        var newBase = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
+
+        // Check it exists when opening a new base key.
+        Assert.NotNull(newBase.OpenSubKey("sub"));
+        Assert.NotNull(newBase.OpenSubKey(""));
+
+        // It should not exist on the old base key.
+        Assert.Null(baseKey.OpenSubKey("sub"));
+        Assert.Null(baseKey.OpenSubKey(""));
+    }
 }
