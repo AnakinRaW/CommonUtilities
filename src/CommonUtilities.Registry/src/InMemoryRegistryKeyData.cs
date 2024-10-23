@@ -48,6 +48,13 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         InMemoryRegistryCreationFlags flags, 
         bool isSystemKey)
     {
+        if (subName is null)
+            throw new ArgumentNullException(nameof(subName));
+        if (subName.Length == 0)
+            throw new ArgumentException(nameof(subName));
+        if (parent is null && !isSystemKey)
+            throw new InvalidOperationException("Root keys must be marked as system keys!");
+
         var isCaseSensitive = flags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
         var stringComparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         

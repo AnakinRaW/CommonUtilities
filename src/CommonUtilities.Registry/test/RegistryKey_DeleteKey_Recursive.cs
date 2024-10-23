@@ -245,7 +245,7 @@ public partial class RegistryTestsBase
         // Re-Create the key
         TestRegistryKey.CreateSubKey(subKeyName);
 
-        var newBase = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
+        var newBase = TestRegistryKey.OpenSubKey(TestRegistryKeyName)!;
 
         // Check it exists when opening a new base key.
         Assert.NotNull(newBase.OpenSubKey("sub"));

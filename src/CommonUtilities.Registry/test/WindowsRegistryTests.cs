@@ -2,6 +2,8 @@
 using Microsoft.Win32;
 using Xunit;
 using AnakinRaW.CommonUtilities.Testing;
+using System;
+
 
 #if NET
 using System.Runtime.Versioning;
@@ -34,6 +36,12 @@ public class WindowsRegistryTests : RegistryTestsBase
             rk.DeleteSubKeyTree(keyName);
             Assert.Null(rk.OpenSubKey(keyName));
         }
+    }
+
+    [Fact]
+    public void CtorThrows()
+    {
+        Assert.Throws<ArgumentNullException>(() => new WindowsRegistryKey(null!, false));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
