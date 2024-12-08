@@ -22,7 +22,6 @@ public class StepErrorEventArgs : EventArgs
         set => field |= value;
     }
 
-
     /// <summary>
     /// Initializes a new instance of the <see cref="StepErrorEventArgs"/> class with the specified step.
     /// </summary>
