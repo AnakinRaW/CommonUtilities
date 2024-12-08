@@ -50,7 +50,7 @@ public class StepRunner : DisposableObject, IRunner
         if (services == null) 
             throw new ArgumentNullException(nameof(services));
         StepQueue = new ConcurrentQueue<IStep>();
-        StepList = new List<IStep>();
+        StepList = [];
         Logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 

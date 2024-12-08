@@ -47,8 +47,8 @@ public class PathAreEqualTest
     [InlineData("", "a")]
     [InlineData("", "")]
     [InlineData("a", "")]
-    public void Test_AreEqual_ThrowsAnyArgumentException(string pathA, string pathB)
+    public void Test_AreEqual_ThrowsAnyArgumentException(string? pathA, string? pathB)
     {
-        Assert.ThrowsAny<ArgumentException>(() => _fileSystem.Path.AreEqual(pathA, pathB));
+        Assert.ThrowsAny<ArgumentException>(() => _fileSystem.Path.AreEqual(pathA!, pathB!));
     }
 }

@@ -26,7 +26,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 
     private static FrugalList<T> GenericFrugalListFactory()
     {
-        return new FrugalList<T>();
+        return [];
     }
 
     private FrugalList<T> GenericFrugalListFactory(int count)

@@ -49,10 +49,10 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
             throw new ArgumentException("invalid parallel worker count");
         _workerCount = workerCount;
         _runnerTasks = new Task[_workerCount];
-        _steps = new ConcurrentBag<IStep>();
+        _steps = [];
         StepQueue = new BlockingCollection<IStep>();
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _exceptions = new ConcurrentBag<Exception>();
+        _exceptions = [];
     }
 
 

@@ -37,7 +37,7 @@ public class ParallelRunner: StepRunner, ISynchronizedRunner
         if (workerCount < 1)
             throw new ArgumentOutOfRangeException(nameof(workerCount));
         WorkerCount = workerCount;
-        _exceptions = new ConcurrentBag<Exception>();
+        _exceptions = [];
         _tasks = new Task[workerCount];
     }
 

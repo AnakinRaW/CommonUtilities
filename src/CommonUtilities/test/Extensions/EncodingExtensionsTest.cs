@@ -59,7 +59,7 @@ public class EncodingExtensionsTest
 
             Assert.Equal(0, n);
             // Check that bytes is unaltered
-            Assert.Equal(new byte[] { 1, 2 }, bytes);
+            Assert.Equal([1, 2], bytes);
         });
     }
 
@@ -290,7 +290,7 @@ public class EncodingExtensionsTest
 
             Assert.True(bytes.IsEmpty);
             // Check that bytes is unaltered
-            Assert.Equal(new byte[] { 1, 2 }, bufferBytes);
+            Assert.Equal([1, 2], bufferBytes);
         });
     }
 
@@ -302,13 +302,13 @@ public class EncodingExtensionsTest
     [InlineData("üöä")]
     [InlineData("123ü")]
     [InlineData("😅")]
-    public void Test_GetBytesReadOnly(string? input)
+    public void Test_GetBytesReadOnly(string input)
     {
         ForEachEncoding(e =>
         {
             var expectedBytes = e.GetBytes(input);
 
-            var maxByteCount = input is null ? 5 : e.GetByteCount(input) + 5;
+            var maxByteCount = e.GetByteCount(input) + 5;
             var buffer = new byte[maxByteCount].AsSpan();
             var stringBytes = e.GetBytesReadOnly(input.AsSpan(), buffer);
             Assert.Equal(expectedBytes, stringBytes.ToArray());

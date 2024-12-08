@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
@@ -193,7 +194,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [Fact]
-    public async void Test_MoveToAsync_ThrowsDirectoryNotFound()
+    public async Task Test_MoveToAsync_ThrowsDirectoryNotFound()
     {
         _fileSystem.Initialize();
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
@@ -202,7 +203,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_MoveToAsync_NoOverwrite_ThrowsIOException()
+    public async Task Test_MoveToAsync_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -215,7 +216,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [Fact]
-    public async void Test_MoveToAsync_CleanOverride()
+    public async Task Test_MoveToAsync_CleanOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -238,7 +239,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_MoveToAsync_MergeOverride()
+    public async Task Test_MoveToAsync_MergeOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -260,7 +261,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public async void Test_MoveToAsync_MoveAcrossVolumes()
+    public async Task Test_MoveToAsync_MoveAcrossVolumes()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()
@@ -274,7 +275,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_MoveToAsync_WithProgress()
+    public async Task Test_MoveToAsync_WithProgress()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -295,7 +296,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
-    public async void Test_MoveToAsync_CannotDeleteSource()
+    public async Task Test_MoveToAsync_CannotDeleteSource()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -391,14 +392,14 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_CopyAsync_ThrowsDirectoryNotFound()
+    public async Task Test_CopyAsync_ThrowsDirectoryNotFound()
     {
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await dirToCopy.CopyAsync("test1", null, DirectoryOverwriteOption.NoOverwrite));
     }
 
     [Fact]
-    public async void Test_CopyAsync_NoOverwrite_ThrowsIOException()
+    public async Task Test_CopyAsync_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -411,7 +412,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_CopyAsync_CleanOverwrite()
+    public async Task Test_CopyAsync_CleanOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -432,7 +433,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async void Test_CopyAsync_MergeOverwrite()
+    public async Task Test_CopyAsync_MergeOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -453,7 +454,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public async void Test_CopyAsync_AcrossDrives()
+    public async Task Test_CopyAsync_AcrossDrives()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()

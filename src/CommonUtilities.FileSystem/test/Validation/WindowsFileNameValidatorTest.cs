@@ -84,7 +84,7 @@ public class WindowsFileNameValidatorTest
     [InlineData("\\file", FileNameValidationResult.InvalidCharacter)]
     [InlineData("/file", FileNameValidationResult.InvalidCharacter)]
     [InlineData("|file", FileNameValidationResult.InvalidCharacter)]
-    public void Test_IsValidFileName_InvalidNames(string input, FileNameValidationResult expected, bool ignoreWhenNoWindowsReserved = false)
+    public void Test_IsValidFileName_InvalidNames(string? input, FileNameValidationResult expected, bool ignoreWhenNoWindowsReserved = false)
     {
         Assert.Equal(expected, WindowsFileNameValidator.Instance.IsValidFileName(input));
         Assert.Equal(expected, WindowsFileNameValidator.Instance.IsValidFileName(input.AsSpan(), true));
