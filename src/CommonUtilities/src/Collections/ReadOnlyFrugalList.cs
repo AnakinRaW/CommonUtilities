@@ -120,6 +120,26 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
         return _list.LastOrDefault();
     }
 
+    /// <summary>
+    /// Determines whether the <see cref="ReadOnlyFrugalList{T}"/> contains a specific value.
+    /// </summary>
+    /// <param name="item">The object to locate in the <see cref="ReadOnlyFrugalList{T}"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="item"/> is found in the <see cref="ReadOnlyFrugalList{T}"/>; otherwise, <see langword="false"/>.</returns>
+    public bool Contains(T item)
+    { 
+        return _list.Contains(item);
+    }
+
+    /// <summary>
+    /// Searches for the specified object and returns the zero-based index of the first occurrence within the entire <see cref="ReadOnlyFrugalList{T}"/>.
+    /// </summary>
+    /// <param name="item">The object to locate in the <see cref="ReadOnlyFrugalList{T}"/>. The value can be <see langword="null"/> for reference types.</param>
+    /// <returns>The zero-based index of the first occurrence of <paramref name="item"/> within the entire <see cref="ReadOnlyFrugalList{T}"/>, if found; otherwise, -1.</returns>
+    public int IndexOf(T item)
+    {
+        return _list.IndexOf(item);
+    }
+
     #endregion
 
     /// <summary>
