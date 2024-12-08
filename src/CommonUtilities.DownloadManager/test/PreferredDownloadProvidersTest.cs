@@ -51,7 +51,7 @@ public class PreferredDownloadProvidersTest
         b.Setup(p => p.Name).Returns("B");
 
         var providers = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider> { b.Object, a.Object }).Select(x => x.Name).ToList();
-        Assert.Equal(new List<string> { "A", "B" }, providers);
+        Assert.Equal(["A", "B"], providers);
     }
 
     [Fact]
@@ -82,6 +82,6 @@ public class PreferredDownloadProvidersTest
         
 
         var providers = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider>{c.Object}).Select(x => x.Name).ToList();
-        Assert.Equal(new List<string> {"C"}, providers);
+        Assert.Equal(["C"], providers);
     }
 }

@@ -87,7 +87,7 @@ public partial class RegistryTestsBase
         const ulong expected = ulong.MaxValue;
 
         TestRegistryKey.SetValue(testValueName, expected);
-        Assert.Equal(expected, TestRegistryKey.GetValueOrDefault<ulong>(testValueName, 0l, out var exists));
+        Assert.Equal(expected, TestRegistryKey.GetValueOrDefault<ulong>(testValueName, 0L, out var exists));
         Assert.True(exists);
         TestRegistryKey.DeleteValue(testValueName);
     }

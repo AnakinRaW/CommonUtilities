@@ -21,7 +21,7 @@ public sealed class DownloadManager : IDownloadManager
     private readonly ILogger? _logger;
     private readonly IDownloadManagerConfiguration _configuration;
 
-    private readonly List<IDownloadProvider> _allProviders = new();
+    private readonly List<IDownloadProvider> _allProviders = [];
     private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
 
     /// <inheritdoc/>
