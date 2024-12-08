@@ -8,8 +8,6 @@ namespace AnakinRaW.CommonUtilities.Hashing;
 /// <param name="keyType"></param>
 public sealed class HashProviderNotFoundException(HashTypeKey keyType) : Exception
 {
-    private readonly HashTypeKey _keyType = keyType;
-
     /// <inheritdoc />
-    public override string Message => $"Unable to find hash provider for the key {_keyType}";
+    public override string Message => $"Unable to find hash provider for the key {keyType}";
 }

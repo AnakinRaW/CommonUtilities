@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace AnakinRaW.CommonUtilities.Xml;
 
@@ -13,5 +14,7 @@ public interface IXmlObjectParser<out T> where T: class
     /// </summary>
     /// <param name="stream">The Stream that contains the XML document to deserialize.</param>
     /// <returns>The Object being deserialized casted to <typeparamref name="T"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="stream"/> is <see langword="null"/>.</exception>
+    /// <exception cref="NotSupportedException">Cannot read from <paramref name="stream"/>.</exception>
     public T? Parse(Stream stream);
 }

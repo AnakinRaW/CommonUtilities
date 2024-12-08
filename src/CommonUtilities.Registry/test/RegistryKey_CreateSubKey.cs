@@ -19,6 +19,7 @@ public partial class RegistryTestsBase
         TestRegistryKey.SetValue(name, 42);
         using (var rk = CreateRegistry().OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(TestRegistryKeyName, false))
         {
+            Assert.NotNull(rk);
             Assert.Throws<UnauthorizedAccessException>(() => rk.CreateSubKey(name));
             Assert.Throws<UnauthorizedAccessException>(() => rk.SetValue(name, "String"));
             Assert.Throws<UnauthorizedAccessException>(() => rk.GetValueOrSetDefault("other", 123, out _));
@@ -95,7 +96,7 @@ public partial class RegistryTestsBase
         using var opened = TestRegistryKey.OpenSubKey(TestRegistryKeyName);
         Assert.NotNull(opened);
 
-        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Single(TestRegistryKey.GetSubKeyNames());
     }
 
     [Fact]

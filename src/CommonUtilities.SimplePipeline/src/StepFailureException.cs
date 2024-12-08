@@ -30,9 +30,9 @@ public sealed class StepFailureException : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StepFailureException"/> with steps that failed
+    /// Initializes a new instance of the <see cref="StepFailureException"/> class with steps that failed.
     /// </summary>
-    /// <param name="failedSteps"></param>
+    /// <param name="failedSteps">The failed steps.</param>
     public StepFailureException(IEnumerable<IStep> failedSteps)
     {
         _failedSteps = failedSteps ?? throw new ArgumentNullException(nameof(failedSteps));

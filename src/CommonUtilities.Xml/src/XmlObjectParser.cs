@@ -11,7 +11,7 @@ public sealed class XmlObjectParser<T> : IXmlObjectParser<T> where T: class
     /// <inheritdoc/>
     public T? Parse(Stream stream)
     {
-        if (stream == null || stream.Length == 0)
+        if (stream == null)
             throw new ArgumentNullException(nameof(stream));
         if (!stream.CanRead)
             throw new NotSupportedException();

@@ -59,7 +59,7 @@ public class IsDriveRelativePathTest
     [InlineData("<:", false)]
     [InlineData("C:test", false)]
     [InlineData(@"C:test/a\a", false)]
-    public void Test_IsDriveRelative_Linux(string path, bool expected)
+    public void Test_IsDriveRelative_Linux(string? path, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.IsDriveRelative(path.AsSpan(), out var letter));
         Assert.Null(letter);

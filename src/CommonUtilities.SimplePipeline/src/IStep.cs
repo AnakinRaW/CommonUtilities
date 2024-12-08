@@ -4,7 +4,7 @@ using System.Threading;
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// A step can be queued to an <see cref="IRunner"/> and performs a custom action.
+/// A step tha can be queued to an <see cref="IRunner"/> and executes a custom action.
 /// </summary>
 public interface IStep : IDisposable
 {

@@ -23,6 +23,7 @@ public static class DirectoryExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveToEx(this IDirectoryInfo source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite)
     {
         if (source == null) 
@@ -45,6 +46,7 @@ public static class DirectoryExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveToEx(this IDirectory _, string source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite)
     {
         if (source == null)
@@ -62,7 +64,7 @@ public static class DirectoryExtensions
                 fs.Directory.Delete(destination, true);
         }
 
-        return new DirectoryCopier(fs).MoveDirectory(source, destination, progress, null);
+        return new DirectoryCopier(fs).MoveDirectory(source, destination, progress);
     }
 
     /// <summary>
@@ -79,12 +81,14 @@ public static class DirectoryExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static Task<bool> MoveToAsync(this IDirectoryInfo source, string destination, IProgress<double>? progress,
         DirectoryOverwriteOption overwrite, int concurrentWorkers = 2, CancellationToken cancellationToken = default)
     {
         if (source == null) 
             throw new ArgumentNullException(nameof(source));
-        if (destination == null) throw new ArgumentNullException(nameof(destination));
+        if (destination == null) 
+            throw new ArgumentNullException(nameof(destination));
 
         return source.FileSystem.Directory.MoveToAsync(source.FullName, destination, progress, overwrite, concurrentWorkers, cancellationToken);
     }
@@ -104,12 +108,14 @@ public static class DirectoryExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static async Task<bool> MoveToAsync(this IDirectory _, string source, string destination, IProgress<double>? progress,
         DirectoryOverwriteOption overwrite, int concurrentWorkers = 2, CancellationToken cancellationToken = default)
     {
         if (source == null)
             throw new ArgumentNullException(nameof(source));
-        if (destination == null) throw new ArgumentNullException(nameof(destination));
+        if (destination == null) 
+            throw new ArgumentNullException(nameof(destination));
 
         var fs = _.FileSystem;
         
@@ -134,6 +140,7 @@ public static class DirectoryExtensions
     /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
     /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static void Copy(this IDirectoryInfo source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite)
     {
         if (source == null) 
@@ -153,10 +160,13 @@ public static class DirectoryExtensions
     /// <param name="progress">Progress of the operation in percent ranging from 0 to 1. This argument is optional.</param>
     /// <param name="overwrite">Indicates whether the <paramref name="destination"/> shall be replaced if it already exists.</param>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static void Copy(this IDirectory _, string source, string destination, IProgress<double>? progress, DirectoryOverwriteOption overwrite)
     {
         if (source == null)
             throw new ArgumentNullException(nameof(source));
+        if (destination == null) 
+            throw new ArgumentNullException(nameof(destination));
 
         var fs = _.FileSystem;
 
@@ -168,7 +178,7 @@ public static class DirectoryExtensions
                 fs.Directory.Delete(destination, true);
         }
 
-        new DirectoryCopier(fs).CopyDirectory(source, destination, progress, null);
+        new DirectoryCopier(fs).CopyDirectory(source, destination, progress);
     }
 
     /// <summary>
@@ -183,8 +193,10 @@ public static class DirectoryExtensions
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The task of the operation.</returns>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-    /// <exception cref="IOException">If <paramref name="destination"/> already exists
-    /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
+    /// <exception cref="IOException">
+    /// If <paramref name="destination"/> already exists and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static Task CopyAsync(this IDirectoryInfo source, string destination, IProgress<double>? progress,
         DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
     {
@@ -210,8 +222,10 @@ public static class DirectoryExtensions
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The task of the operation.</returns>
     /// <exception cref="DirectoryNotFoundException"> if the source was not found.</exception>
-    /// <exception cref="IOException">If <paramref name="destination"/> already exists
-    /// and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.</exception>
+    /// <exception cref="IOException">
+    /// If <paramref name="destination"/> already exists and <paramref name="overwrite"/> is <see cref="DirectoryOverwriteOption.NoOverwrite"/>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static async Task CopyAsync(this IDirectory _, string source, string destination, IProgress<double>? progress,
         DirectoryOverwriteOption overwrite, int workerCount = 2, CancellationToken cancellationToken = default)
     {
@@ -244,6 +258,7 @@ public static class DirectoryExtensions
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="true"/> if the directory is deleted; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="directory"/> is <see langword="null"/>.</exception>
     public static void DeleteWithRetry(this IDirectoryInfo directory, bool recursive = true, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
@@ -262,7 +277,8 @@ public static class DirectoryExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
-    /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
+    /// <returns><see langword="false"/> if the operation failed; otherwise, <see langword="true"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="directory"/> is <see langword="null"/>.</exception>
     public static void DeleteWithRetry(this IDirectory _, string directory, bool recursive = true, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
@@ -285,6 +301,7 @@ public static class DirectoryExtensions
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="true"/> if the directory is deleted; otherwise, <see langword="false"/>.</returns>
+    ///  <exception cref="ArgumentNullException"><paramref name="directory"/> is <see langword="null"/>.</exception>
     public static bool TryDeleteWithRetry(this IDirectoryInfo directory, bool recursive = true, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
@@ -304,6 +321,7 @@ public static class DirectoryExtensions
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="false"/> if the operation failed. <see langword="true"/> otherwise.</returns>
+    ///  <exception cref="ArgumentNullException"><paramref name="directory"/> is <see langword="null"/>.</exception>
     public static bool TryDeleteWithRetry(this IDirectory _, string directory, bool recursive = true, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {

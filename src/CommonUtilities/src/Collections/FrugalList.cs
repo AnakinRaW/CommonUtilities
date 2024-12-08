@@ -18,7 +18,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 // 2. Also, this list does not implement the non-generic IList interface for the following reasons: 
 // 2.1. The IList.CopyTo(Array, int) adds complexity due to differences between .NET & C# type systems.
 //      E.g.
-//      In CLR: int[] is compatible to uint[] as vice-versa (see. ECMA335 I.8.7.1 array-element-compatible-with)
+//      In CLR: int[] is compatible to uint[] as vice versa (see. ECMA335 I.8.7.1 array-element-compatible-with)
 //      C#: Forbids this without tricking the compiler by casting to object[].
 // 
 //      (ReadOnlyCollection<T> has implemented this as a reference.)
@@ -298,7 +298,7 @@ public struct FrugalList<T> : IList<T>
     public readonly List<T> ToList()
     {
         if (_tailList is null)
-            return new List<T>(0);
+            return [];
         var list = new List<T>(Count) { _firstItem };
         list.AddRange(_tailList);
         return list;
@@ -312,7 +312,7 @@ public struct FrugalList<T> : IList<T>
     {
         var count = Count;
         if (count == 0)
-            return Array.Empty<T>();
+            return [];
         var array = new T[count];
         CopyTo(array, 0);
         return array;
@@ -387,7 +387,7 @@ public struct FrugalList<T> : IList<T>
     /// </summary>
     private sealed class EmptyList : List<T>
     {
-        public static readonly EmptyList Instance = new();
+        public static readonly EmptyList Instance = [];
 
         private EmptyList() : base(0)
         {

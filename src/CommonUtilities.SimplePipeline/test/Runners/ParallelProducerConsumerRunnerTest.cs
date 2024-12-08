@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 public class ParallelProducerConsumerRunnerTest
 {
     [Fact]
-    public async void Test_Run_WaitNotFinished()
+    public async Task Test_Run_WaitNotFinished()
     {
         var sc = new ServiceCollection();
         var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());

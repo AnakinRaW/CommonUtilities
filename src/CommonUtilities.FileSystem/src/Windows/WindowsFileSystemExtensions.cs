@@ -27,6 +27,7 @@ public static class WindowsFileSystemExtensions
     /// <param name="fsInfo">The file or directory to delete after reboot</param>
     /// <returns> <see langword="true"/> if file or directory was successfully scheduled for deletion or was already deleted; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
     public static bool DeleteAfterReboot(this IFileSystemInfo fsInfo)
     {
         ThrowHelper.ThrowIfNotWindows();
@@ -67,7 +68,7 @@ public static class WindowsFileSystemExtensions
         try
         {
             using var registryKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
-            using var subKey = registryKey.CreateSubKey(sessionManagerKeyPath);
+            using var subKey = registryKey.CreateSubKey(sessionManagerKeyPath)!;
             var stringBuilder = new StringBuilder("\\??\\" + source + "\0");
             if (!string.IsNullOrEmpty(destination))
                 stringBuilder.Append("\\??\\" + destination);
@@ -98,6 +99,7 @@ public static class WindowsFileSystemExtensions
     /// <returns><see langword="false"/> if the operation failed; Otherwise, <see langword="true"/>.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
     /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static bool DeleteWithRetry(this IFileInfo file, out bool rebootRequired, bool rebootOk = false, int retryCount = 2,
         int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
@@ -150,11 +152,14 @@ public static class WindowsFileSystemExtensions
     /// <returns><see langword="false"/> if the operation failed.<see langword="false"/> otherwise.</returns>
     /// <exception cref="Exception">If the file could not be deleted and <paramref name="rebootOk"/> was set to <see langword="false"/></exception>
     /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="directory"/> is <see langword="null"/>.</exception>
     public static bool DeleteWithRetry(this IDirectoryInfo directory, out bool rebootRequired, bool rebootOk = false,
         bool recursive = true, int retryCount = 2, int retryDelay = 500,
         Func<Exception, int, bool>? errorAction = null)
     {
         ThrowHelper.ThrowIfNotWindows();
+        if (directory == null)
+            throw new ArgumentNullException(nameof(directory));
         if (!directory.Exists)
         {
             rebootRequired = false;

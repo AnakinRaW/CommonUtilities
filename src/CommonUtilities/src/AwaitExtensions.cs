@@ -11,6 +11,7 @@ namespace AnakinRaW.CommonUtilities;
 /// </summary>
 public static class AwaitExtensions
 {
+    // From https://github.com/dotnet/runtime
     /// <summary>
     /// Returns a task that completes when the process exits and provides the exit code of that process.
     /// </summary>
@@ -21,7 +22,6 @@ public static class AwaitExtensions
     /// This token has no effect on the <paramref name="process"/> itself.
     /// </param>
     /// <returns>A task whose result is the <see cref="Process.ExitCode"/> of the <paramref name="process"/>.</returns>
-    // From https://github.com/dotnet/runtime
     public static async Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
     {
         if (process == null)
@@ -42,20 +42,25 @@ public static class AwaitExtensions
         }
 
         var tcs = new TaskCompletionSource<EmptyStruct>();
-        void Handler(object o, EventArgs eventArgs) => tcs.TrySetResult(default);
         try
         {
-            process.Exited += Handler!;
+            process.Exited += Handler;
             if (process.HasExited)
                 return;
-
+#if NETSTANDARD2_1
+            await 
+#endif
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
                 await tcs.Task.ConfigureAwait(false);
         }
         finally
         {
-            process.Exited -= Handler!;
+            process.Exited -= Handler;
         }
+
+        return;
+
+        void Handler(object o, EventArgs eventArgs) => tcs.TrySetResult(default);
     }
 
     private readonly struct EmptyStruct;

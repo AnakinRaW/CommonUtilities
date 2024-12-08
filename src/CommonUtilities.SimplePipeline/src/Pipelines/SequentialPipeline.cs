@@ -13,6 +13,7 @@ public abstract class SequentialPipeline : SimplePipeline<StepRunner>
     /// </summary>
     /// <param name="serviceProvider">The service provider for dependency injection within the pipeline.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected SequentialPipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider, failFast)
     {
     }

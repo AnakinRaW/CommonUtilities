@@ -30,28 +30,29 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     private BlockingCollection<IStep> StepQueue { get; }
 
     /// <summary>
-    /// Aggregates all step exceptions, if any happened.
+    /// Gets an aggregated exception of all failed steps.
     /// </summary>
     public AggregateException? Exception => _exceptions.Count > 0 ? new AggregateException(_exceptions) : null;
 
     internal bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// Initializes a new <see cref="ParallelRunner"/> instance.
+    /// Initializes a new instance of the <see cref="ParallelRunner"/> class with the specified number of workers.
     /// </summary>
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentOutOfRangeException">If the number of workers is below 1.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     public ParallelProducerConsumerRunner(int workerCount, IServiceProvider serviceProvider)
     {
         if (workerCount is < 1 or >= 64)
             throw new ArgumentException("invalid parallel worker count");
         _workerCount = workerCount;
         _runnerTasks = new Task[_workerCount];
-        _steps = new ConcurrentBag<IStep>();
+        _steps = [];
         StepQueue = new BlockingCollection<IStep>();
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _exceptions = new ConcurrentBag<Exception>();
+        _exceptions = [];
     }
 
 
@@ -83,7 +84,7 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     }
 
     /// <summary>
-    /// Signals, this instance does not expect any more steps.
+    /// Signals this instance does not expect any more steps.
     /// </summary>
     public void Finish()
     {

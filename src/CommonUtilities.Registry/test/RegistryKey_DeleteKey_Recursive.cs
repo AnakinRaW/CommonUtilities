@@ -55,7 +55,7 @@ public partial class RegistryTestsBase
     {
         const string subKeyExists = "SubkeyExists";
 
-        using var rk = TestRegistryKey.CreateSubKey(subKeyExists);
+        using var rk = TestRegistryKey.CreateSubKey(subKeyExists)!;
         using var a = rk.CreateSubKey("a");
         using var b = rk.CreateSubKey("b");
         TestRegistryKey.DeleteKey(subKeyExists, true);

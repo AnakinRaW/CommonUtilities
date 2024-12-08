@@ -10,7 +10,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 public interface IDownloadValidator
 {
     /// <summary>
-    /// Validates the downloaded stream.
+    /// Validates the specified stream.
     /// </summary>
     /// <remarks>
     /// <paramref name="stream"/>'s position is not assured to be pointing to the beginning of the downloaded file.
