@@ -16,9 +16,10 @@ public class DirectoryCopier
     private readonly IFileSystem _fileSystem;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DirectoryCopier"/> class.
+    /// Initializes a new instance of the <see cref="DirectoryCopier"/> class from the specified file system.
     /// </summary>
     /// <param name="fileSystem">The file system.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fileSystem"/> is <see langword="null"/>.</exception>
     public DirectoryCopier(IFileSystem fileSystem)
     {
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));

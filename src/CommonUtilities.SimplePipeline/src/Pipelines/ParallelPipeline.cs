@@ -16,6 +16,7 @@ public abstract class ParallelPipeline : SimplePipeline<ParallelRunner>
     /// <param name="serviceProvider">The service provider for dependency injection within the pipeline.</param>
     /// <param name="workerCount">The number of worker threads to be used for parallel execution.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected ParallelPipeline(IServiceProvider serviceProvider, int workerCount = 4, bool failFast = true) : base(serviceProvider, failFast)
     {
         _workerCount = workerCount;

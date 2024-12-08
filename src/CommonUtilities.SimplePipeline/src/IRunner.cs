@@ -6,14 +6,19 @@ using System.Threading.Tasks;
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Execution engine to run one or many <see cref="IStep"/>s.
+/// The execution engine to run one or many <see cref="IStep"/>s.
 /// </summary>
 public interface IRunner : IDisposable
 {
     /// <summary>
-    /// Gets raised when the execution of an <see cref="IStep"/> failed with an exception.
+    /// The event that is raised when the execution of an <see cref="IStep"/> fails with an exception.
     /// </summary>
     event EventHandler<StepErrorEventArgs>? Error;
+
+    /// <summary>
+    /// Gets a read-only list of only those steps that are scheduled for execution for the <see cref="IRunner"/>.
+    /// </summary>
+    public IReadOnlyList<IStep> Steps { get; }
 
     /// <summary>
     /// Runs all queued steps.
@@ -23,13 +28,9 @@ public interface IRunner : IDisposable
     Task RunAsync(CancellationToken token);
 
     /// <summary>
-    /// List of only those steps which are scheduled for execution of an <see cref="IRunner"/>.
-    /// </summary>
-    public IReadOnlyList<IStep> Steps { get; }
-
-    /// <summary>
     /// Adds an <see cref="IStep"/> to the <see cref="IRunner"/>.
     /// </summary>
-    /// <param name="activity">The step to app.</param>
-    void AddStep(IStep activity);
+    /// <param name="step">The step to app.</param>
+    /// /// <exception cref="ArgumentNullException"><paramref name="step"/> is <see langword="null"/>.</exception>
+    void AddStep(IStep step);
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 
 /// <summary>
-/// A download validator that checks for the correct downloaded byte number.
+/// A <see cref="IDownloadValidator"/> that checks for the correct downloaded byte number.
 /// </summary>
 public sealed class SizeDownloadValidator : IDownloadValidator
 {

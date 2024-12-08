@@ -26,9 +26,12 @@ public static class WindowsPathExtensions
     /// <returns></returns>
     /// <exception cref="DirectoryNotFoundException">If <paramref name="directoryInfo"/> does not exists.</exception>
     /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="directoryInfo"/> is <see langword="null"/>.</exception>
     public static bool UserHasDirectoryAccessRights(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
     {
         ThrowHelper.ThrowIfNotWindows();
+        if (directoryInfo == null)
+            throw new ArgumentNullException(nameof(directoryInfo));
         bool isInRoleWithAccess;
         try
         {

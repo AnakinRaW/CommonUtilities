@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 public interface IDownloadManager
 {
     /// <summary>
-    /// Name collection of supported <see cref="IDownloadProvider"/>.
+    /// Gets an enumerable collection of the supported download provider names.
     /// </summary>
     IEnumerable<string> Providers { get; }
 

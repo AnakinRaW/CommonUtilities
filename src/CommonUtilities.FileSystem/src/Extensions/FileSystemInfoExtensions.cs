@@ -14,6 +14,7 @@ public static class FileSystemInfoExtensions
     /// </summary>
     /// <param name="fsItem">Some file or directory at the targeted drive.</param>
     /// <returns>free drive space in bytes</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
     public static long GetDriveFreeSpace(this IFileSystemInfo fsItem)
     {
         if (fsItem == null)
@@ -28,6 +29,7 @@ public static class FileSystemInfoExtensions
     /// </summary>
     /// <param name="fsInfo">The target filesystem handle.</param>
     /// <param name="attributesToRemove">Attributes to remove.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
     public static void RemoveAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToRemove)
     {
         if (fsInfo == null) 
@@ -44,6 +46,7 @@ public static class FileSystemInfoExtensions
     /// </summary>
     /// <param name="fsInfo">The target filesystem handle.</param>
     /// <param name="attributesToAdd">Attributes to add.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
     public static void SetAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToAdd)
     {
         if (fsInfo == null) 

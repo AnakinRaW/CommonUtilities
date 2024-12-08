@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// A step that executes a pipeline and waits for it to end
+/// A step that executes a pipeline and waits for the pipeline to end.
 /// </summary>
 /// <param name="pipeline">The pipeline to execute.</param>
 /// <param name="serviceProvider">The service provider</param>

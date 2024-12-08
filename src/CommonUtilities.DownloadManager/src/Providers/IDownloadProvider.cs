@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 public interface IDownloadProvider
 {
     /// <summary>
-    /// The name of the provider.
+    /// Gets the name of the provider.
     /// </summary>
     string Name { get; }
 
@@ -19,7 +19,7 @@ public interface IDownloadProvider
     /// Evaluates whether a given <see cref="DownloadKind"/> is supported by this provider.
     /// </summary>
     /// <param name="kind">The target <see cref="DownloadKind"/>.</param>
-    /// <returns><see langword="true"/> is <paramref name="kind"/> is supported; <see langword="false"/> otherwise.</returns>
+    /// <returns><see langword="true"/> is <paramref name="kind"/> is supported; otherwise, <see langword="false"/>.</returns>
     bool IsSupported(DownloadKind kind);
 
     /// <summary>

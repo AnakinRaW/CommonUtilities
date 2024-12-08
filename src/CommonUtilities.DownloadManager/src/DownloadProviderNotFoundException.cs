@@ -4,7 +4,7 @@ using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Thrown if there could be no <see cref="IDownloadProvider"/> found for a download operation.
+/// The exception that is thrown when there is no <see cref="IDownloadProvider"/> found for a download operation .
 /// </summary>
 public sealed class DownloadProviderNotFoundException : InvalidOperationException
 {

@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 public class CurrentSystemFileNameValidator : FileNameValidator
 {
     /// <summary>
-    /// Gets a singleton instance of the <see cref="CurrentSystemFileNameValidator"/> class.
+    /// Returns a singleton instance of the <see cref="CurrentSystemFileNameValidator"/> class.
     /// </summary>
     public static readonly CurrentSystemFileNameValidator Instance = new();
 
