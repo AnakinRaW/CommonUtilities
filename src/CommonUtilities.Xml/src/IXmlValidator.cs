@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace AnakinRaW.CommonUtilities.Xml;
 
@@ -12,6 +13,7 @@ public interface IXmlValidator
     /// </summary>
     /// <param name="filePath">The XML file.</param>
     /// <returns>The result of the XML validation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="filePath"/> is <see langword="null"/>.</exception>
     XmlValidationResult Validate(string filePath);
 
     /// <summary>
@@ -19,5 +21,6 @@ public interface IXmlValidator
     /// </summary>
     /// <param name="stream">The XML document stream.</param>
     /// <returns>The result of the XML validation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="stream"/> is <see langword="null"/>.</exception>
     XmlValidationResult Validate(Stream stream);
 }
