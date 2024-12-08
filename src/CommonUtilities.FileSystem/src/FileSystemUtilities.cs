@@ -18,8 +18,9 @@ public static class FileSystemUtilities
     /// <param name="fileAction">The action the get performed.</param>
     /// <param name="throwOnFailure">When set to <see langword="true"/>, if all retries are unsuccessful the causing exception will be thrown.</param>
     /// <param name="errorAction">Callback which gets invoked if an <see cref="IOException"/>
-    /// or <see cref="UnauthorizedAccessException"/> is was thrown during the <paramref name="fileAction"/> execution..</param>
+    /// or <see cref="UnauthorizedAccessException"/> is was thrown during the <paramref name="fileAction"/> execution.</param>
     /// <returns><see langword="true"/>if the operation was successful. <see langword="false"/> otherwise.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="fileAction"/> is <see langword="null"/>.</exception>
     public static bool ExecuteFileSystemActionWithRetry(int retryCount, int retryDelay, Action fileAction,
         bool throwOnFailure = true, Func<Exception, int, bool>? errorAction = null)
     {

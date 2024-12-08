@@ -17,6 +17,7 @@ public static class FileExtensions
     /// <param name="destination">The copy target location.</param>
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
+    ///  <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static void CopyWithRetry(this IFileInfo source, string destination, int retryCount = 2, int retryDelay = 500)
     {
         if (source == null) 
@@ -35,6 +36,7 @@ public static class FileExtensions
     /// <param name="destination">The copy target location.</param>
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static void CopyWithRetry(this IFile _, string source, string destination, int retryCount = 2, int retryDelay = 500)
     {
         if (source == null)
@@ -60,6 +62,7 @@ public static class FileExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="overwrite"/>
     /// is <see langword="false"/>.</exception>
     /// <exception cref="FileNotFoundException">if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveToEx(this IFileInfo source, string destination, bool overwrite)
     {
         if (source == null) 
@@ -82,6 +85,7 @@ public static class FileExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists and <paramref name="overwrite"/>
     /// is <see langword="false"/>.</exception>
     /// <exception cref="FileNotFoundException">if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveEx(this IFile _, string source, string destination, bool overwrite)
     {
         if (source == null)
@@ -115,6 +119,7 @@ public static class FileExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
     /// <exception cref="FileNotFoundException">if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveWithRetry(this IFileInfo source, string destination, bool overwrite = false, int retryCount = 2, int retryDelay = 500)
     {
         if (source == null) 
@@ -138,6 +143,7 @@ public static class FileExtensions
     /// <exception cref="IOException">If <paramref name="destination"/> already exists
     /// and <paramref name="overwrite"/> is <see langword="false"/>.</exception>
     /// <exception cref="FileNotFoundException">if the source was not found.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
     public static bool MoveWithRetry(this IFile _, string source, string destination, bool overwrite = false, int retryCount = 2, int retryDelay = 500)
     {
         if (source == null)
@@ -157,6 +163,7 @@ public static class FileExtensions
     /// Deletes a file if it's somewhere in the user's temporary directory.
     /// </summary>
     /// <param name="file">The file to get deleted.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static void DeleteIfInTemp(this IFileInfo file)
     {
         if (file == null) 
@@ -171,6 +178,7 @@ public static class FileExtensions
     /// </summary>
     /// <param name="_"></param>
     /// <param name="file">The file to get deleted.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static void DeleteIfInTemp(this IFile _, string file)
     {
         if (file == null)
@@ -187,6 +195,7 @@ public static class FileExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static void DeleteWithRetry(this IFileInfo file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null) 
@@ -203,6 +212,7 @@ public static class FileExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static void DeleteWithRetry(this IFile _, string file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null) 
@@ -239,6 +249,7 @@ public static class FileExtensions
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="true"/> if the file is successfully deleted; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static bool TryDeleteWithRetry(this IFileInfo file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null)
@@ -256,6 +267,7 @@ public static class FileExtensions
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <param name="errorAction">Callback which gets always triggered if an attempt failed.</param>
     /// <returns><see langword="true"/> if the file is successfully deleted; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
     public static bool TryDeleteWithRetry(this IFile _, string file, int retryCount = 2, int retryDelay = 500, Func<Exception, int, bool>? errorAction = null)
     {
         if (file == null)

@@ -4,7 +4,7 @@
 public record DownloadManagerConfiguration : IDownloadManagerConfiguration
 {
     /// <summary>
-    /// The default download manager configuration.
+    /// Returns the default download manager configuration.
     /// </summary>
     /// <remarks>Empty File download is not allowed and verification will be skipped.</remarks>
     public static readonly DownloadManagerConfiguration Default = new();

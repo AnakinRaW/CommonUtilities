@@ -3,7 +3,7 @@
 namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 
 /// <summary>
-/// Allows validation of file names.
+/// The base class for a validator of file names.
 /// </summary>
 public abstract class FileNameValidator
 {
@@ -14,9 +14,7 @@ public abstract class FileNameValidator
     /// <returns>The result of the validation.</returns>
     public FileNameValidationResult IsValidFileName(string? fileName)
     {
-        if (fileName is null)
-            return FileNameValidationResult.NullOrEmpty;
-        return IsValidFileName(fileName.AsSpan());
+        return fileName is null ? FileNameValidationResult.NullOrEmpty : IsValidFileName(fileName.AsSpan());
     }
 
     /// <summary>

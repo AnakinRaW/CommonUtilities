@@ -18,22 +18,22 @@ public class StepRunner : DisposableObject, IRunner
     public event EventHandler<StepErrorEventArgs>? Error;
 
     /// <summary>
-    /// Modifiable list of all steps scheduled for execution.
+    /// Gets a modifiable list of all steps scheduled for execution.
     /// </summary>
     protected readonly List<IStep> StepList;
 
     /// <summary>
-    /// AddStep of all to be performed steps.
+    /// Gets the queue of all to be performed steps.
     /// </summary>
     protected ConcurrentQueue<IStep> StepQueue { get; }
 
     /// <summary>
-    /// The logger instance of this runner.
+    /// Gets the logger instance of this runner.
     /// </summary>
     protected ILogger? Logger { get; }
 
     /// <summary>
-    /// List of all steps scheduled for execution.
+    /// Gets a read-only list of all steps scheduled for execution.
     /// </summary>
     /// <remarks>Steps queued *after* <see cref="RunAsync"/> was called, are not included.</remarks>
     public IReadOnlyList<IStep> Steps => new ReadOnlyCollection<IStep>(StepList);
@@ -41,9 +41,10 @@ public class StepRunner : DisposableObject, IRunner
     internal bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// Initializes a new <see cref="StepRunner"/> instance.
+    /// Initializes a new instance of the <see cref="StepRunner"/> class.
     /// </summary>
-    /// <param name="services"></param>
+    /// <param name="services">The service provider for this instance.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
     public StepRunner(IServiceProvider services)
     {
         if (services == null) 
@@ -63,11 +64,11 @@ public class StepRunner : DisposableObject, IRunner
     }
 
     /// <inheritdoc/>
-    public void AddStep(IStep activity)
+    public void AddStep(IStep step)
     {
-        if (activity == null)
-            throw new ArgumentNullException(nameof(activity));
-        StepQueue.Enqueue(activity);
+        if (step == null)
+            throw new ArgumentNullException(nameof(step));
+        StepQueue.Enqueue(step);
     }
 
     /// <summary>
@@ -114,7 +115,7 @@ public class StepRunner : DisposableObject, IRunner
     }
 
     /// <summary>
-    /// Raises the <see cref="Error"/> event 
+    /// Raises the <see cref="Error"/> event.
     /// </summary>
     /// <param name="e">The event args to use.</param>
     protected virtual void OnError(StepErrorEventArgs e)

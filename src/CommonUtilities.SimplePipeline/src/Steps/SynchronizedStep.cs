@@ -16,9 +16,10 @@ public abstract class SynchronizedStep : PipelineStep
     private readonly ManualResetEvent _handle;
 
     /// <summary>
-    /// Initializes a new <see cref="SynchronizedStep"/>.
+    /// Initializes a new instance of the <see cref="SynchronizedStep"/> class.
     /// </summary>
-    /// <param name="serviceProvider"></param>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected SynchronizedStep(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _handle = new ManualResetEvent(false);

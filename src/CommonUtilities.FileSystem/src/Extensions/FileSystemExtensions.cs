@@ -20,6 +20,7 @@ public static class FileSystemExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <returns>Open file stream or <see langword="null"/> if the file could not be created.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="fs"/> or <paramref name="path"/> is <see langword="null"/>.</exception>
     public static FileSystemStream? CreateFileWithRetry(
         this IFileSystem fs, 
         string path, 
@@ -30,6 +31,8 @@ public static class FileSystemExtensions
     {
         if (fs == null) 
             throw new ArgumentNullException(nameof(fs));
+        if (path == null) 
+            throw new ArgumentNullException(nameof(path));
 
         FileSystemStream? stream = null;
         FileSystemUtilities.ExecuteFileSystemActionWithRetry(retryCount, retryDelay,
@@ -44,6 +47,7 @@ public static class FileSystemExtensions
     /// <param name="retryCount">Number of retry attempts tempts until the operation fails.</param>
     /// <param name="retryDelay">Delay time in ms between each new attempt.</param>
     /// <returns>The <see cref="IDirectoryInfo"/> of the created folder or <see langword="null"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="fs"/> is <see langword="null"/>.</exception>
     public static IDirectoryInfo? CreateTemporaryFolderInTempWithRetry(this IFileSystem fs, int retryCount = 2, int retryDelay = 500)
     {
         if (fs == null) 

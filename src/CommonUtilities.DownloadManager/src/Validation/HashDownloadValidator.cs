@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 
 /// <summary>
-/// A hash-based download validator
+/// A hash-based <see cref="IDownloadValidator"/>.
 /// </summary>
 public sealed class HashDownloadValidator : IDownloadValidator
 {
@@ -18,10 +18,10 @@ public sealed class HashDownloadValidator : IDownloadValidator
     private readonly IHashingService _hashingService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="HashDownloadValidator"/> class.
+    /// Initializes a new instance of the <see cref="HashDownloadValidator"/> class from the specified hash information.
     /// </summary>
     /// <param name="hash">The expected hash.</param>
-    /// <param name="hashType">The hash type.</param>
+    /// <param name="hashType">The type of the hash.</param>
     /// <param name="serviceProvider">The service provider.</param>
     public HashDownloadValidator(byte[]? hash, HashTypeKey hashType, IServiceProvider serviceProvider)
     {

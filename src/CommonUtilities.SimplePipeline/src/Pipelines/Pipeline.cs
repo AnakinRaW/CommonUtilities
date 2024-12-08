@@ -16,12 +16,12 @@ public abstract class Pipeline : DisposableObject, IPipeline
     private CancellationTokenSource? _linkedCancellationTokenSource;
 
     /// <summary>
-    /// The service provider of the <see cref="SimplePipeline{TRunner}"/>.
+    /// Returns the service provider of the <see cref="SimplePipeline{TRunner}"/>.
     /// </summary>
     protected readonly IServiceProvider ServiceProvider;
 
     /// <summary>
-    /// The logger of the <see cref="SimplePipeline{TRunner}"/>.
+    /// Returns the logger of the <see cref="SimplePipeline{TRunner}"/>.
     /// </summary>
     protected readonly ILogger? Logger;
 
@@ -41,8 +41,9 @@ public abstract class Pipeline : DisposableObject, IPipeline
     protected virtual bool FailFast => false;
 
     /// <summary>
-    /// 
+    /// Initializes a new instance of the <see cref="Pipeline"/> class.
     /// </summary>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected Pipeline(IServiceProvider serviceProvider)
     {
         ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -92,7 +93,7 @@ public abstract class Pipeline : DisposableObject, IPipeline
     }
 
     /// <summary>
-    /// Cancels the pipeline
+    /// Cancels the pipeline.
     /// </summary>
     public void Cancel()
     {

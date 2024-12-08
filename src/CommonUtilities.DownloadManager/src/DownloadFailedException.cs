@@ -10,12 +10,12 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 public sealed class DownloadFailedException : Exception
 {
     /// <summary>
-    /// All failures during a file download operation.
+    /// Gets all failures during a file download operation.
     /// </summary>
     public IEnumerable<DownloadFailureInformation> DownloadFailures { get; }
 
     /// <summary>
-    /// Detailed failure message with all occurred failures.
+    /// Gets a detailed failure message with all occurred failures.
     /// </summary>
     public override string Message
     {
@@ -35,9 +35,9 @@ public sealed class DownloadFailedException : Exception
     }
 
     /// <summary>
-    /// Creates a new <see cref="DownloadFailedException"/> exception.
+    /// Initializes a new instance of the <see cref="DownloadFailedException"/> class from the specified download failures.
     /// </summary>
-    /// <param name="downloadFailures">Failures which occurred during a file download.</param>
+    /// <param name="downloadFailures">The failures which occurred during a file download.</param>
     public DownloadFailedException(IEnumerable<DownloadFailureInformation> downloadFailures)
     {
         DownloadFailures = downloadFailures;

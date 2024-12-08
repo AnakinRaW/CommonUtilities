@@ -3,7 +3,7 @@
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Specialized <see cref="IRunner"/> which allows for synchronous waiting.
+/// A specialized <see cref="IRunner"/> which allows for synchronous waiting.
 /// </summary>
 public interface ISynchronizedRunner : IRunner
 {

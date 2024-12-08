@@ -1,48 +1,48 @@
 ﻿namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Progress report data for downloading a file.
+/// Represents a progress report data for downloading a file.
 /// </summary>
 public sealed class ProgressUpdateStatus
 {
     /// <summary>
-    /// Bytes read from the source.
+    /// Gets the bytes read from the source.
     /// </summary>
     public long BytesRead { get; }
 
     /// <summary>
-    /// Bytes written to the output.
+    /// Gets the bytes written to the output.
     /// </summary>
     public long TotalBytes { get; }
 
     /// <summary>
-    /// Current bit rate.
+    /// Gets the current bit rate.
     /// </summary>
     public double BitRate { get; }
 
     /// <summary>
-    /// The used provider name.
+    /// Gets the used provider name.
     /// </summary>
     public string? DownloadProvider { get; }
 
     /// <summary>
-    /// Creates new instance with performance data only.
+    /// Initializes a new instance of the <see cref="ProgressUpdateStatus"/> class of the specified download data.
     /// </summary>
-    /// <param name="bytesRead">Bytes read from the source.</param>
-    /// <param name="totalBytes">Bytes written to the output.</param>
-    /// <param name="bitRate">Current bit rate.</param>
+    /// <param name="bytesRead">The bytes read from the source.</param>
+    /// <param name="totalBytes">The bytes written to the output.</param>
+    /// <param name="bitRate">The current bit rate.</param>
     public ProgressUpdateStatus(long bytesRead, long totalBytes, double bitRate)
         : this(null, bytesRead, totalBytes, bitRate)
     {
     }
 
     /// <summary>
-    /// Creates a new instance.
+    /// Initializes a new instance of the <see cref="ProgressUpdateStatus"/> class of the specified provider name and download data.
     /// </summary>
     /// <param name="downloadProvider">The download provider.</param>
-    /// <param name="bytesRead">Bytes read from the source.</param>
-    /// <param name="totalBytes">Bytes written to the output.</param>
-    /// <param name="bitRate">Current bit rate.</param>
+    /// <param name="bytesRead">The bytes read from the source.</param>
+    /// <param name="totalBytes">The bytes written to the output.</param>
+    /// <param name="bitRate">The current bit rate.</param>
     public ProgressUpdateStatus(string? downloadProvider, long bytesRead, long totalBytes, double bitRate)
     {
         DownloadProvider = downloadProvider;

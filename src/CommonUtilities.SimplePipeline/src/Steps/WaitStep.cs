@@ -12,10 +12,11 @@ public sealed class WaitStep : PipelineStep
     private readonly ISynchronizedRunner _runner;
 
     /// <summary>
-    /// Initializes a new <see cref="WaitStep"/>.
+    /// Initializes a new instance of the <see cref="WaitStep"/> class with the specified runner.
     /// </summary>
     /// <param name="runner">The awaitable step runner</param>
     /// <param name="serviceProvider">The service provider.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="runner"/> or <paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     public WaitStep(ISynchronizedRunner runner, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 
 /// <summary>
-/// A download validator that always passes.
+/// A special <see cref="IDownloadManager"/> that always passes the validation.
 /// </summary>
 public sealed class AlwaysValidDownloadValidator : IDownloadValidator
 {
     /// <summary>
-    /// Gets a singleton instance of the <see cref="AlwaysValidDownloadValidator"/> class.
+    /// Returns a singleton instance of the <see cref="AlwaysValidDownloadValidator"/> class.
     /// </summary>
     public static readonly AlwaysValidDownloadValidator Instance = new();
 

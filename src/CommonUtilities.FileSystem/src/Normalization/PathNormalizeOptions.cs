@@ -9,7 +9,7 @@
 public record struct PathNormalizeOptions
 {
     /// <summary>
-    /// Gets a <see cref="PathNormalizeOptions"/> to normalize paths using the current system's primary directory separators.
+    /// Returns a <see cref="PathNormalizeOptions"/> to normalize paths using the current system's primary directory separators.
     /// </summary>
     public static readonly PathNormalizeOptions UnifySeparators = new()
     {
@@ -18,7 +18,7 @@ public record struct PathNormalizeOptions
     };
 
     /// <summary>
-    /// Gets a <see cref="PathNormalizeOptions"/> to remove any trailing directory separators.
+    /// Returns a <see cref="PathNormalizeOptions"/> to remove any trailing directory separators.
     /// </summary>
     public static readonly PathNormalizeOptions TrimTrailingSeparators = new()
     {
@@ -26,7 +26,7 @@ public record struct PathNormalizeOptions
     };
 
     /// <summary>
-    /// Gets a <see cref="PathNormalizeOptions"/> to ensure there is any trailing directory separators.
+    /// Returns a <see cref="PathNormalizeOptions"/> to ensure there is any trailing directory separators.
     /// </summary>
     public static readonly PathNormalizeOptions EnsureTrailingSeparator = new()
     {
@@ -34,7 +34,7 @@ public record struct PathNormalizeOptions
     };
 
     /// <summary>
-    /// Gets a <see cref="PathNormalizeOptions"/> to normalize paths on case-insensitive file systems using upper case based on the invariant culture.
+    /// Returns a <see cref="PathNormalizeOptions"/> to normalize paths on case-insensitive file systems using upper case based on the invariant culture.
     /// </summary>
     public static readonly PathNormalizeOptions UnifyUpper = new()
     {
@@ -42,7 +42,7 @@ public record struct PathNormalizeOptions
     };
 
     /// <summary>
-    /// Gets a <see cref="PathNormalizeOptions"/> to normalize paths using upper case based on the invariant culture,
+    /// Returns a <see cref="PathNormalizeOptions"/> to normalize paths using upper case based on the invariant culture,
     /// even if the current file system is case-sensitive.
     /// </summary>
     public static readonly PathNormalizeOptions AlwaysUnifyUpper = new()
