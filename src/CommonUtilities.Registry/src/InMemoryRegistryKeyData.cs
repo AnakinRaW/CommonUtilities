@@ -17,7 +17,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
     private const int MaxKeyLength = 255;
     private const int MaxValueLength = 16_383;
 
-    public static event EventHandler<RegistryChangedEventArgs>? RegistryChanged;
+    public static event EventHandler<InMemoryRegistryChangedEventArgs>? RegistryChanged;
     
     private readonly Dictionary<string, InMemoryRegistryKeyData> _subKeys;
     private readonly Dictionary<string, object> _values;
@@ -98,7 +98,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 
         _values[name] = value;
 
-        OnRegistryChanged(new RegistryChangedEventArgs(this, RegistryChangeKind.Value));
+        OnRegistryChanged(this, InMemoryRegistryChangeKind.Value);
     }
 
     /// <inheritdoc/>
@@ -143,7 +143,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             keyToDelete._values.Clear();
             keyToDelete._parent?._subKeys.Remove(keyToDelete.SubName);
 
-            OnRegistryChanged(new RegistryChangedEventArgs(keyToDelete, RegistryChangeKind.TreeDelete));
+            OnRegistryChanged(keyToDelete, InMemoryRegistryChangeKind.TreeDelete);
         }
     }
 
@@ -180,7 +180,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             {
                 keyData = new InMemoryRegistryKeyData(View, subKeyName, currentKey, currentKey._flags, false);
                 currentKey._subKeys[subKeyName] = keyData;
-                OnRegistryChanged(new RegistryChangedEventArgs(currentKey, RegistryChangeKind.TreeCreate));
+                OnRegistryChanged(currentKey, InMemoryRegistryChangeKind.TreeCreate);
 
             }
             currentKey = keyData;
@@ -360,25 +360,8 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         }
     }
 
-    private static void OnRegistryChanged(RegistryChangedEventArgs e)
+    private static void OnRegistryChanged(InMemoryRegistryKeyData data, InMemoryRegistryChangeKind kind)
     {
-        RegistryChanged?.Invoke(null, e);
+        RegistryChanged?.Invoke(null, new InMemoryRegistryChangedEventArgs(data, kind));
     }
-}
-
-
-internal class RegistryChangedEventArgs(InMemoryRegistryKeyData key, RegistryChangeKind kind) : EventArgs
-{
-    public InMemoryRegistryKeyData KeyData { get; } = key;
-    public RegistryChangeKind Kind { get; } = kind;
-}
-
-
-
-
-internal enum RegistryChangeKind
-{
-    TreeCreate,
-    TreeDelete,
-    Value,
 }

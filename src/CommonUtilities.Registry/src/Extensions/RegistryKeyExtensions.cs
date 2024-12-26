@@ -79,7 +79,7 @@ public static class RegistryKeyExtensions
 
         return;
 
-        void OnRegistryChanged(object sender, RegistryChangedEventArgs e)
+        void OnRegistryChanged(object sender, InMemoryRegistryChangedEventArgs e)
         {
             if (ShouldNotifyKeyChange(
                     e.KeyData,
@@ -101,7 +101,7 @@ public static class RegistryKeyExtensions
         InMemoryRegistryKeyData keyToObserve, 
         bool watchSubtree,
         RegistryChangeNotificationFilters filter,
-        RegistryChangeKind changeKind)
+        InMemoryRegistryChangeKind changeKind)
     {
         var stringComparison =
             keyToObserve.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -112,7 +112,7 @@ public static class RegistryKeyExtensions
         // If the path lengths are equal, they must be equal.
         if (actualKeyName.Length == keyNameToObserve.Length)
         {
-            if (FiltersApply(changeKind, filter) || changeKind is RegistryChangeKind.TreeDelete)
+            if (FiltersApply(changeKind, filter) || changeKind is InMemoryRegistryChangeKind.TreeDelete)
                 return actualKeyName.Equals(keyNameToObserve, stringComparison);
             
             return false;
@@ -133,18 +133,17 @@ public static class RegistryKeyExtensions
                             actualKeyName.Slice(keyNameToObserve.Length + 1)
                                 .Equals(actualKey.SubName.AsSpan(), stringComparison);
 
-        if (filter.HasFlag(RegistryChangeNotificationFilters.Subkey) && changeKind == RegistryChangeKind.TreeDelete && isDirectChild)
+        if (isDirectChild &&
+            filter.HasFlag(RegistryChangeNotificationFilters.Subkey) &&
+            changeKind == InMemoryRegistryChangeKind.TreeDelete)
             return true;
 
-        if (!FiltersApply(changeKind, filter))
-            return false;
-
-        return watchSubtree;
+        return FiltersApply(changeKind, filter) && watchSubtree;
     }
 
-    private static bool FiltersApply(RegistryChangeKind changeKind, RegistryChangeNotificationFilters change)
+    private static bool FiltersApply(InMemoryRegistryChangeKind changeKind, RegistryChangeNotificationFilters change)
     {
-        return changeKind == RegistryChangeKind.Value && change.HasFlag(RegistryChangeNotificationFilters.Value) ||
-               (changeKind is RegistryChangeKind.TreeCreate or RegistryChangeKind.TreeDelete && change.HasFlag(RegistryChangeNotificationFilters.Subkey));
+        return changeKind == InMemoryRegistryChangeKind.Value && change.HasFlag(RegistryChangeNotificationFilters.Value) ||
+               (changeKind is InMemoryRegistryChangeKind.TreeCreate or InMemoryRegistryChangeKind.TreeDelete && change.HasFlag(RegistryChangeNotificationFilters.Subkey));
     }
 }
