@@ -407,7 +407,7 @@ public abstract class RegistryKeyExtensionsTestBase
         internal RegKeyTest(IRegistry registry)
         {
             _registry = registry;
-            _keyName = "test_" + Path.GetRandomFileName();
+            _keyName = "test_AwaitRegistryKey";
             Key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(_keyName)!;
             Assert.NotNull(Key);
         }
