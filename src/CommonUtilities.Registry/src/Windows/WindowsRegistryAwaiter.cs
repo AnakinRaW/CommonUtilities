@@ -1,12 +1,11 @@
-﻿using Microsoft.Win32;
-using Microsoft.Win32.SafeHandles;
+﻿using Microsoft.Win32.SafeHandles;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using System.Runtime.InteropServices;
-#if NET8_0_OR_GREATER
+using AnakinRaW.CommonUtilities.Registry.Extensions;
+#if NET5_0_OR_GREATER
 using System.Runtime.Versioning;
 #endif
 
@@ -14,44 +13,16 @@ namespace AnakinRaW.CommonUtilities.Registry.Windows;
 
 // From https://github.com/microsoft/vs-threading
 
-/// <summary>
-/// Provides extension methods to the <see cref="RegistryKey"/> class.
-/// </summary>
-#if NET8_0_OR_GREATER
+#if NET5_0_OR_GREATER
 [SupportedOSPlatform("windows")]
 #endif
-public static class RegistryKeyExtensions
+internal static class WindowsRegistryAwaiter
 {
     private static readonly Version Windows8Version = new(6, 2, 9200);
     private static bool IsWindows8OrLater => Environment.OSVersion.Platform == PlatformID.Win32NT
                                              && Environment.OSVersion.Version >= Windows8Version;
 
-    /// <summary>
-    /// Returns a Task that completes when the specified registry key changes.
-    /// </summary>
-    /// <param name="registryKey">The registry key to watch for changes.</param>
-    /// <param name="watchSubtree"><c>true</c> to watch the keys descendent keys as well;
-    /// <c>false</c> to watch only this key without descendents.</param>
-    /// <param name="change">Indicates the kinds of changes to watch for.</param>
-    /// <param name="cancellationToken">A token that may be canceled to release the resources from watching
-    /// for changes and complete the returned Task as canceled.</param>
-    /// <returns>
-    /// A task that completes when the registry key changes, the handle is closed, or upon cancellation.
-    /// </returns>
-    public static Task WaitForChangeAsync(this RegistryKey registryKey, bool watchSubtree = true,
-        RegistryChangeNotificationFilters change =
-            RegistryChangeNotificationFilters.Value | RegistryChangeNotificationFilters.Subkey,
-        CancellationToken cancellationToken = default)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            throw new PlatformNotSupportedException("Registry is not supported on this platform.");
-
-        if (registryKey == null)
-            throw new ArgumentNullException(nameof(registryKey));
-        return WaitForRegistryChangeAsync(registryKey.Handle, watchSubtree, change, cancellationToken);
-    }
-
-    private static async Task WaitForRegistryChangeAsync(SafeRegistryHandle registryKeyHandle, bool watchSubtree,
+    internal static async Task WaitForRegistryChangeAsync(SafeRegistryHandle registryKeyHandle, bool watchSubtree,
         RegistryChangeNotificationFilters change, CancellationToken cancellationToken)
     {
         IDisposable? dedicatedThreadReleaser = null;
