@@ -1,6 +1,7 @@
 ﻿using AnakinRaW.CommonUtilities.Registry.Extensions;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -145,7 +146,7 @@ public abstract class RegistryKeyExtensionsTestBase
         try
         {
             var changeWatcherTask = subKey.WaitForChangeAsync(watchSubtree: false ,change: filter);
-            test.Key.DeleteKey(Path.GetFileName(subKey.Name), false);
+            test.Key.DeleteKey(GetRegistryKeySubName(subKey.Name), false);
             await changeWatcherTask;
         }
         finally
@@ -394,6 +395,21 @@ public abstract class RegistryKeyExtensionsTestBase
         }
     }
 
+    private static string GetRegistryKeySubName(string name)
+    {
+        var p = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+#if Windows
+        return Path.GetFileName(name);
+#endif
+        var namePart = name.LastIndexOf('\\');
+        if (namePart == -1)
+            return name;
+        if (name.Length < namePart + 1)
+            return string.Empty;
+        return name.Substring(namePart + 1);
+    }
+
     protected class RegKeyTest : IDisposable
     {
         private readonly IRegistry _registry;
@@ -407,7 +423,7 @@ public abstract class RegistryKeyExtensionsTestBase
         internal RegKeyTest(IRegistry registry)
         {
             _registry = registry;
-            _keyName = "test_AwaitRegistryKey";
+            _keyName = "test_AwaitRegistryKey_" + Path.GetRandomFileName();
             Key = registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).CreateSubKey(_keyName)!;
             Assert.NotNull(Key);
         }
