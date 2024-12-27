@@ -1,6 +1,7 @@
 ﻿using System;
+using AnakinRaW.CommonUtilities.Registry.Windows;
 
-namespace AnakinRaW.CommonUtilities.Registry.Windows;
+namespace AnakinRaW.CommonUtilities.Registry.Extensions;
 
 // From https://github.com/microsoft/vs-threading
 
@@ -25,6 +26,9 @@ public enum RegistryChangeNotificationFilters
     /// such as the security descriptor information.
     /// Corresponds to Win32 value REG_NOTIFY_CHANGE_ATTRIBUTES.
     /// </summary>
+    /// <remarks>
+    /// Only supported for <see cref="WindowsRegistry"/>.
+    /// </remarks>
     Attributes = 0x2,
 
     /// <summary>
@@ -38,5 +42,8 @@ public enum RegistryChangeNotificationFilters
     /// Notify the caller of changes to the security descriptor of the key.
     /// Corresponds to Win32 value REG_NOTIFY_CHANGE_SECURITY.
     /// </summary>
+    /// <remarks>
+    /// Only supported for <see cref="WindowsRegistry"/>.
+    /// </remarks>
     Security = 0x8,
 }

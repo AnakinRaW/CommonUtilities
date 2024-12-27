@@ -40,7 +40,7 @@ public class InMemoryRegistryTests_LikeWindows : InMemoryRegistryTestsBase
 
 // ReSharper disable once UnusedMember.Global
 // ReSharper disable once InconsistentNaming
-public class InMemoryRegistryTests_CaseISensitive : InMemoryRegistryTestsBase
+public class InMemoryRegistryTests_CaseSensitive : InMemoryRegistryTestsBase
 {
     public override bool IsCaseSensitive => true;
     public override bool HasPathLimits => false;

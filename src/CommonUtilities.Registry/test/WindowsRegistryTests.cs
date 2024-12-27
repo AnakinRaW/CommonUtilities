@@ -1,4 +1,6 @@
-﻿using AnakinRaW.CommonUtilities.Registry.Windows;
+﻿#if Windows
+
+using AnakinRaW.CommonUtilities.Registry.Windows;
 using Microsoft.Win32;
 using Xunit;
 using AnakinRaW.CommonUtilities.Testing;
@@ -8,8 +10,6 @@ using System.Runtime.Versioning;
 #endif
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
-
-#if Windows
 
 #if NET
 [SupportedOSPlatform("windows")]

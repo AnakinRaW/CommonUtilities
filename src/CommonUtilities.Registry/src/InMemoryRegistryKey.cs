@@ -7,7 +7,19 @@ namespace AnakinRaW.CommonUtilities.Registry;
 /// </summary>
 public sealed class InMemoryRegistryKey : IRegistryKey
 {
-    private bool _disposed;
+    private EventHandler? _disposing;
+
+    internal event EventHandler Disposing
+    {
+        add
+        {
+            ThrowIfDisposed();
+            _disposing += value;
+        }
+        remove => _disposing -= value;
+    }
+
+    internal bool IsDisposed;
 
     internal readonly InMemoryRegistryKeyData KeyData;
     private readonly string _name;
@@ -182,15 +194,28 @@ public sealed class InMemoryRegistryKey : IRegistryKey
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool _)
+    private void Dispose(bool disposing)
     {
-        if (!KeyData.IsSystemKey)
-            _disposed = true;
+        if (KeyData.IsSystemKey || IsDisposed)
+            return;
+
+        try
+        {
+            if (disposing)
+            {
+                _disposing?.Invoke(this, EventArgs.Empty);
+                _disposing = null;
+            }
+        }
+        finally
+        {
+            IsDisposed = true;
+        }
     }
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
+        if (IsDisposed)
             throw new ObjectDisposedException(KeyData.Name, "The registry key is already disposed.");
     }
 

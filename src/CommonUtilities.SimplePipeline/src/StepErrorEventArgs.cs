@@ -7,6 +7,8 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 public class StepErrorEventArgs : EventArgs
 {
+    private bool _cancel;
+
     /// <summary>
     /// The faulted Step
     /// </summary>
@@ -18,8 +20,8 @@ public class StepErrorEventArgs : EventArgs
     /// <remarks>Once set to <see langword="true"/>, this property cannot be set to <see langword="false"/> again.</remarks>
     public bool Cancel
     {
-        get;
-        set => field |= value;
+        get => _cancel;
+        set => _cancel |= value;
     }
 
     /// <summary>

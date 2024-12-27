@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using AnakinRaW.CommonUtilities.Registry.Extensions;
 using Microsoft.Win32.SafeHandles;
 
 namespace AnakinRaW.CommonUtilities.Registry.Windows;
