@@ -187,7 +187,7 @@ public abstract class RegistryKeyExtensionsTestBase
         try
         {
             var changeWatcherTask = test.Key.WaitForChangeAsync(watchSubtree: watchSubtree, cancellationToken: test.FinishedToken);
-            test.Key.DeleteKey(Path.GetFileName(subKey.Name), false);
+            test.Key.DeleteKey(GetRegistryKeySubName(subKey.Name), false);
             
             // Because a 1st-level subKey is part of its baseKey, we always track these changes, even if watchSubTree is false
             await changeWatcherTask;
@@ -210,7 +210,7 @@ public abstract class RegistryKeyExtensionsTestBase
         try
         {
             var changeWatcherTask = test.Key.WaitForChangeAsync(watchSubtree: watchSubtree, RegistryChangeNotificationFilters.Value, cancellationToken: test.FinishedToken);
-            test.Key.DeleteKey(Path.GetFileName(subKey.Name), false);
+            test.Key.DeleteKey(GetRegistryKeySubName(subKey.Name), false);
 
             var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
             Assert.NotSame(changeWatcherTask, completedTask);
@@ -397,11 +397,9 @@ public abstract class RegistryKeyExtensionsTestBase
 
     private static string GetRegistryKeySubName(string name)
     {
-        var p = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-#if Windows
-        return Path.GetFileName(name);
-#endif
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return Path.GetFileName(name);
+            
         var namePart = name.LastIndexOf('\\');
         if (namePart == -1)
             return name;
