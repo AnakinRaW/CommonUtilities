@@ -119,7 +119,7 @@ public partial class RegistryTestsBase
     }
 
     [Fact]
-    public void GetValueOrDefault_ShouldAcceptNullAsDefaultValue_Nullable()
+    public void GetValueOrDefault_ShouldAcceptNullAsDefaultValue_Int_Nullable()
     {
         Assert.Null(TestRegistryKey.GetValueOrDefault<int?>("tt", defaultValue: null, out var exists));
         Assert.False(exists);
@@ -143,6 +143,13 @@ public partial class RegistryTestsBase
         Assert.True(exists);
     }
 
+    [Fact]
+    public void GetValueOrDefault_ShouldAcceptNullAsDefaultValue_Enum_Nullable()
+    {
+        Assert.Null(TestRegistryKey.GetValueOrDefault<TestData.MyEnum?>("tt", defaultValue: null, out var exists));
+        Assert.False(exists);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -152,6 +159,20 @@ public partial class RegistryTestsBase
         var value = TestRegistryKey.GetValueOrDefault("flag", false, out var exists);
         Assert.True(exists);
         Assert.Equal(expectedValue, value);
+    }
+
+    [Fact]
+    public void GetValueOrDefault_ShouldAcceptNullAsDefaultValue_Bool_Nullable()
+    {
+        Assert.Null(TestRegistryKey.GetValueOrDefault<bool?>("tt", defaultValue: null, out var exists));
+        Assert.False(exists);
+    }
+
+    [Fact]
+    public void GetValueOrDefault_ShouldAcceptNullAsDefaultValue_Long_Nullable()
+    {
+        Assert.Null(TestRegistryKey.GetValueOrDefault<long?>("tt", defaultValue: null, out var exists));
+        Assert.False(exists);
     }
 
     [Fact]
