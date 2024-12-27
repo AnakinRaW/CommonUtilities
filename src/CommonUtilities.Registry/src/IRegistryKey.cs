@@ -79,6 +79,8 @@ public interface IRegistryKey : IDisposable
     /// The value associated with <paramref name="name"/>, or <see langword="default"/> if name is not found.
     /// </returns>
     /// <remarks>
+    /// If <typeparamref name="T"/> is of type <see cref="Nullable{T}"/>, <see langword="null"/> is returned, if the value of <paramref name="name"/> does not exist.
+    /// <br/>
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>

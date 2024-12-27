@@ -62,10 +62,14 @@ public abstract class RegistryKeyBase : IRegistryKey
 
         try
         {
-            if (typeof(T).IsEnum)
-                return (T)Enum.Parse(typeof(T), result.ToString(), true);
+            // We already know that the result is not null.
+            var type = typeof(T);
+            var nonNullableType = Nullable.GetUnderlyingType(type) ?? type;
 
-            return (T)Convert.ChangeType(result, typeof(T), CultureInfo.InvariantCulture);
+            if (nonNullableType.IsEnum)
+                return (T)Enum.Parse(nonNullableType, result.ToString(), true);
+
+            return (T)Convert.ChangeType(result, nonNullableType, CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
