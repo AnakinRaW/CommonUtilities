@@ -9,6 +9,11 @@ public static class RemotelyInvokable
 {
     public static readonly int SuccessExitCode = 42;
 
+    public static int Success()
+    {
+        return SuccessExitCode;
+    }
+
     public static int Sleep(string duration, string callerName)
     {
         _ = callerName; // argument ignored, for debugging purposes
@@ -25,7 +30,7 @@ public static class RemotelyInvokable
     public static int WriteLineReadLine()
     {
         Console.WriteLine("Signal");
-        string line = Console.ReadLine();
+        var line = Console.ReadLine();
         return line == "Success" ? SuccessExitCode : SuccessExitCode + 1;
     }
 
@@ -76,7 +81,7 @@ public class ProcessTestBase
     public void Dispose(bool disposing)
     {
         // Wait for all started processes to complete
-        foreach (Process p in Processes)
+        foreach (var p in Processes)
         {
             try
             {
@@ -96,10 +101,10 @@ public class ProcessTestBase
         }
     }
 
-    protected Process CreateProcess(Func<int> method = null)
+    protected Process CreateProcess(Func<int>? method = null)
     {
-        Process p = null;
-        using (RemoteInvokeHandle handle = RemoteExecutor.Invoke(method ?? (() => RemoteExecutor.SuccessExitCode), new RemoteInvokeOptions { Start = false }))
+        Process p;
+        using (var handle = RemoteExecutor.Invoke(method ?? (() => RemoteExecutor.SuccessExitCode), new RemoteInvokeOptions { Start = false }))
         {
             p = handle.Process;
             handle.Process = null;
@@ -110,8 +115,8 @@ public class ProcessTestBase
 
     protected Process CreateProcess(Func<Task<int>> method)
     {
-        Process p = null;
-        using (RemoteInvokeHandle handle = RemoteExecutor.Invoke(method, new RemoteInvokeOptions { Start = false }))
+        Process p;
+        using (var handle = RemoteExecutor.Invoke(method, new RemoteInvokeOptions { Start = false }))
         {
             p = handle.Process;
             handle.Process = null;
@@ -122,8 +127,8 @@ public class ProcessTestBase
 
     protected Process CreateProcess(Func<string, int> method, string arg, bool autoDispose = true)
     {
-        Process p = null;
-        using (RemoteInvokeHandle handle = RemoteExecutor.Invoke(method, arg, new RemoteInvokeOptions { Start = false }))
+        Process p;
+        using (var handle = RemoteExecutor.Invoke(method, arg, new RemoteInvokeOptions { Start = false }))
         {
             p = handle.Process;
             handle.Process = null;
@@ -140,7 +145,7 @@ public class ProcessTestBase
     protected Process CreateProcess(Func<string, string, int> method, string arg1, string arg2, bool autoDispose = true)
     {
         Process p = null;
-        using (RemoteInvokeHandle handle = RemoteExecutor.Invoke(method, arg1, arg2, new RemoteInvokeOptions { Start = false }))
+        using (var handle = RemoteExecutor.Invoke(method, arg1, arg2, new RemoteInvokeOptions { Start = false }))
         {
             p = handle.Process;
             handle.Process = null;
@@ -157,20 +162,13 @@ public class ProcessTestBase
     protected Process CreateProcess(Func<string, Task<int>> method, string arg)
     {
         Process p = null;
-        using (RemoteInvokeHandle handle = RemoteExecutor.Invoke(method, arg, new RemoteInvokeOptions { Start = false }))
+        using (var handle = RemoteExecutor.Invoke(method, arg, new RemoteInvokeOptions { Start = false }))
         {
             p = handle.Process;
             handle.Process = null;
         }
         AddProcessForDispose(p);
         return p;
-    }
-
-    protected void StartSleepKillWait(Process p)
-    {
-        p.Start();
-        Thread.Sleep(200);
-        KillWait(p);
     }
 
     protected void KillWait(Process p)
@@ -201,8 +199,7 @@ public static class PlatformDetection
 
     private static bool AssemblyConfigurationEquals(string configuration)
     {
-        AssemblyConfigurationAttribute assemblyConfigurationAttribute = typeof(string).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>();
-
+        var assemblyConfigurationAttribute = typeof(string).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>();
         return assemblyConfigurationAttribute != null &&
                string.Equals(assemblyConfigurationAttribute.Configuration, configuration, StringComparison.InvariantCulture);
     }

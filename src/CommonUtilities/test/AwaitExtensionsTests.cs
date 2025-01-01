@@ -323,7 +323,7 @@ public class AwaitExtensionsTests : ProcessTestBase
             {
                 Process child2 = CreateProcess(async () =>
                 {
-                    Process child3 = CreateProcess(() => RemoteExecutor.SuccessExitCode);
+                    Process child3 = CreateProcess(RemotelyInvokable.Success);
                     child3.Start();
                     using (var cts = new CancellationTokenSource(WaitInMS))
                     {
