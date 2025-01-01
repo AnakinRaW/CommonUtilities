@@ -26,7 +26,7 @@ public static class AwaitExtensions
         async
 #endif
 
-        Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
+        Task WaitForExitAsyncEx(this Process process, CancellationToken cancellationToken = default)
     {
         if (process == null)
             throw new ArgumentNullException(nameof(process));
