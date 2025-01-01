@@ -1,5 +1,4 @@
-﻿#if !NET5_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,11 +21,19 @@ public static class AwaitExtensions
     /// This token has no effect on the <paramref name="process"/> itself.
     /// </param>
     /// <returns>A task whose result is the <see cref="Process.ExitCode"/> of the <paramref name="process"/>.</returns>
-    public static async Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
+    public static
+#if !NET
+        async
+#endif
+
+        Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
     {
         if (process == null)
             throw new ArgumentNullException(nameof(process));
 
+#if NET
+        return process.WaitForExitAsync(cancellationToken);
+#else
         if (!process.HasExited)
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -48,7 +55,7 @@ public static class AwaitExtensions
             if (process.HasExited)
                 return;
 #if NETSTANDARD2_1
-            await 
+            await
 #endif
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
                 await tcs.Task.ConfigureAwait(false);
@@ -61,8 +68,9 @@ public static class AwaitExtensions
         return;
 
         void Handler(object o, EventArgs eventArgs) => tcs.TrySetResult(default);
+#endif
+
     }
 
     private readonly struct EmptyStruct;
 }
-#endif

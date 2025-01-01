@@ -1,5 +1,4 @@
-﻿#if !NET5_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -27,7 +26,7 @@ public class AwaitExtensionsTests
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
-        await p.WaitForExitAsync();
+        await AwaitExtensions.WaitForExitAsync(p);
         Assert.Equal(55, p.ExitCode);
     }
 
@@ -41,7 +40,7 @@ public class AwaitExtensionsTests
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
         p.WaitForExit();
-        var t = p.WaitForExitAsync();
+        var t = AwaitExtensions.WaitForExitAsync(p);
         Assert.True(t.IsCompleted);
         Assert.Equal(55, p.ExitCode);
     }
@@ -64,7 +63,7 @@ public class AwaitExtensionsTests
         var p = Process.Start(new ProcessStartInfo(processName) { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
         try
         {
-            var t = p.WaitForExitAsync();
+            var t = AwaitExtensions.WaitForExitAsync(p);
             Assert.False(t.IsCompleted);
             p.Kill();
             await t;
@@ -93,7 +92,7 @@ public class AwaitExtensionsTests
         try
         {
             var cts = new CancellationTokenSource();
-            var t = p.WaitForExitAsync(cts.Token);
+            var t = AwaitExtensions.WaitForExitAsync(p, cts.Token);
             Assert.False(t.IsCompleted);
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(() => t);
@@ -104,4 +103,3 @@ public class AwaitExtensionsTests
         }
     }
 }
-#endif
