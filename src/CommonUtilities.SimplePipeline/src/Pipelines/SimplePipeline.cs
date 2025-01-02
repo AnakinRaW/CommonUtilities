@@ -25,6 +25,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     /// <remarks>
     /// The <paramref name="failFast"/> parameter determines whether the pipeline should stop executing immediately upon encountering the first failure.
     /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
     {
         FailFast = failFast;

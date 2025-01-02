@@ -73,7 +73,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async void Test_GetHashAsync_ProviderNotFound_ThrowsHashProviderNotFoundException()
+    public async Task Test_GetHashAsync_ProviderNotFound_ThrowsHashProviderNotFoundException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -107,7 +107,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async void Test_GetHashAsync_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
+    public async Task Test_GetHashAsync_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -124,7 +124,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderKnownHashTypes))]
     public void Test_GetHash_NullSpanShouldNotThrow(HashTypeKey hashKey)
     {
-        ReadOnlySpan<char> nullSpan = stackalloc char[0];
+        ReadOnlySpan<char> nullSpan = [];
         _hashingService.GetHash(nullSpan, stackalloc byte[hashKey.HashSize], Encoding.ASCII, hashKey);
     }
 
@@ -138,16 +138,16 @@ public class HashingServiceTest
         var someStream = new MemoryStream(someSource);
 
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), stackalloc byte[hashKey.HashSize - 1], Encoding.ASCII, hashKey));
-        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), stackalloc byte[0], Encoding.ASCII, hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), [], Encoding.ASCII, hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData".AsSpan(), Span<byte>.Empty, Encoding.ASCII, hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, stackalloc byte[hashKey.HashSize - 1], hashKey));
-        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, [], hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash("someData", Encoding.ASCII, Span<byte>.Empty, hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, stackalloc byte[hashKey.HashSize - 1], hashKey));
-        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, [], hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(someStream, Span<byte>.Empty, hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), stackalloc byte[hashKey.HashSize - 1], hashKey));
-        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), stackalloc byte[0], hashKey));
+        Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), [], hashKey));
         Assert.Throws<ArgumentException>(() => _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), Span<byte>.Empty, hashKey));
     }
 
@@ -173,7 +173,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async void Test_GetHashAsync_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
+    public async Task Test_GetHashAsync_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -228,7 +228,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async void Test_GetHashAsync_AlwaysOneProvider()
+    public async Task Test_GetHashAsync_AlwaysOneProvider()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -314,7 +314,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA3_384))]
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
 #endif
-    public async void Test_GetHashAsync_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
+    public async Task Test_GetHashAsync_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
 

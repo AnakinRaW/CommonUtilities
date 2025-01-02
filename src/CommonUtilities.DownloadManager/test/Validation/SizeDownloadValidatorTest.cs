@@ -1,4 +1,5 @@
 ﻿using AnakinRaW.CommonUtilities.DownloadManager.Validation;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
@@ -6,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
 public class SizeDownloadValidatorTest
 {
     [Fact]
-    public async void Test_Validate_IsValid()
+    public async Task Test_Validate_IsValid()
     {
         var validator = new SizeDownloadValidator(123);
         var result = await validator.Validate(null!, 123);
@@ -16,7 +17,7 @@ public class SizeDownloadValidatorTest
     [Theory]
     [InlineData(0)]
     [InlineData(321)]
-    public async void Test_Validate_IsInvalid(int actualValue)
+    public async Task Test_Validate_IsInvalid(int actualValue)
     {
         var validator = new SizeDownloadValidator(123);
         var result = await validator.Validate(null!, actualValue);

@@ -12,10 +12,11 @@ public sealed class XmlValidator : IXmlValidator
     private XmlReaderSettings ReaderSettings { get; }
 
     /// <summary>
-    /// Creates a new XML validator from a given XSD schema stream.
+    /// Initializes a new instance of the <see cref="XmlValidator"/> class from a given XSD schema stream.
     /// </summary>
     /// <param name="schemeStream">The XSD schema stream of this instance.</param>
     /// <param name="conformanceLevel">The <see cref="ConformanceLevel"/> of the XSD document.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="schemeStream"/> is <see langword="null"/>.</exception>
     public XmlValidator(Stream schemeStream, ConformanceLevel conformanceLevel = ConformanceLevel.Auto)
     {
         if (schemeStream == null) 
@@ -37,8 +38,8 @@ public sealed class XmlValidator : IXmlValidator
     /// <inheritdoc/>
     public XmlValidationResult Validate(string filePath)
     {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException(nameof(filePath));
+        if (filePath == null) 
+            throw new ArgumentNullException(nameof(filePath));
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         return Validate(stream);
     }
@@ -46,6 +47,9 @@ public sealed class XmlValidator : IXmlValidator
     /// <inheritdoc/>
     public XmlValidationResult Validate(Stream stream)
     {
+        if (stream == null) 
+            throw new ArgumentNullException(nameof(stream));
+
         if (!stream.CanRead)
             throw new InvalidOperationException("Cannot read from stream");
 

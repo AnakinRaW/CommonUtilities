@@ -3,24 +3,24 @@
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Contains information about a failed download
+/// A class that contains information about a failed download.
 /// </summary>
 public sealed class DownloadFailureInformation
 {
     /// <summary>
-    /// The exception of the download failure.
+    /// Gets the exception of the download failure.
     /// </summary>
     public Exception Exception { get; }
 
     /// <summary>
-    /// The provider which caused the failure.
+    /// Gets the provider which caused the failure.
     /// </summary>
     public string Provider { get; }
 
     /// <summary>
-    /// Crates a new <see cref="DownloadFailureInformation"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadFailureInformation"/> class of the specified exception and provider name.
     /// </summary>
-    /// <param name="exception">The exception of the download failure.</param>
+    /// <param name="exception">The exception of the failed download.</param>
     /// <param name="provider">The provider which caused the failure.</param>
     public DownloadFailureInformation(Exception exception, string provider)
     {

@@ -25,7 +25,7 @@ public partial class RegistryTestsBase
     [Fact]
     public void GetName_TestSubKeyName()
     {
-        string expectedName = $"HKEY_CURRENT_USER\\{TestRegistryKeyName}";
+        var expectedName = $"HKEY_CURRENT_USER\\{TestRegistryKeyName}";
         Assert.Equal(expectedName, TestRegistryKey.Name);
     }
 }

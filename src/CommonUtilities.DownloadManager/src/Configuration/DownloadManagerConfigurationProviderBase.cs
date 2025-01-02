@@ -20,7 +20,7 @@ public abstract class DownloadManagerConfigurationProviderBase : IDownloadManage
     }
 
     /// <summary>
-    /// Creates a new <see cref="IDownloadManagerConfiguration"/>
+    /// Creates a new <see cref="IDownloadManagerConfiguration"/> instance.
     /// </summary>
     /// <returns>The created configuration</returns>
     protected abstract IDownloadManagerConfiguration CreateConfiguration();

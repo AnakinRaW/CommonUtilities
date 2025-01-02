@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// Base implementation for an <see cref="IStep"/>
+/// Base implementation for an <see cref="IStep"/>.
 /// </summary>
 public abstract class PipelineStep : DisposableObject, IStep
 {
@@ -27,9 +27,10 @@ public abstract class PipelineStep : DisposableObject, IStep
     public Exception? Error { get; internal set; }
 
     /// <summary>
-    /// Initializes a new <see cref="PipelineStep"/> instance.
+    /// Initializes a new instance of the <see cref="PipelineStep"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected PipelineStep(IServiceProvider serviceProvider)
     {
         Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));

@@ -12,10 +12,13 @@ namespace AnakinRaW.CommonUtilities.Registry;
 /// </summary>
 internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 {
+    internal const char Separator = '\\';
+
     private const int MaxKeyLength = 255;
     private const int MaxValueLength = 16_383;
-    private const char Separator = '\\';
 
+    public static event EventHandler<InMemoryRegistryChangedEventArgs>? RegistryChanged;
+    
     private readonly Dictionary<string, InMemoryRegistryKeyData> _subKeys;
     private readonly Dictionary<string, object> _values;
     private readonly InMemoryRegistryCreationFlags _flags;
@@ -102,6 +105,8 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             ValidateType(value);
 
         _values[name] = value;
+
+        OnRegistryChanged(this, InMemoryRegistryChangeKind.Value);
     }
 
     /// <inheritdoc/>
@@ -117,22 +122,22 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         var fixedPath = FixupName(subPath);
 
         // The calling method already assures the key exists.
-        var key = (InMemoryRegistryKey?)OpenSubKey(fixedPath, writable: false);
+        using var key = (InMemoryRegistryKey?)OpenSubKey(fixedPath, writable: false);
         if (key == null)
             return;
 
         var keyData = key.KeyData;
 
         if (keyData._subKeys.Any() && !recursive)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("The subkey has child subkeys.");
 
 
         if (keyData.IsSystemKey)
         {
             // Need to make distinction here to mimic Windows behavior
             if (subPath.Length > 0)
-                throw new UnauthorizedAccessException();
-            throw new ArgumentException();
+                throw new UnauthorizedAccessException("Cannot delete a system key.");
+            throw new ArgumentException("Cannot delete a system key.");
         }
 
         var keyQueue = new Queue<InMemoryRegistryKeyData>();
@@ -146,6 +151,8 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             keyToDelete._values.Clear();
             keyToDelete._parent?._subKeys.Remove(keyToDelete.SubName);
             keyToDelete._parent = null;
+
+            OnRegistryChanged(keyToDelete, InMemoryRegistryChangeKind.TreeDelete);
         }
     }
 
@@ -178,11 +185,16 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 
         foreach (var subKeyName in subKeyNames)
         {
-            if (!currentKey._subKeys.ContainsKey(subKeyName))
-                currentKey._subKeys[subKeyName] = new InMemoryRegistryKeyData(View, subKeyName, currentKey, currentKey._flags, false);
-            currentKey = currentKey._subKeys[subKeyName];
-        }
+            if (!currentKey._subKeys.TryGetValue(subKeyName, out var keyData))
+            {
+                keyData = new InMemoryRegistryKeyData(View, subKeyName, currentKey, currentKey._flags, false);
+                currentKey._subKeys[subKeyName] = keyData;
+                OnRegistryChanged(currentKey, InMemoryRegistryChangeKind.TreeCreate);
 
+            }
+            currentKey = keyData;
+        }
+        
         return new InMemoryRegistryKey(BuildSubKeyName(currentName, subKey), currentKey, writable);
     }
 
@@ -357,5 +369,10 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             }
             path.Length += j - i;
         }
+    }
+
+    private static void OnRegistryChanged(InMemoryRegistryKeyData data, InMemoryRegistryChangeKind kind)
+    {
+        RegistryChanged?.Invoke(null, new InMemoryRegistryChangedEventArgs(data, kind));
     }
 }

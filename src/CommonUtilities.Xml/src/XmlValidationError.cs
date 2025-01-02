@@ -6,22 +6,22 @@
 public sealed class XmlValidationError
 {
     /// <summary>
-    /// The message of the XML validation error.
+    /// Gets the message of the XML validation error.
     /// </summary>
     public string Message { get; }
 
     /// <summary>
-    /// The line number where the XML validation occurred.
+    /// Gets the line number where the XML validation occurred.
     /// </summary>
     public int LineNumber { get; }
 
     /// <summary>
-    /// The position in a line where the XML validation occurred.
+    /// Gets the position in a line where the XML validation occurred.
     /// </summary>
     public int LinePosition { get; }
 
     /// <summary>
-    /// Creates a new <see cref="XmlValidationError"/>
+    /// Initializes a new instance of the <see cref="XmlValidationError"/> class.
     /// </summary>
     /// <param name="message">The message of the error.</param>
     /// <param name="line">The line of the error.</param>

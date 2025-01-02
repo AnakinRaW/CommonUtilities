@@ -34,7 +34,7 @@ public partial class RegistryTestsBase
     [Fact]
     public void GetValue_DisposedKeyDoesNotDeleteData()
     {
-        var rk = TestRegistryKey.OpenSubKey(string.Empty, true);
+        var rk = TestRegistryKey.OpenSubKey(string.Empty, true)!;
         rk.SetValue(null, TestData.DefaultValue);
         rk.Dispose();
         Assert.Equal(TestData.DefaultValue, TestRegistryKey.GetValue(null));

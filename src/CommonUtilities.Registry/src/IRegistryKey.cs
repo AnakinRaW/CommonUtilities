@@ -79,6 +79,8 @@ public interface IRegistryKey : IDisposable
     /// The value associated with <paramref name="name"/>, or <see langword="default"/> if name is not found.
     /// </returns>
     /// <remarks>
+    /// If <typeparamref name="T"/> is of type <see cref="Nullable{T}"/>, <see langword="null"/> is returned, if the value of <paramref name="name"/> does not exist.
+    /// <br/>
     /// A registry key can have one value that is not associated with any name.
     /// To retrieve this unnamed value, specify either <see langword="null"/> or the empty string ("") for <paramref name="name"/>.
     /// </remarks>
@@ -125,6 +127,8 @@ public interface IRegistryKey : IDisposable
     /// </summary>
     /// <param name="name">The name of the value to store.</param>
     /// <param name="value">The data to be stored.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is an unsupported data type. This depends on the configuration of the <see cref="IRegistry"/> instance.</exception>
     /// <exception cref="UnauthorizedAccessException">The <see cref="IRegistryKey"/> cannot be written to; for example, it was not opened as a writable key , or the user does not have the necessary access rights.</exception>
     /// <exception cref="ObjectDisposedException">The <see cref="IRegistryKey"/> that contains the specified value is closed (closed keys cannot be accessed).</exception>
     /// <exception cref="IOException">The <see cref="IRegistryKey"/> that contains the specified value has been marked for deletion.</exception>

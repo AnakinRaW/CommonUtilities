@@ -25,10 +25,13 @@ public partial class RegistryTestsBase
     {
         Assert.True(TestRegistryKey.HasPath(string.Empty));
         Assert.False(TestRegistryKey.HasPath(TestRegistryKeyName));
+        
         TestRegistryKey.CreateSubKey(TestRegistryKeyName);
         Assert.True(TestRegistryKey.HasPath(TestRegistryKeyName));
+        
         TestRegistryKey.DeleteKey(TestRegistryKeyName, true);
         Assert.False(TestRegistryKey.HasPath(TestRegistryKeyName));
+        
         TestRegistryKey.DeleteKey(string.Empty, true);
         Assert.False(TestRegistryKey.HasPath(string.Empty));
     }

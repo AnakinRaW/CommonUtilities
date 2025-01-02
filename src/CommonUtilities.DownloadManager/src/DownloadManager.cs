@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// Download manager which supports local file system and HTTP downloads by default.
+/// A Download manager which supports local file system and HTTP downloads by default.
 /// </summary>
 public sealed class DownloadManager : IDownloadManager 
 {
@@ -21,14 +21,14 @@ public sealed class DownloadManager : IDownloadManager
     private readonly ILogger? _logger;
     private readonly IDownloadManagerConfiguration _configuration;
 
-    private readonly List<IDownloadProvider> _allProviders = new();
+    private readonly List<IDownloadProvider> _allProviders = [];
     private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
 
     /// <inheritdoc/>
     public IEnumerable<string> Providers => _allProviders.Select(e => e.Name);
 
     /// <summary>
-    /// Creates a new <see cref="DownloadManager"/> instance.
+    /// Initializes a new instance of the <see cref="DownloadManager"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider of this instance.</param>
     public DownloadManager(IServiceProvider serviceProvider)

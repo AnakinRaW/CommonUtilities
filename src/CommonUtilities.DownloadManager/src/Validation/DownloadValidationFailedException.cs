@@ -3,7 +3,7 @@
 namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 
 /// <summary>
-/// An exception that is thrown if the validation of a downloaded file failed.
+/// An exception that is thrown when the validation of a downloaded file failed.
 /// </summary>
 public class DownloadValidationFailedException : Exception
 {

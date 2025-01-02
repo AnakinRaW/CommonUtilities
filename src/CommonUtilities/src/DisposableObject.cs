@@ -15,7 +15,7 @@ public abstract class DisposableObject : IDisposable
     private EventHandler? _disposing;
 
     /// <summary>
-    /// Event which gets raised when the instance is getting disposed.
+    /// Raised when the event is being disposed, while it is still accessible.
     /// <remarks>The event is not triggered when the object is finalized by the GC.</remarks>
     /// </summary>
     public event EventHandler Disposing
@@ -29,7 +29,7 @@ public abstract class DisposableObject : IDisposable
     }
 
     /// <summary>
-    /// Indicates whether this instance is disposed.
+    /// Returns whether the object has been disposed once, protects against double disposal
     /// </summary>
     public bool IsDisposed { get; private set; }
 
@@ -47,7 +47,7 @@ public abstract class DisposableObject : IDisposable
     }
 
     /// <summary>
-    /// Throws an <see cref="ObjectDisposedException"/> if this instance already is disposed.
+    /// Throws an <see cref="ObjectDisposedException"/> if this object has been disposed.
     /// </summary>
     protected void ThrowIfDisposed()
     {
@@ -81,16 +81,14 @@ public abstract class DisposableObject : IDisposable
     }
 
     /// <summary>
-    /// Disposes all managed resources.
-    /// This method gets invoked if and only if the object's <see cref="Dispose()"/> method was called.
+    /// Allows derived classes to provide custom dispose handling for managed resources.
     /// </summary>
     protected virtual void DisposeManagedResources()
     {
     }
 
     /// <summary>
-    /// Disposes all managed resources.
-    /// This method gets invoked if the object gets disposed or finalized.
+    /// Allows derived classes to provide custom dispose handling for native resources.
     /// </summary>
     protected virtual void DisposeNativeResources()
     {

@@ -71,7 +71,7 @@ public class HashDownloadValidatorTest
     }
     
     [Fact]
-    public async void Test_Validate_NoneHashType()
+    public async Task Test_Validate_NoneHashType()
     {
         var validator = new HashDownloadValidator(null, HashTypeKey.None, _serviceProvider);
         var result = await validator.Validate(new MemoryStream(new byte[3]), 0);
@@ -79,7 +79,7 @@ public class HashDownloadValidatorTest
     }
 
     [Fact]
-    public async void Test_Validate_StreamNotSeekable_ThrowsNotSupportedException()
+    public async Task Test_Validate_StreamNotSeekable_ThrowsNotSupportedException()
     {
         var validator = new HashDownloadValidator(null, HashTypeKey.None, _serviceProvider);
         await Assert.ThrowsAsync<NotSupportedException>(async () =>
@@ -87,7 +87,7 @@ public class HashDownloadValidatorTest
     }
 
     [Fact]
-    public async void Test_Validate_HashesToNotMatch()
+    public async Task Test_Validate_HashesToNotMatch()
     {
         var expected = GenerateRandomHash(HashTypeKey.MD5);
         byte[] actual;
@@ -106,7 +106,7 @@ public class HashDownloadValidatorTest
     }
 
     [Fact]
-    public async void Test_Validate_HashesMatch()
+    public async Task Test_Validate_HashesMatch()
     {
         var hash = GenerateRandomHash(HashTypeKey.MD5);
 
