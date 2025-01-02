@@ -47,7 +47,6 @@ internal abstract class HashAlgorithmProviderBase : IHashAlgorithmProvider
     protected abstract ValueTask<int> HashDataAsyncNetCore(Stream source, Memory<byte> destination,
         CancellationToken cancellation = default);
 
-
     protected abstract HashAlgorithm CreateHashAlgorithm();
 
     protected int ComputeHashWithHashAlgorithmLegacy(ReadOnlySpan<byte> source, Span<byte> destination)
@@ -63,7 +62,6 @@ internal abstract class HashAlgorithmProviderBase : IHashAlgorithmProvider
         return bytes.Length;
 #endif
     }
-
 
     protected async ValueTask<int> ComputeHashAsyncWithHashAlgorithmLegacy(Stream source, Memory<byte> destination, CancellationToken cancellationToken = default)
     {

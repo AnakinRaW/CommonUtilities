@@ -34,6 +34,6 @@ public interface IDownloadManager
     /// <param name="validator">The validator instance to validate the downloaded file, or <see langword="null"/> if no validation shall be performed.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task object producing a summary of the download operation.</returns>
-    Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress = null,
+    Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress = null,
         IDownloadValidator? validator = null, CancellationToken cancellationToken = default);
 }

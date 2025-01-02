@@ -26,8 +26,7 @@ public class DisposableObjectTest
 
         disposable.Object.Dispose();
 
-        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
-        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
+        disposable.Protected().Verify("DisposeResources", Times.Once());
 
         Assert.True(disposable.Object.IsDisposed);
 
@@ -36,8 +35,7 @@ public class DisposableObjectTest
 
         Assert.True(disposable.Object.IsDisposed);
 
-        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
-        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
+        disposable.Protected().Verify("DisposeResources", Times.Once());
 
         AssertExtensions.Throws_IgnoreTargetInvocationException<ObjectDisposedException>(() =>
             throwIfDisposed!.Invoke(disposable.Object, null));

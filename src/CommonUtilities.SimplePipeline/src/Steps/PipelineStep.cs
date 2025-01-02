@@ -55,11 +55,6 @@ public abstract class PipelineStep : DisposableObject, IStep
         {
             throw;
         }
-        catch (RunnerException ex)
-        {
-            Error = ex;
-            throw;
-        }
         catch (AggregateException ex)
         {
             if (!ex.IsExceptionType<OperationCanceledException>())

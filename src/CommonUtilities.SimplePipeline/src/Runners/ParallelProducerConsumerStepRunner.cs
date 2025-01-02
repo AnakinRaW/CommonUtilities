@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// Runner engine, which executes all queued _steps parallel. Steps may be queued while step execution has been started.
 /// The execution can finish only if <see cref="Finish"/> was called explicitly.
 /// </summary>
-public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchronizedRunner
+public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISynchronizedStepRunner
 { 
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
@@ -37,13 +37,13 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     internal bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ParallelRunner"/> class with the specified number of workers.
+    /// Initializes a new instance of the <see cref="ParallelStepRunner"/> class with the specified number of workers.
     /// </summary>
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentOutOfRangeException">If the number of workers is below 1.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    public ParallelProducerConsumerRunner(int workerCount, IServiceProvider serviceProvider)
+    public ParallelProducerConsumerStepRunner(int workerCount, IServiceProvider serviceProvider)
     {
         if (workerCount is < 1 or >= 64)
             throw new ArgumentException("invalid parallel worker count");
@@ -100,9 +100,9 @@ public sealed class ParallelProducerConsumerRunner : DisposableObject, ISynchron
     }
 
     /// <inheritdoc/>
-    protected override void DisposeManagedResources()
+    protected override void DisposeResources()
     {
-        base.DisposeManagedResources();
+        base.DisposeResources();
         StepQueue.Dispose();
         foreach (var step in Steps) 
             step.Dispose();

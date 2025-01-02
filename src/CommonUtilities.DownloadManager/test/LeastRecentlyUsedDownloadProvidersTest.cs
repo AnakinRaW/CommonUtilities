@@ -6,32 +6,27 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class PreferredDownloadProvidersTest
+public class LeastRecentlyUsedDownloadProvidersTest
 {
-    private readonly PreferredDownloadProviders _provider;
-
-    public PreferredDownloadProvidersTest()
-    {
-        _provider = new PreferredDownloadProviders();
-    }
+    private readonly LeastRecentlyUsedDownloadProviders _provider = new();
 
     [Fact]
     public void TestAddProviders()
     {
-        _provider.LastSuccessfulProviderName = "1";
-        _provider.LastSuccessfulProviderName = "2";
-        _provider.LastSuccessfulProviderName = "3";
+        _provider.LastSuccessfulProvider = "1";
+        _provider.LastSuccessfulProvider = "2";
+        _provider.LastSuccessfulProvider = "3";
 
-        var last = _provider.LastSuccessfulProviderName;
+        var last = _provider.LastSuccessfulProvider;
         Assert.Equal("3", last);
     }
 
     [Fact]
     public void TestGetPriorityEmpty()
     {
-        _provider.LastSuccessfulProviderName = "A";
-        _provider.LastSuccessfulProviderName = "B";
-        _provider.LastSuccessfulProviderName = "A";
+        _provider.LastSuccessfulProvider = "A";
+        _provider.LastSuccessfulProvider = "B";
+        _provider.LastSuccessfulProvider = "A";
 
         var last = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider>());
         Assert.Empty(last);
@@ -40,9 +35,9 @@ public class PreferredDownloadProvidersTest
     [Fact]
     public void TestGetWithHighestPriority()
     {
-        _provider.LastSuccessfulProviderName = "A";
-        _provider.LastSuccessfulProviderName = "A";
-        _provider.LastSuccessfulProviderName = "B";
+        _provider.LastSuccessfulProvider = "A";
+        _provider.LastSuccessfulProvider = "A";
+        _provider.LastSuccessfulProvider = "B";
         
         var a = new Mock<IDownloadProvider>();
         a.Setup(p => p.Name).Returns("A");
@@ -57,8 +52,8 @@ public class PreferredDownloadProvidersTest
     [Fact]
     public void TestGetSamePriority()
     {
-        _provider.LastSuccessfulProviderName = "A";
-        _provider.LastSuccessfulProviderName = "B";
+        _provider.LastSuccessfulProvider = "A";
+        _provider.LastSuccessfulProvider = "B";
 
         var a = new Mock<IDownloadProvider>();
         a.Setup(p => p.Name).Returns("A");
@@ -74,8 +69,8 @@ public class PreferredDownloadProvidersTest
     [Fact]
     public void TestGetPriorityNotExisting()
     {
-        _provider.LastSuccessfulProviderName = "A";
-        _provider.LastSuccessfulProviderName = "B";
+        _provider.LastSuccessfulProvider = "A";
+        _provider.LastSuccessfulProvider = "B";
 
         var c = new Mock<IDownloadProvider>();
         c.Setup(p => p.Name).Returns("C");

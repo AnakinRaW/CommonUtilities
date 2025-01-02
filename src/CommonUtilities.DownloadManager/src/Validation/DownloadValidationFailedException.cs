@@ -8,13 +8,6 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Validation;
 public class DownloadValidationFailedException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DownloadValidationFailedException"/> class.
-    /// </summary>
-    public DownloadValidationFailedException()
-    {
-    }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="DownloadValidationFailedException"/> class with a specified error message.
     /// </summary>
     /// <param name="message">The message that describes the error.</param>

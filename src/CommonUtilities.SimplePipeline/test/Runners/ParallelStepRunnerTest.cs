@@ -8,13 +8,13 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class ParallelRunnerTest
+public class ParallelStepRunnerTest
 {
     [Fact]
     public void Test_Wait()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -47,7 +47,7 @@ public class ParallelRunnerTest
     public async Task Test_Run_NoWait()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelStepRunner(2, sc.BuildServiceProvider());
 
 
         var b = new ManualResetEvent(false);
@@ -92,7 +92,7 @@ public class ParallelRunnerTest
     public async Task Test_Wait_Timeout_ThrowsTimeoutException()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
 
@@ -117,7 +117,7 @@ public class ParallelRunnerTest
     public async Task Test_Run_WithError()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelStepRunner(2, sc.BuildServiceProvider());
 
         var hasError = false;
         runner.Error += (_, _) =>
@@ -144,7 +144,7 @@ public class ParallelRunnerTest
     public async Task Test_Run_Cancelled()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelRunner(1, sc.BuildServiceProvider());
+        var runner = new ParallelStepRunner(1, sc.BuildServiceProvider());
 
         var cts = new CancellationTokenSource();
 

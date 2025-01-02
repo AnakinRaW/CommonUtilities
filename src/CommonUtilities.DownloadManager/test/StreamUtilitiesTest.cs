@@ -62,7 +62,7 @@ public class StreamUtilitiesTest
         var output = new MemoryStream();
 
         var bytesRead = 0L;
-        void Action(ProgressUpdateStatus d)
+        void Action(DownloadUpdate d)
         {
             bytesRead = d.BytesRead;
         }
@@ -79,7 +79,7 @@ public class StreamUtilitiesTest
 
         var t = new CancellationTokenSource();
         var bytesRead = 0L;
-        void Action(ProgressUpdateStatus d)
+        void Action(DownloadUpdate d)
         {
             bytesRead = d.BytesRead;
         }

@@ -10,7 +10,7 @@ public class WaitStepTest
     [Fact]
     public void Test_Wait()
     {
-        var runner = new Mock<ISynchronizedRunner>();
+        var runner = new Mock<ISynchronizedStepRunner>();
 
         var sc = new ServiceCollection();
         var step = new WaitStep(runner.Object, sc.BuildServiceProvider());

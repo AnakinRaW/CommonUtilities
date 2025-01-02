@@ -33,9 +33,9 @@ public class RunPipelineStep(IPipeline pipeline, IServiceProvider serviceProvide
     }
 
     /// <inheritdoc />
-    protected override void DisposeManagedResources()
+    protected override void DisposeResources()
     {
-        base.DisposeManagedResources();
+        base.DisposeResources();
         _pipeline.Dispose();
     }
 }

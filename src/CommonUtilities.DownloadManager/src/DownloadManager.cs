@@ -22,7 +22,7 @@ public sealed class DownloadManager : IDownloadManager
     private readonly IDownloadManagerConfiguration _configuration;
 
     private readonly List<IDownloadProvider> _allProviders = [];
-    private readonly PreferredDownloadProviders _preferredDownloadProviders = new();
+    private readonly LeastRecentlyUsedDownloadProviders _leastRecentlyUsedDownloadProviders = new();
 
     /// <inheritdoc/>
     public IEnumerable<string> Providers => _allProviders.Select(e => e.Name);
@@ -65,7 +65,7 @@ public sealed class DownloadManager : IDownloadManager
     }
 
     /// <inheritdoc/>
-    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         IDownloadValidator? validator = null, CancellationToken cancellationToken = default)
     {
         if (outputStream == null)
@@ -95,7 +95,7 @@ public sealed class DownloadManager : IDownloadManager
 
         try
         {
-            var providers = GetSuitableProvider(uri);
+            var providers = GetMatchingProviders(uri);
             return Task.Run(async () =>
                 await DownloadWithRetry(providers, uri, outputStream, progress, validator, cancellationToken)
                     .ConfigureAwait(false), cancellationToken);
@@ -114,7 +114,7 @@ public sealed class DownloadManager : IDownloadManager
     }
 
     private async Task<DownloadResult> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
-        ProgressUpdateCallback? progress, IDownloadValidator? validator, CancellationToken cancellationToken)
+        DownloadUpdateCallback? progress, IDownloadValidator? validator, CancellationToken cancellationToken)
     {
         if (_configuration.ValidationPolicy == ValidationPolicy.Required && validator is null)
         {
@@ -134,7 +134,10 @@ public sealed class DownloadManager : IDownloadManager
                 var summary = await provider.DownloadAsync(uri, outputStream,
                     status =>
                     {
-                        progress?.Invoke(new ProgressUpdateStatus(provider.Name, status.BytesRead, status.TotalBytes, status.BitRate));
+                        if (progress is null)
+                            return;
+                        status.DownloadProvider = provider.Name;
+                        progress.Invoke(status);
                     }, cancellationToken).ConfigureAwait(false);
                 
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
@@ -182,7 +185,7 @@ public sealed class DownloadManager : IDownloadManager
                 }
 
                 _logger?.LogInformation($"Download of '{uri.AbsoluteUri}' succeeded using provider '{provider.Name}'");
-                _preferredDownloadProviders.LastSuccessfulProviderName = provider.Name;
+                _leastRecentlyUsedDownloadProviders.LastSuccessfulProvider = provider.Name;
 
                 summary.DownloadProvider = provider.Name;
 
@@ -219,15 +222,15 @@ public sealed class DownloadManager : IDownloadManager
         return null!;
     }
 
-    private IList<IDownloadProvider> GetSuitableProvider(Uri uri)
+    private IList<IDownloadProvider> GetMatchingProviders(Uri uri)
     {
         var source = uri.IsFile || uri.IsUnc ? DownloadKind.File : DownloadKind.Internet;
         var supportedProviders = _allProviders.Where(e => e.IsSupported(source)).ToList();
         if (!supportedProviders.Any())
         {
-            _logger?.LogTrace("Unable to select suitable download provider.");
+            _logger?.LogTrace("Unable to find a matching download provider.");
             throw new DownloadProviderNotFoundException("Can not download. No suitable download provider found.");
         }
-        return _preferredDownloadProviders.GetProvidersInPriorityOrder(supportedProviders);
+        return _leastRecentlyUsedDownloadProviders.GetProvidersInPriorityOrder(supportedProviders);
     }
 }
