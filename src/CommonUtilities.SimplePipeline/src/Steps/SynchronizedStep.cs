@@ -26,7 +26,7 @@ public abstract class SynchronizedStep : PipelineStep
     }
 
     /// <summary>
-    ///  Waits until the predefined runner has finished.
+    ///  Waits until the predefined stepRunner has finished.
     /// </summary>
     public void Wait()
     {
@@ -34,7 +34,7 @@ public abstract class SynchronizedStep : PipelineStep
     }
 
     /// <summary>
-    /// Waits until the predefined runner has finished.
+    /// Waits until the predefined stepRunner has finished.
     /// </summary>
     /// <param name="timeout">The time duration to wait.</param>
     /// <exception cref="TimeoutException">If <paramref name="timeout"/>.</exception>
@@ -51,9 +51,9 @@ public abstract class SynchronizedStep : PipelineStep
     protected abstract void RunSynchronized(CancellationToken token);
 
     /// <inheritdoc />
-    protected override void DisposeManagedResources()
+    protected override void DisposeResources()
     {
-        base.DisposeManagedResources();
+        base.DisposeResources();
         _handle.Dispose();
     }
 

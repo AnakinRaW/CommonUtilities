@@ -25,7 +25,7 @@ public class DownloadProviderBaseTest
         };
 
         var callBackFired = false;
-        void Callback(ProgressUpdateStatus status)
+        void Callback(DownloadUpdate status)
         {
             Assert.Equal(1, status.BytesRead);
             Assert.Equal(2, status.TotalBytes);
@@ -34,11 +34,11 @@ public class DownloadProviderBaseTest
 
         provMock.Protected()
             .Setup<Task<DownloadResult>>("DownloadAsyncCore", ItExpr.IsAny<Uri>(), ItExpr.IsAny<Stream>(),
-                ItExpr.IsAny<ProgressUpdateCallback>(), ItExpr.IsAny<CancellationToken>())
-            .Callback((Uri _, Stream _, ProgressUpdateCallback p, CancellationToken _) =>
+                ItExpr.IsAny<DownloadUpdateCallback>(), ItExpr.IsAny<CancellationToken>())
+            .Callback((Uri _, Stream _, DownloadUpdateCallback p, CancellationToken _) =>
             {
                 Task.Delay(100).Wait();
-                p.Invoke(new ProgressUpdateStatus(1, 2, 100));
+                p.Invoke(new DownloadUpdate(1, 2, 100));
             })
             .ReturnsAsync(result);
 

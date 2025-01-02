@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadKind.File)
 {
-    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         if (uri is { IsFile: false, IsUnc: false })
@@ -21,7 +21,7 @@ internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProvid
         };
     }
 
-    private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, ProgressUpdateCallback? progress,
+    private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var fileSystem = serviceProvider.GetRequiredService<IFileSystem>();

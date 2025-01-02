@@ -16,12 +16,12 @@ internal static class StreamUtilities
     }
 
     public static Task<long> CopyStreamWithProgressAsync(Stream inputStream, Stream outputStream,
-        ProgressUpdateCallback? progress, CancellationToken cancellationToken)
+        DownloadUpdateCallback? progress, CancellationToken cancellationToken)
     {
         return CopyStreamWithProgressAsync(inputStream, inputStream.Length, outputStream, progress, cancellationToken);
     }
 
-    public static async Task<long> CopyStreamWithProgressAsync(Stream inputStream, long inputLength, Stream outputStream, ProgressUpdateCallback? progress, CancellationToken cancellationToken)
+    public static async Task<long> CopyStreamWithProgressAsync(Stream inputStream, long inputLength, Stream outputStream, DownloadUpdateCallback? progress, CancellationToken cancellationToken)
     {
         if (progress == null)
             return await CopyStream(inputStream, inputLength, outputStream, cancellationToken);
@@ -40,7 +40,7 @@ internal static class StreamUtilities
                 await outputStream.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
                 if (inputLength < totalBytesRead)
                     inputLength = totalBytesRead;
-                progress?.Invoke(new ProgressUpdateStatus(totalBytesRead, inputLength, 0));
+                progress?.Invoke(new DownloadUpdate(totalBytesRead, inputLength, 0));
             }
         }
         finally

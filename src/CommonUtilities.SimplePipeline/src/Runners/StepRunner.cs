@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// <summary>
 /// Runner engine, which executes all queued <see cref="IStep"/> sequentially in the order they are queued. 
 /// </summary>
-public class StepRunner : DisposableObject, IRunner
+public class StepRunner : DisposableObject, IStepRunner
 {
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
@@ -28,7 +28,7 @@ public class StepRunner : DisposableObject, IRunner
     protected ConcurrentQueue<IStep> StepQueue { get; }
 
     /// <summary>
-    /// Gets the logger instance of this runner.
+    /// Gets the logger instance of this stepRunner.
     /// </summary>
     protected ILogger? Logger { get; }
 
@@ -139,9 +139,9 @@ public class StepRunner : DisposableObject, IRunner
     }
 
     /// <inheritdoc/>
-    protected override void DisposeManagedResources()
+    protected override void DisposeResources()
     {
-        base.DisposeManagedResources();
+        base.DisposeResources();
         foreach (var step in Steps) 
             step.Dispose();
     }

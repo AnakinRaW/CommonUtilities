@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// <summary>
 /// Runner engine, which executes all queued steps parallel.
 /// </summary>
-public class ParallelRunner: StepRunner, ISynchronizedRunner
+public class ParallelStepRunner: StepRunner, ISynchronizedStepRunner
 {
     private readonly ConcurrentBag<Exception> _exceptions;
     private readonly Task[] _tasks;
@@ -26,13 +26,13 @@ public class ParallelRunner: StepRunner, ISynchronizedRunner
     public AggregateException? Exception => _exceptions.Count > 0 ? new AggregateException(_exceptions) : null;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ParallelRunner"/> class with the specified number of workers.
+    /// Initializes a new instance of the <see cref="ParallelStepRunner"/> class with the specified number of workers.
     /// </summary>
     /// <param name="workerCount">The number of parallel workers.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentOutOfRangeException">If the number of workers is below 1.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    public ParallelRunner(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
+    public ParallelStepRunner(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         if (workerCount < 1)
             throw new ArgumentOutOfRangeException(nameof(workerCount));

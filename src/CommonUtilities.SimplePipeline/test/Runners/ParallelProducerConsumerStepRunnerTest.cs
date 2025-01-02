@@ -9,13 +9,13 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class ParallelProducerConsumerRunnerTest
+public class ParallelProducerConsumerStepRunnerTest
 {
     [Fact]
     public async Task Test_Run_WaitNotFinished()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -48,7 +48,7 @@ public class ParallelProducerConsumerRunnerTest
     public async Task Test_Run_AwaitDoesNotThrow()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -78,7 +78,7 @@ public class ParallelProducerConsumerRunnerTest
     public void Test_Run_SyncWaitDoesThrow()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -109,7 +109,7 @@ public class ParallelProducerConsumerRunnerTest
     public void Test_Run_AddDelayed()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -156,7 +156,7 @@ public class ParallelProducerConsumerRunnerTest
     public async Task Test_Run_AddDelayed_Await()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -203,7 +203,7 @@ public class ParallelProducerConsumerRunnerTest
     public async Task Test_Run_AddDelayed_AwaitAndWait()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var s1 = new Mock<IStep>();
         var s2 = new Mock<IStep>();
@@ -251,7 +251,7 @@ public class ParallelProducerConsumerRunnerTest
     public async Task Test_Run_AddDelayed_Cancelled()
     {
         var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerRunner(2, sc.BuildServiceProvider());
+        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
 
         var tcs = new TaskCompletionSource<int>();
 

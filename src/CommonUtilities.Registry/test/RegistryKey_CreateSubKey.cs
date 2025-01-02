@@ -169,23 +169,29 @@ public partial class RegistryTestsBase
         const string testStringValue = "Hello World!\u2020\u00FE";
         const int testValue = 42;
 
-        using (var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName))
-        {
-            Assert.NotNull(rk);
+        using var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
+        Assert.NotNull(rk);
 
-            rk.SetValue(testValueName, testValue);
-            Assert.Single(rk.GetValueNames());
+        rk.SetValue(testValueName, testValue);
+        Assert.Single(rk.GetValueNames());
 
-            rk.SetValue(testStringValueName, testStringValue);
-            Assert.Equal(2, rk.GetValueNames().Length);
+        rk.SetValue(testStringValueName, testStringValue);
+        Assert.Equal(2, rk.GetValueNames().Length);
 
-            Assert.Equal(testValue, rk.GetValue(testValueName));
-            Assert.Equal(testStringValue, rk.GetValue(testStringValueName)!.ToString());
-        }
+        Assert.Equal(testValue, rk.GetValue(testValueName));
+        Assert.Equal(testStringValue, rk.GetValue(testStringValueName)!.ToString());
     }
 
     [Fact]
-    public void CreateSubeKey_OnDeletedKeyShouldThrow()
+    public void CreateSbuKey_WithWhitespaceName()
+    {
+        const string name = "   ";
+        TestRegistryKey.CreateSubKey(name);
+        Assert.NotNull(TestRegistryKey.OpenSubKey(name));
+    }
+
+    [Fact]
+    public void CreateSubKey_OnDeletedKeyShouldThrow()
     {
         using var sub = TestRegistryKey.CreateSubKey("sub", writable: true);
         TestRegistryKey.DeleteKey("sub", true);
@@ -215,6 +221,5 @@ public partial class RegistryTestsBase
     [MemberData(nameof(TestRegistrySubKeyNames))]
     public void CreateSubKey_NonWritable_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, string subKeyName) =>
         Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(expected, () => TestRegistryKey.CreateSubKey(subKeyName, writable: false)!);
-
 
 }

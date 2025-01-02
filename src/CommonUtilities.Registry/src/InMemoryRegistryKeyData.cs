@@ -21,11 +21,12 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
     
     private readonly Dictionary<string, InMemoryRegistryKeyData> _subKeys;
     private readonly Dictionary<string, object> _values;
-    private readonly InMemoryRegistryKeyData? _parent;
     private readonly InMemoryRegistryCreationFlags _flags;
 
     private readonly bool _usePathLimit;
     private readonly bool _useTypeLimit;
+
+    private InMemoryRegistryKeyData? _parent;
 
     internal bool IsSystemKey { get; }
 
@@ -50,6 +51,13 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         InMemoryRegistryCreationFlags flags, 
         bool isSystemKey)
     {
+        if (subName is null)
+            throw new ArgumentNullException(nameof(subName));
+        if (subName.Length == 0)
+            throw new ArgumentException(nameof(subName));
+        if (parent is null && !isSystemKey)
+            throw new InvalidOperationException("Root keys must be marked as system keys!");
+
         var isCaseSensitive = flags.HasFlag(InMemoryRegistryCreationFlags.CaseSensitive);
         var stringComparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         
@@ -142,6 +150,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
             keyToDelete._subKeys.Clear();
             keyToDelete._values.Clear();
             keyToDelete._parent?._subKeys.Remove(keyToDelete.SubName);
+            keyToDelete._parent = null;
 
             OnRegistryChanged(keyToDelete, InMemoryRegistryChangeKind.TreeDelete);
         }
@@ -243,7 +252,9 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
 
     private bool Exists()
     {
-        return _parent is null || _parent._subKeys.ContainsKey(SubName);
+        if (IsSystemKey)
+            return true;
+        return _parent is not null;
     }
 
     private static string BuildFromHierarchyName(InMemoryRegistryKeyData? parent, string subName)

@@ -98,7 +98,7 @@ public class DownloadManagerTest
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(new Uri("file://"), output, null, null, CancellationToken.None));
 
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
     }
 
@@ -109,7 +109,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
         _configProvider.Setup(c => c.GetConfiguration())
@@ -130,7 +130,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
                 output.WriteByte(2);
@@ -162,11 +162,11 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
-            .Callback<Uri, Stream, ProgressUpdateCallback, CancellationToken>((_, stream, callback, _) =>
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
+            .Callback<Uri, Stream, DownloadUpdateCallback, CancellationToken>((_, stream, callback, _) =>
             {
                 stream.WriteByte(1);
-                callback(new ProgressUpdateStatus(1, 1, 0));
+                callback(new DownloadUpdate(1, 1, 0));
             })
             .Returns(Task.FromResult(new DownloadResult()));
 
@@ -176,7 +176,7 @@ public class DownloadManagerTest
 
         var called = false;
 
-        void Action(ProgressUpdateStatus status)
+        void Action(DownloadUpdate status)
         {
             Assert.Equal(1, status.BytesRead);
             Assert.Equal(1, status.TotalBytes);
@@ -196,7 +196,7 @@ public class DownloadManagerTest
         providerA.Setup(x => x.Name).Returns("A");
         providerA.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
         providerA.Setup(x =>
-                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
                 output.WriteByte(2);
@@ -228,7 +228,7 @@ public class DownloadManagerTest
         providerA.Setup(x => x.Name).Returns("A");
         providerA.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
         providerA.Setup(x =>
-                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
                 output.WriteByte(2);
@@ -239,7 +239,7 @@ public class DownloadManagerTest
         providerB.Setup(x => x.Name).Returns("B");
         providerB.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
         providerB.Setup(x =>
-                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+                x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
                 output.WriteByte(3);
@@ -284,7 +284,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
         var manager = CreateDownloadManager();
@@ -307,7 +307,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
 
@@ -328,7 +328,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
         _configProvider.Setup(c => c.GetConfiguration())
@@ -353,7 +353,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
         _configProvider.Setup(c => c.GetConfiguration())
@@ -382,7 +382,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Callback(() =>
             {
                 Assert.Equal(1, output.Position);
@@ -426,7 +426,7 @@ public class DownloadManagerTest
         var p = new Mock<IDownloadProvider>();
         p.Setup(x => x.Name).Returns("A");
         p.Setup(x => x.IsSupported(DownloadKind.File)).Returns(true);
-        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<ProgressUpdateCallback>(), CancellationToken.None))
+        p.Setup(x => x.DownloadAsync(It.IsAny<Uri>(), output, It.IsAny<DownloadUpdateCallback>(), CancellationToken.None))
             .Returns(Task.FromResult(new DownloadResult()));
 
         _configProvider.Setup(c => c.GetConfiguration())

@@ -44,7 +44,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     }
 
     /// <inheritdoc/>
-    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         return DownloadWithBitRate(uri, outputStream, progress, cancellationToken);
@@ -58,25 +58,25 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <param name="progress">Progress with already updated performance data.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    protected abstract Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected abstract Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken);
 
     private async Task<DownloadResult> DownloadWithBitRate(
         Uri uri,
         Stream outputStream,
-        ProgressUpdateCallback? progress,
+        DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var start = DateTime.Now;
         var lastProgressUpdate = start;
-        ProgressUpdateCallback? wrappedProgress = null;
+        DownloadUpdateCallback? wrappedProgress = null;
         if (progress != null)
             wrappedProgress = p =>
             {
                 var now = DateTime.Now;
                 var timeSpan = now - lastProgressUpdate;
                 var bitRate = 8.0 * p.BytesRead / timeSpan.TotalSeconds;
-                progress(new ProgressUpdateStatus(p.BytesRead, p.TotalBytes, bitRate));
+                progress(new DownloadUpdate(p.BytesRead, p.TotalBytes, bitRate));
                 lastProgressUpdate = now;
             };
         var downloadSummary = await DownloadAsyncCore(uri, outputStream, wrappedProgress, cancellationToken).ConfigureAwait(false);

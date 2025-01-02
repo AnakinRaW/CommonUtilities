@@ -34,7 +34,7 @@ public class DownloadManagerIntegrationTest
 
         Assert.False(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -65,7 +65,7 @@ public class DownloadManagerIntegrationTest
         Assert.Equal(5 * 1024 * 1024, file.Length);
         Assert.True(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -94,7 +94,7 @@ public class DownloadManagerIntegrationTest
 
         Assert.False(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -136,7 +136,7 @@ public class DownloadManagerIntegrationTest
 
         Assert.Equal(fileByteData, fs.File.ReadAllBytes(summary.Uri));
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -166,7 +166,7 @@ public class DownloadManagerIntegrationTest
 
         Assert.False(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -200,7 +200,7 @@ public class DownloadManagerIntegrationTest
         Assert.Equal(5 * 1024 * 1024, file.Length);
         Assert.True(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }
@@ -230,7 +230,7 @@ public class DownloadManagerIntegrationTest
 
         Assert.False(progressTriggered);
 
-        void ProgressMethod(ProgressUpdateStatus status)
+        void ProgressMethod(DownloadUpdate status)
         {
             progressTriggered = true;
         }

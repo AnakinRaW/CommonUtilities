@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// A simple pipeline that runs all steps on the thread pool in parallel.
 /// </summary>
-public abstract class ParallelPipeline : SimplePipeline<ParallelRunner>
+public abstract class ParallelPipeline : SimplePipeline<ParallelStepRunner>
 {
     private readonly int _workerCount;
 
@@ -23,8 +23,8 @@ public abstract class ParallelPipeline : SimplePipeline<ParallelRunner>
     }
 
     /// <inheritdoc/>
-    protected sealed override ParallelRunner CreateRunner()
+    protected sealed override ParallelStepRunner CreateRunner()
     {
-        return new ParallelRunner(_workerCount, ServiceProvider);
+        return new ParallelStepRunner(_workerCount, ServiceProvider);
     }
 }

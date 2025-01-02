@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
@@ -6,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// <summary>
 /// The exception that is thrown when there is no <see cref="IDownloadProvider"/> found for a download operation .
 /// </summary>
-public sealed class DownloadProviderNotFoundException : InvalidOperationException
+public sealed class DownloadProviderNotFoundException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the DownloadProviderNotFoundException class.

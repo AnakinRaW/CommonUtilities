@@ -16,7 +16,6 @@ using System.Security.Cryptography;
 
 namespace AnakinRaW.CommonUtilities.Test.Hashing;
 
-
 public class HashingServiceTest
 {
     private readonly HashingService _hashingService;

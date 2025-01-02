@@ -1,10 +1,11 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
 
 public abstract class InMemoryRegistryTestsBase : RegistryTestsBase
 {
-    protected sealed override IRegistry CreateRegistry()
+    private InMemoryRegistryCreationFlags CreateFlags()
     {
         var flags = InMemoryRegistryCreationFlags.Default;
 
@@ -14,9 +15,26 @@ public abstract class InMemoryRegistryTestsBase : RegistryTestsBase
             flags |= InMemoryRegistryCreationFlags.UseWindowsLengthLimits;
         if (HasPathLimits)
             flags |= InMemoryRegistryCreationFlags.OnlyUseWindowsDataTypes;
+        return flags;
+    }
+
+    protected sealed override IRegistry CreateRegistry()
+    {
+        var flags = CreateFlags();
         var registry = flags == InMemoryRegistryCreationFlags.Default ? new InMemoryRegistry() : new InMemoryRegistry(flags);
         Assert.Equal(flags, registry.Flags);
         return registry;
+    }
+
+    [Fact]
+    public void CtorThrows()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new InMemoryRegistryKeyData(RegistryView.Default, null!, null, CreateFlags(), true));
+        Assert.Throws<ArgumentException>(() =>
+            new InMemoryRegistryKeyData(RegistryView.Default, "", null, CreateFlags(), true));
+        Assert.Throws<InvalidOperationException>(() => 
+            new InMemoryRegistryKeyData(RegistryView.Default, "name", null, CreateFlags(), false));
     }
 }
 

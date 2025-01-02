@@ -3,18 +3,18 @@
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// A specialized <see cref="IRunner"/> which allows for synchronous waiting.
+/// A specialized <see cref="IStepRunner"/> which allows for synchronous waiting.
 /// </summary>
-public interface ISynchronizedRunner : IRunner
+public interface ISynchronizedStepRunner : IStepRunner
 {
     /// <summary>
-    /// Synchronously waits for this runner for all of its steps to be finished. 
+    /// Synchronously waits for this stepRunner for all of its steps to be finished. 
     /// </summary>
     /// <exception cref="AggregateException">If any of the steps failed with an exception.</exception>
     void Wait();
 
     /// <summary>
-    /// Synchronously waits for this runner for all of its steps to be finished. 
+    /// Synchronously waits for this stepRunner for all of its steps to be finished. 
     /// </summary>
     /// <param name="waitDuration">The time duration to wait.</param>
     /// <exception cref="TimeoutException">If <paramref name="waitDuration"/> expired.</exception>

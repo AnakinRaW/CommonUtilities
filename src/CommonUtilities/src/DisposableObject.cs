@@ -3,12 +3,8 @@
 namespace AnakinRaW.CommonUtilities;
 
 /// <summary>
-/// Base implementation for classes which shall implement the <see cref="IDisposable"/> interface.
+/// Base implementation for classes which implement the <see cref="IDisposable"/> interface.
 /// This class provides convenience like an event, a status flag and validation method.
-/// <br/>
-/// Disposable resources are divided in managed resources and unmanaged resources.
-/// Managed resources get disposed when explicitly calling <see cref="Dispose()"/> on the instance.
-/// Unmanaged resources additionally get disposed when the instance is finalized by the GC.
 /// </summary>
 public abstract class DisposableObject : IDisposable
 {
@@ -70,9 +66,8 @@ public abstract class DisposableObject : IDisposable
             {
                 _disposing?.Invoke(this, EventArgs.Empty);
                 _disposing = null;
-                DisposeManagedResources();
+                DisposeResources();
             }
-            DisposeNativeResources();
         }
         finally
         {
@@ -83,14 +78,7 @@ public abstract class DisposableObject : IDisposable
     /// <summary>
     /// Allows derived classes to provide custom dispose handling for managed resources.
     /// </summary>
-    protected virtual void DisposeManagedResources()
-    {
-    }
-
-    /// <summary>
-    /// Allows derived classes to provide custom dispose handling for native resources.
-    /// </summary>
-    protected virtual void DisposeNativeResources()
+    protected virtual void DisposeResources()
     {
     }
 }
