@@ -89,9 +89,15 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task Test_WaitForExitAsync_Canceled()
     {
-        var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
-        var p = Process.Start(new ProcessStartInfo(processName)
-            { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+        };
+        var p = Process.Start(processStartInfo)!;
         try
         {
             var cts = new CancellationTokenSource();
