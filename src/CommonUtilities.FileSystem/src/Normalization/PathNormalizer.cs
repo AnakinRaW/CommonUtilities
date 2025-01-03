@@ -11,9 +11,9 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Normalization;
 public static class PathNormalizer
 {
     /// <summary>
-    /// Normalizes a given path according to given normalization rules.
+    /// Normalizes the path contained in the specified character span according to specified normalization rules.
     /// </summary>
-    /// <param name="path">The input path.</param>
+    /// <param name="path">A read-only span of characters containing the path to normalize.</param>
     /// <param name="options">The options how to normalize.</param>
     /// <returns>The normalized path.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
@@ -21,17 +21,31 @@ public static class PathNormalizer
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
     public static string Normalize(string path, PathNormalizeOptions options)
     {
+        return Normalize(path.AsSpan(), options);
+    }
+
+    /// <summary>
+    /// Normalizes the specified path according to the specified normalization rules.
+    /// </summary>
+    /// <param name="path">The path to normalize.</param>
+    /// <param name="options">The options how to normalize.</param>
+    /// <returns>The normalized path.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
+    /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
+    public static string Normalize(ReadOnlySpan<char> path, PathNormalizeOptions options)
+    {
         var stringBuilder = new ValueStringBuilder(stackalloc char[PathExtensions.MaxShortPath]);
-        Normalize(path.AsSpan(), ref stringBuilder, options);
+        Normalize(path, ref stringBuilder, options);
         var result = stringBuilder.ToString();
         stringBuilder.Dispose();
         return result;
     }
 
     /// <summary>
-    /// Normalizes a given character span that represents a file path to a destination according to given normalization rules.
+    /// Normalizes the path contained in the specified character span to a preallocated character span with the specified normalization rules.
     /// </summary>
-    /// <param name="path">The path to normalize</param>
+    /// <param name="path">A read-only span of characters containing the path to normalize.</param>
     /// <param name="destination">The destination span which contains the normalized path.</param>
     /// <param name="options">The options how to normalize.</param>
     /// <returns>The number of characters written into the destination span.</returns>

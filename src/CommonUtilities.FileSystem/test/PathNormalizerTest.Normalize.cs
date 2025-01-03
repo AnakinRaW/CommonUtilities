@@ -15,27 +15,45 @@ public class PathNormalizerTest
         {
             PathNormalizer.Normalize(null!, new PathNormalizeOptions());
         });
-
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize("", new PathNormalizeOptions());
+            PathNormalizer.Normalize(string.Empty, new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize(new ReadOnlySpan<char>(), new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentException>(() =>
+        {
+            PathNormalizer.Normalize(string.Empty.AsSpan(), new PathNormalizeOptions());
         });
     }
 
 
     [Fact]
-    public void Test_Normalize_Span_TooShort()
+    public void Test_Normalize_Span_DefaultAndEmpty()
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
             Span<char> buffer = new char[10];
-            return PathNormalizer.Normalize(((string)null!).AsSpan(), buffer, new PathNormalizeOptions());
+            return PathNormalizer.Normalize(default, buffer, new PathNormalizeOptions());
         });
-
         Assert.Throws<ArgumentException>(() =>
         {
             Span<char> buffer = new char[10];
-            return PathNormalizer.Normalize("".AsSpan(), buffer, new PathNormalizeOptions());
+            return PathNormalizer.Normalize(string.Empty.AsSpan(), buffer, new PathNormalizeOptions());
+        });
+    }
+
+    [Fact]
+    public void Test_Normalize_Span_TooShort()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        {
+            const string value = "somePath";
+            Span<char> buffer = new char[1];
+            return PathNormalizer.Normalize(value.AsSpan(), buffer, new PathNormalizeOptions());
         });
     }
 
@@ -49,7 +67,12 @@ public class PathNormalizerTest
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
                 result);
 
+            var resultFromRos = PathNormalizer.Normalize(testData.Input.AsSpan(), testData.Options);
+            Assert.Equal(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
+                resultFromRos);
 
+            // Just give it some space with +10
             Span<char> buffer = new char[testData.Input.Length + 10];
             var charsWritten = PathNormalizer.Normalize(testData.Input.AsSpan(), buffer, testData.Options);
 
