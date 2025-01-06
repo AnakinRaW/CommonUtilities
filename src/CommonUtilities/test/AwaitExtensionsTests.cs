@@ -58,11 +58,17 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task Test_WaitForExitAsync_DoesNotCompleteTillKilled()
     {
-        var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+        };
+        var p = Process.Start(processStartInfo)!;
         var expectedExitCode =
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
-        var p = Process.Start(new ProcessStartInfo(processName)
-            { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
         try
         {
             var t = AwaitExtensions.WaitForExitAsync(p);

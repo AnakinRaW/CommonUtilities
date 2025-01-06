@@ -13,7 +13,7 @@ public class PathNormalizerTest
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize(null!, new PathNormalizeOptions());
+            PathNormalizer.Normalize((string)null!, new PathNormalizeOptions());
         });
         Assert.Throws<ArgumentException>(() =>
         {
