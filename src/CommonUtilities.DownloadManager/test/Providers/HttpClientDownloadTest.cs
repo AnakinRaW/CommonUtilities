@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testably.Abstractions.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
