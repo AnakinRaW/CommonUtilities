@@ -30,7 +30,7 @@
 		</PackageReference>
 		<PackageReference Include="Testably.Abstractions" Version="3.2.4" />
 		<PackageReference Include="Testably.Abstractions.Testing" Version="3.2.4" />
-		<PackageReference Include="xunit" Version="2.9.2" />
+		<PackageReference Include="xunit" Version="2.9.3" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
