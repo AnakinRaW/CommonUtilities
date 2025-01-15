@@ -62,7 +62,7 @@ public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISync
         token.ThrowIfCancellationRequested();
         _cancel = token;
         for (var index = 0; index < _workerCount; ++index)
-            _runnerTasks[index] = Task.Factory.StartNew(RunThreaded, CancellationToken.None);
+            _runnerTasks[index] = Task.Factory.StartNew(RunThreaded, TaskCreationOptions.LongRunning);
         return Task.WhenAll(_runnerTasks).WaitAsync(token);
     }
 
@@ -133,9 +133,9 @@ public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISync
                 if (!canceled)
                 {
                     if (ex.IsExceptionType<OperationCanceledException>())
-                        _logger?.LogTrace($"Activity threw exception {ex.GetType()}: {ex.Message}" + Environment.NewLine + $"{ex.StackTrace}");
+                        _logger?.LogTrace($"Step threw exception {ex.GetType()}: {ex.Message}" + Environment.NewLine + $"{ex.StackTrace}");
                     else
-                        _logger?.LogTrace(ex, $"Activity threw exception {ex.GetType()}: {ex.Message}");
+                        _logger?.LogTrace(ex, $"Step threw exception {ex.GetType()}: {ex.Message}");
                 }
                 var e = new StepErrorEventArgs(step)
                 {

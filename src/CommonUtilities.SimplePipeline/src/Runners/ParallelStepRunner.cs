@@ -74,8 +74,9 @@ public class ParallelStepRunner: StepRunner, ISynchronizedStepRunner
         ThrowIfCancelled(token);
         StepList.AddRange(StepQueue);
         _cancel = token;
+
         for (var index = 0; index < WorkerCount; ++index) 
-            _tasks[index] = Task.Run(InvokeThreaded, default);
+            _tasks[index] = Task.Factory.StartNew(InvokeThreaded, TaskCreationOptions.LongRunning);
     }
 
     private void InvokeThreaded()
@@ -96,9 +97,9 @@ public class ParallelStepRunner: StepRunner, ISynchronizedStepRunner
                 if (!canceled)
                 {
                     if (ex.IsExceptionType<OperationCanceledException>())
-                        Logger?.LogTrace($"Activity threw exception {ex.GetType()}: {ex.Message}" + Environment.NewLine + $"{ex.StackTrace}");
+                        Logger?.LogTrace($"Step threw exception {ex.GetType()}: {ex.Message}" + Environment.NewLine + $"{ex.StackTrace}");
                     else
-                        Logger?.LogTrace(ex, $"Activity threw exception {ex.GetType()}: {ex.Message}");
+                        Logger?.LogTrace(ex, $"Step threw exception {ex.GetType()}: {ex.Message}");
                 }
                 var e = new StepErrorEventArgs(step)
                 {
