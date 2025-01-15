@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 /// <summary>
 /// A file name validator for the Windows.
 /// </summary>
-public class WindowsFileNameValidator : FileNameValidator
+public sealed class WindowsFileNameValidator : FileNameValidator
 {
     /// <summary>
     /// Gets a singleton instance of the <see cref="WindowsFileNameValidator"/> class.
@@ -26,6 +26,10 @@ public class WindowsFileNameValidator : FileNameValidator
         //(char)21, (char)22, (char)23, (char)24, (char)25, (char)26, (char)27, (char)28, (char)29, (char)30,
         //(char)31,
     ];
+
+    private WindowsFileNameValidator()
+    {
+    }
 
     /// <summary>
     /// Checks whether a string represent a valid file name

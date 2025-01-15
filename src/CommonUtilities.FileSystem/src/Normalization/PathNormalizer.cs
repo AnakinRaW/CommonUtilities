@@ -19,7 +19,7 @@ public static class PathNormalizer
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
-    public static string Normalize(string path, PathNormalizeOptions options)
+    public static string Normalize(string path, in PathNormalizeOptions options)
     {
         return Normalize(path.AsSpan(), options);
     }
@@ -33,7 +33,7 @@ public static class PathNormalizer
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
-    public static string Normalize(ReadOnlySpan<char> path, PathNormalizeOptions options)
+    public static string Normalize(ReadOnlySpan<char> path, in PathNormalizeOptions options)
     {
         var stringBuilder = new ValueStringBuilder(stackalloc char[PathExtensions.MaxShortPath]);
         Normalize(path, ref stringBuilder, options);
@@ -53,7 +53,7 @@ public static class PathNormalizer
     /// <exception cref="ArgumentException">If the <paramref name="destination"/> is too small.</exception>
     /// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
     /// <exception cref="IOException">The normalization failed due to an internal error.</exception>
-    public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, PathNormalizeOptions options)
+    public static int Normalize(ReadOnlySpan<char> path, Span<char> destination, in PathNormalizeOptions options)
     {
         var stringBuilder = new ValueStringBuilder(destination);
         Normalize(path, ref stringBuilder, options);
@@ -62,7 +62,7 @@ public static class PathNormalizer
         return charsWritten;
     }
 
-    internal static void Normalize(ReadOnlySpan<char> path, ref ValueStringBuilder sb, PathNormalizeOptions options)
+    internal static void Normalize(ReadOnlySpan<char> path, ref ValueStringBuilder sb, in PathNormalizeOptions options)
     {
         if (path == ReadOnlySpan<char>.Empty)
             throw new ArgumentNullException(nameof(path));
@@ -88,7 +88,7 @@ public static class PathNormalizer
 
         // As the trailing directory normalization might add new separators, this step must come after.
         if (options.UnifyDirectorySeparators)
-            GetPathWithDirectorySeparator(sb.RawChars, options.UnifySeparatorKind);
+            NormalizeDirectorySeparator(sb.RawChars, in options);
 
         NormalizeCasing(sb.RawChars, options.UnifyCase);
     }
@@ -130,9 +130,16 @@ public static class PathNormalizer
         return char.ToUpperInvariant(c);
     }
 
-    private static void GetPathWithDirectorySeparator(Span<char> pathSpan, DirectorySeparatorKind separatorKind)
+    private static void NormalizeDirectorySeparator(Span<char> pathSpan, in PathNormalizeOptions options)
     {
-        var separatorChar = GetSeparatorChar(separatorKind);
+        if (PathExtensions.IsUnixLikePlatform && options is
+            {
+                TreatBackslashAsSeparator: false,
+                UnifySeparatorKind: DirectorySeparatorKind.Linux or DirectorySeparatorKind.System
+            })
+            return;
+
+        var separatorChar = GetSeparatorChar(options.UnifySeparatorKind);
 
         for (var i = 0; i < pathSpan.Length; i++)
         {

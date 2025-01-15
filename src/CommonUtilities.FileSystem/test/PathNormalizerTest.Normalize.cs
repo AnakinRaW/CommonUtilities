@@ -13,20 +13,20 @@ public class PathNormalizerTest
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize((string)null!, new PathNormalizeOptions());
+            PathNormalizer.Normalize((string)null!, default);
         });
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize(string.Empty, new PathNormalizeOptions());
+            PathNormalizer.Normalize(string.Empty, default);
         });
 
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize(new ReadOnlySpan<char>(), new PathNormalizeOptions());
+            PathNormalizer.Normalize(new ReadOnlySpan<char>(), default);
         });
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize(string.Empty.AsSpan(), new PathNormalizeOptions());
+            PathNormalizer.Normalize(string.Empty.AsSpan(), default);
         });
     }
 
@@ -105,7 +105,7 @@ public class PathNormalizerTest
         yield return new NormalizeTestData
         {
             Input = "a/b\\C",
-            ExpectedLinux = "a/b/C",
+            ExpectedLinux = "a/b\\C",
             ExpectedWindows = "a\\b\\C",
             Options =
                 new PathNormalizeOptions
@@ -118,7 +118,33 @@ public class PathNormalizerTest
             Input = "a/b\\C",
             ExpectedLinux = "a/b/C",
             ExpectedWindows = "a\\b\\C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    TreatBackslashAsSeparator = true,
+                    UnifyDirectorySeparators = true
+                }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a/b\\C",
+            ExpectedWindows = "a\\b\\C",
             Options = PathNormalizeOptions.UnifySeparators
+        };
+
+        // Forces Linux Dir separator unification
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a/b\\C",
+            ExpectedWindows = "a/b/C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    UnifyDirectorySeparators = true,
+                    UnifySeparatorKind = DirectorySeparatorKind.Linux
+                }
         };
 
         // Forces Linux Dir separator unification
@@ -131,6 +157,7 @@ public class PathNormalizerTest
                 new PathNormalizeOptions
                 {
                     UnifyDirectorySeparators = true,
+                    TreatBackslashAsSeparator = true,
                     UnifySeparatorKind = DirectorySeparatorKind.Linux
                 }
         };
@@ -145,6 +172,19 @@ public class PathNormalizerTest
                 new PathNormalizeOptions
                 {
                     UnifyDirectorySeparators = true,
+                    UnifySeparatorKind = DirectorySeparatorKind.Windows
+                }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a\\b\\C",
+            ExpectedWindows = "a\\b\\C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    UnifyDirectorySeparators = true,
+                    TreatBackslashAsSeparator = true,
                     UnifySeparatorKind = DirectorySeparatorKind.Windows
                 }
         };

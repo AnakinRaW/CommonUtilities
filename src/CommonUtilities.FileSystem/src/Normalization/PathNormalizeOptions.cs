@@ -56,6 +56,13 @@ public record struct PathNormalizeOptions
     public bool UnifyDirectorySeparators { get; init; }
 
     /// <summary>
+    /// Gets or sets whether directory separator normalization on a Linux system shall treat backslash characters '\'
+    /// as a separator and normalize it. When set to <see langword="true"/>, a backslash character is treated as a directory separator.
+    /// When set to <see langword="false"/>, a backslash character is not treated as a directory separator and thus is not getting normalized.
+    /// </summary>
+    public bool TreatBackslashAsSeparator { get; init; }
+
+    /// <summary>
     /// Gets or sets a value how directory separators shall be treated. Default is <see cref="DirectorySeparatorKind.System"/>.
     /// </summary>
     public DirectorySeparatorKind UnifySeparatorKind { get; init; }
