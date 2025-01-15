@@ -8,7 +8,7 @@ public class PathNormalizerOptionsTest
     [Fact]
     public void Default()
     {
-        var options = default(PathNormalizeOptions);
+        var options = new PathNormalizeOptions();
         Assert.False(options.TreatBackslashAsSeparator);
         Assert.False(options.UnifyDirectorySeparators);
         Assert.Equal(DirectorySeparatorKind.System, options.UnifySeparatorKind);

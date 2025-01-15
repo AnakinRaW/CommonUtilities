@@ -13,20 +13,44 @@ public class PathNormalizerTest
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize((string)null!, default);
+            PathNormalizer.Normalize((string)null!, new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize("abc", null!);
         });
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize(string.Empty, default);
+            PathNormalizer.Normalize(string.Empty, new PathNormalizeOptions());
         });
 
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize(new ReadOnlySpan<char>(), default);
+            PathNormalizer.Normalize(new ReadOnlySpan<char>(), new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize("abc".AsSpan(), null!);
         });
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize(string.Empty.AsSpan(), default);
+            PathNormalizer.Normalize(string.Empty.AsSpan(), new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            var buffer = new char[4];
+            PathNormalizer.Normalize(ReadOnlySpan<char>.Empty, buffer, new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            var buffer =  new char[4];
+            PathNormalizer.Normalize("abc".AsSpan(), buffer, null!);
+        });
+        Assert.Throws<ArgumentException>(() =>
+        {
+            var buffer = new char[4];
+            PathNormalizer.Normalize("".AsSpan(), buffer, new PathNormalizeOptions());
         });
     }
 
@@ -92,13 +116,6 @@ public class PathNormalizerTest
             ExpectedLinux = "a/b\\C",
             ExpectedWindows = "a/b\\C",
             Options = new PathNormalizeOptions()
-        };
-        yield return new NormalizeTestData
-        {
-            Input = "a/b\\C",
-            ExpectedLinux = "a/b\\C",
-            ExpectedWindows = "a/b\\C",
-            Options = default
         };
 
         // Default Dir separator unification

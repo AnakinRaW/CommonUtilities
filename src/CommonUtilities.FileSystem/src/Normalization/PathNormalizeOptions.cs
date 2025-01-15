@@ -6,7 +6,7 @@
 /// <remarks>
 /// The <see cref="PathNormalizeOptions"/> structure includes some static properties that return predefined options.
 /// </remarks>
-public record struct PathNormalizeOptions
+public sealed class PathNormalizeOptions
 {
     /// <summary>
     /// Returns a <see cref="PathNormalizeOptions"/> to normalize paths using the current system's primary directory separators.
