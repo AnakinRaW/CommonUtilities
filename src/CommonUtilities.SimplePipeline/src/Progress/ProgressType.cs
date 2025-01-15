@@ -34,4 +34,26 @@ public readonly struct ProgressType : IEquatable<ProgressType>
     {
         return Id.GetHashCode();
     }
+
+    /// <summary>
+    /// Compares two values to determine equality.
+    /// </summary>
+    /// <param name="left">The value to compare with <paramref name="right"/>.</param>
+    /// <param name="right">The value to compare with <paramref name="left"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator ==(ProgressType left, ProgressType right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Compares two values to determine inequality.
+    /// </summary>
+    /// <param name="left">The value to compare with <paramref name="right"/>.</param>
+    /// <param name="right">The value to compare with <paramref name="left"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is not equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(ProgressType left, ProgressType right)
+    {
+        return !(left == right);
+    }
 }

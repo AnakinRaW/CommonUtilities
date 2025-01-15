@@ -12,14 +12,14 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 public abstract class PipelineStep : DisposableObject, IStep
 {
     /// <summary>
-    /// Gets the service provider of this step.
+    /// Returns the service provider of this step.
     /// </summary>
-    protected IServiceProvider Services { get; }
+    protected readonly IServiceProvider Services;
 
     /// <summary>
-    /// Gets the logger of this step.
+    /// Returns the logger of this step.
     /// </summary>
-    protected ILogger? Logger { get; }
+    protected readonly ILogger? Logger;
 
     /// <summary>
     /// Gets the exception that occurred during execution or <see langword="null"/> if no error occurred.
