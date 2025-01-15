@@ -60,7 +60,7 @@ public class StepRunner : DisposableObject, IStepRunner
         return Task.Run(() =>
         {
             Invoke(token);
-        }, default);
+        }, CancellationToken.None);
     }
 
     /// <inheritdoc/>

@@ -70,7 +70,6 @@ public abstract class Pipeline : DisposableObject, IPipeline
 
         try
         {
-
             try
             {
                 _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
