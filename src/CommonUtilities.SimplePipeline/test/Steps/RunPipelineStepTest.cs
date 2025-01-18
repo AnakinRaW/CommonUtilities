@@ -2,62 +2,67 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using Moq;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class RunPipelineStepTest
+public class RunPipelineStepTest : CommonTestBase
 {
-    [Fact]
-    public void Test_Run()
+    private class DelegatePipeline(Func<CancellationToken, Task> action, IServiceProvider serviceProvider) : Pipeline(serviceProvider)
     {
-        var pipeline = new Mock<IPipeline>();
-
-        var run = false;
-        pipeline.Setup(p => p.RunAsync(default)).Returns(Task.Run(async () =>
+        protected override Task<bool> PrepareCoreAsync()
         {
-            await Task.Delay(3000).ConfigureAwait(false);
-            run = true;
-        }));
+            return Task.FromResult(true);
+        }
 
-        var step = new RunPipelineStep(pipeline.Object, new Mock<IServiceProvider>().Object);
-
-        step.Run(default);
-        Assert.True(run);
+        protected override Task RunCoreAsync(CancellationToken token)
+        {
+            return action(token);
+        }
     }
 
     [Fact]
-    public void Test_Run_PipelineFails()
+    public void Run()
     {
-        var pipeline = new Mock<IPipeline>();
+        var ran = false;
 
-        pipeline.Setup(p => p.RunAsync(default))
-            .Returns(() => Task.Run(() => throw new ApplicationException("test")));
+        var pipeline = new DelegatePipeline(async ct =>
+        {
+            await Task.Delay(3000, ct).ConfigureAwait(false);
+            ran = true;
 
-        var step = new RunPipelineStep(pipeline.Object, new Mock<IServiceProvider>().Object);
+        },ServiceProvider);
 
-        Assert.Throws<ApplicationException>(() => step.Run(default));
+        var step = new RunPipelineStep(pipeline, ServiceProvider);
+
+        step.Run(CancellationToken.None);
+        Assert.True(ran);
     }
 
     [Fact]
-    public void Test_Run_Cancel()
+    public void Run_PipelineFails()
     {
-        var pipeline = new Mock<IPipeline>();
+        var pipeline = new DelegatePipeline(_ => throw new ApplicationException("test"), ServiceProvider);
 
-        var run = false;
+        var step = new RunPipelineStep(pipeline, ServiceProvider);
 
+        Assert.Throws<ApplicationException>(() => step.Run(CancellationToken.None));
+    }
+
+    [Fact]
+    public void Run_Cancel()
+    {
         var cts = new CancellationTokenSource();
-        pipeline.Setup(p => p.RunAsync(cts.Token))
-            .Returns(() => Task.Run(() =>
-            {
-                cts.Token.ThrowIfCancellationRequested();
-            }));
 
-        var step = new RunPipelineStep(pipeline.Object, new Mock<IServiceProvider>().Object);
+        var pipeline = new DelegatePipeline(async ct =>
+        {
+            await Task.Run(() => cts.Cancel(), CancellationToken.None);
+            ct.ThrowIfCancellationRequested();
+        }, ServiceProvider);
 
+        var step = new RunPipelineStep(pipeline, ServiceProvider);
 
-        cts.Cancel(); 
-        Assert.Throws<OperationCanceledException>(() => step.Run(cts.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => step.Run(cts.Token));
     }
 }

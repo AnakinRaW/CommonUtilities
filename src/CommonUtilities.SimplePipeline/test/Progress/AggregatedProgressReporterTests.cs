@@ -1,11 +1,12 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 using Moq;
 using System.Collections.Generic;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;
 
-public class AggregatedProgressReporterTests
+public class AggregatedProgressReporterTests : CommonTestBase
 {
     private readonly Mock<IProgressReporter<TestInfo>> _progressReporter;
     private readonly AggregatedProgressReporter<TestStep, TestInfo> _aggregatedProgressReporter;
@@ -21,9 +22,9 @@ public class AggregatedProgressReporterTests
     {
         var steps = new List<TestStep>
         {
-            new(1, "Step 1"),
-            new(2, "Step 2"),
-            new(3, "Step 3")
+            new(1, "Step 1", ServiceProvider),
+            new(2, "Step 2", ServiceProvider),
+            new(3, "Step 3", ServiceProvider)
         };
 
         _aggregatedProgressReporter.Initialize(steps);
@@ -34,7 +35,7 @@ public class AggregatedProgressReporterTests
     [Fact]
     public void Test_Report_IgnoresUnregisteredStep()
     {
-        var step = new TestStep(1, "Step 1");
+        var step = new TestStep(1, "Step 1", ServiceProvider);
         _aggregatedProgressReporter.Report(step, 0.5);
 
         _progressReporter.Verify(
@@ -45,8 +46,8 @@ public class AggregatedProgressReporterTests
     [Fact]
     public void Test_Report_ReportsProgress()
     {
-        var step1 = new TestStep(1, "Step 1");
-        var step2 = new TestStep(2, "Step 2");
+        var step1 = new TestStep(1, "Step 1", ServiceProvider);
+        var step2 = new TestStep(2, "Step 2", ServiceProvider);
         var steps = new List<TestStep> { step1, step2 };
 
         _aggregatedProgressReporter.Initialize(steps);

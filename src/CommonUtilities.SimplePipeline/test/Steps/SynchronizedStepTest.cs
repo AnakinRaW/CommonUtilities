@@ -1,57 +1,40 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Moq.Protected;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class SynchronizedStepTest
+public class SynchronizedStepTest : CommonTestBase
 {
     [Fact]
-    public void Test_Wait_ThrowsTimeoutException()
+    public void Wait_ThrowsTimeoutException()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
-
-        Assert.Throws<TimeoutException>(() => step.Object.Wait(TimeSpan.Zero));
+        var step = new TestSyncStep(_ => { }, ServiceProvider);
+        // Do not run the step
+        Assert.Throws<TimeoutException>(() => step.Wait(TimeSpan.Zero));
     }
 
     [Fact]
-    public void Test_Run_ThrowsWait()
+    public void Run_ThrowsWait()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
+        var expectedException = new Exception("Test");
+        var step = new TestSyncStep(_ => throw expectedException, ServiceProvider);
 
+        Assert.Throws<Exception>(() => step.Run(CancellationToken.None));
 
-        step.Protected().Setup("RunSynchronized", false, (CancellationToken)default)
-            .Callback(() => throw new Exception());
-
-        Assert.Throws<Exception>(() => step.Object.Run(default));
-
-        step.Object.Wait();
+        // Should not block
+        step.Wait();
     }
 
     [Fact]
-    public void Test_Run_Cancelled_ThrowsOperationCanceledException()
+    public void Run_Cancelled_ThrowsOperationCanceledException()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
+        var step = new TestSyncStep(ct => { ct.ThrowIfCancellationRequested(); }, ServiceProvider);
 
         var flag = false;
-        step.Object.Canceled += delegate
+        step.Canceled += delegate
         {
             flag = true;
         };
@@ -59,57 +42,40 @@ public class SynchronizedStepTest
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
+        Assert.Throws<OperationCanceledException>(() => step.Run(cts.Token));
 
-        step.Protected().Setup("RunSynchronized", false, cts.Token)
-            .Callback<CancellationToken>(t => t.ThrowIfCancellationRequested());
+        // Should not block
+        step.Wait();
 
-        Assert.Throws<OperationCanceledException>(() => step.Object.Run(cts.Token));
-
-        step.Object.Wait();
         Assert.True(flag);
     }
 
     [Fact]
-    public void Test_Wait()
+    public void Wait()
     {
-        var sc = new ServiceCollection();
-        var step = new TestSync(sc.BuildServiceProvider());
+        var flag = false;
+        var step = new TestSyncStep(_ =>
+        {
+            Task.Delay(1000, CancellationToken.None).Wait(CancellationToken.None);
+            flag = true;
+        }, ServiceProvider);
 
-        Task.Run(() => step.Run(default));
+        Task.Run(() => step.Run(CancellationToken.None)).Forget();
+       
         step.Wait();
-        Assert.True(step.Flag);
-    }
 
-    private class TestSync : SynchronizedStep
-    {
-        public bool Flag;
-        public TestSync(IServiceProvider serviceProvider) : base(serviceProvider)
-        {
-        }
-
-        protected override void RunSynchronized(CancellationToken token)
-        {
-            Task.Delay(500, token);
-            Flag = true;
-        }
+        Assert.True(flag);
     }
 
     [Fact]
-    public void Test_Wait_WithTimeout()
+    public void Wait_WithTimeout()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<SynchronizedStep>(sc.BuildServiceProvider())
+        var step = new TestSyncStep(_ =>
         {
-            CallBase = true
-        };
-
-        step.Protected().Setup("RunSynchronized", false, (CancellationToken)default)
-            .Callback(() =>
-            {
-                Task.Delay(1000).Wait();
-            });
-
-        Task.Factory.StartNew(() => step.Object.Run(default), default, TaskCreationOptions.None, TaskScheduler.Default);
-        Assert.Throws<TimeoutException>(() => step.Object.Wait(TimeSpan.FromMilliseconds(100)));
+            Task.Delay(1000, CancellationToken.None).Wait(CancellationToken.None);
+        }, ServiceProvider);
+        
+        Task.Factory.StartNew(() => step.Run(CancellationToken.None), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+        Assert.Throws<TimeoutException>(() => step.Wait(TimeSpan.FromMilliseconds(100)));
     }
 }

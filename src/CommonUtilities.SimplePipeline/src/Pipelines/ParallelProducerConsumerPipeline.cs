@@ -111,13 +111,6 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
         if (_preparationException is not null)
             throw _preparationException;
 
-        ThrowIfAnyStepsFailed(_stepRunner.Steps);
-    }
-
-    /// <inheritdoc />
-    protected override void DisposeResources()
-    {
-        base.DisposeResources();
-        _stepRunner.Dispose();
+        ThrowIfAnyStepsFailed(_stepRunner.ExecutedSteps);
     }
 }

@@ -8,7 +8,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// The execution engine to run one or many <see cref="IStep"/>s.
 /// </summary>
-public interface IStepRunner : IDisposable
+public interface IStepRunner
 {
     /// <summary>
     /// The event that is raised when the execution of an <see cref="IStep"/> fails with an exception.
@@ -16,9 +16,9 @@ public interface IStepRunner : IDisposable
     event EventHandler<StepErrorEventArgs>? Error;
 
     /// <summary>
-    /// Gets a read-only list of only those steps that are scheduled for execution for the <see cref="IStepRunner"/>.
+    /// Gets a read-only list of only those steps were executed by the <see cref="IStepRunner"/>.
     /// </summary>
-    public IReadOnlyList<IStep> Steps { get; }
+    public IReadOnlyCollection<IStep> ExecutedSteps { get; }
 
     /// <summary>
     /// Runs all queued steps.

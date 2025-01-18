@@ -12,6 +12,10 @@
 		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline.Test</AssemblyName>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="GitHubActionsTestLogger" Version="2.4.1">
 		  <PrivateAssets>all</PrivateAssets>
@@ -35,6 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\CommonUtilities.TestingUtilities\CommonUtilities.TestingUtilities.csproj" />
 	  <ProjectReference Include="..\src\CommonUtilities.SimplePipeline.csproj" />
 	</ItemGroup>
 

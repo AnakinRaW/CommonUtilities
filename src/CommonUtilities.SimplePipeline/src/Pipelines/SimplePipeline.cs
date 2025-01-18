@@ -78,13 +78,6 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
         if (!PipelineFailed)
             return;
 
-        ThrowIfAnyStepsFailed(_buildStepRunner.Steps);
-    }
-
-    /// <inheritdoc />
-    protected override void DisposeResources()
-    {
-        base.DisposeResources();
-        _buildStepRunner.Dispose();
+        ThrowIfAnyStepsFailed(_buildStepRunner.ExecutedSteps);
     }
 }

@@ -1,42 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class ParallelProducerConsumerStepRunnerTest
+public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<ParallelProducerConsumerStepRunner>
 {
-    [Fact]
-    public async Task Test_Run_WaitNotFinished()
+    public override bool PreservesStepExecutionOrder => false;
+
+    protected override ParallelProducerConsumerStepRunner CreateStepRunner()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
+        return CreateConsumerStepRunner();
+    }
 
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
+    private ParallelProducerConsumerStepRunner CreateConsumerStepRunner(int workerCount = 2)
+    {
+        return new ParallelProducerConsumerStepRunner(workerCount, ServiceProvider);
+    }
 
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
+    protected override void FinishAdding(ParallelProducerConsumerStepRunner runner)
+    {
+        runner.Finish();
+    }
+
+    [Fact]
+    public async Task Run_WaitNotFinished()
+    {
+        var runner = CreateStepRunner();
 
         var tsc1 = new TaskCompletionSource<int>();
         var tsc2 = new TaskCompletionSource<int>();
 
-        s1.Setup(t => t.Run(default)).Callback(() =>
-        {
-            tsc1.SetResult(1);
-        });
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            tsc2.SetResult(1);
-        });
-        
-        
-        _ = runner.RunAsync(default);
+        var s1 = new TestStep(_ => tsc1.SetResult(1), ServiceProvider);
+        var s2 = new TestStep(_ => tsc2.SetResult(1), ServiceProvider);
+
+        runner.AddStep(s1);
+        runner.AddStep(s2);
+
+        _ = runner.RunAsync(CancellationToken.None);
 
         await tsc1.Task;
         await tsc1.Task;
@@ -45,102 +50,70 @@ public class ParallelProducerConsumerStepRunnerTest
     }
 
     [Fact]
-    public async Task Test_Run_AwaitDoesNotThrow()
+    public async Task Run_AwaitDoesNotThrow()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
-
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
-
-        runner.Finish();
-
-        s1.Setup(t => t.Run(default)).Throws<Exception>();
+        var runner = CreateStepRunner();
 
         var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran2 = true;
-        });
+        var s1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
+        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
 
+        runner.AddStep(s1);
+        runner.AddStep(s2);
 
-        await runner.RunAsync(default);
+        runner.Finish();
+        
+        await runner.RunAsync(CancellationToken.None);
         Assert.NotNull(runner.Exception);
+        Assert.Equal("Test", runner.Exception.InnerExceptions.First()!.Message);
         Assert.True(ran2);
 
-        Assert.Equal([s1.Object, s2.Object], new HashSet<IStep>(runner.Steps));
+        Assert.Equivalent(new HashSet<IStep>([s1, s2]), runner.ExecutedSteps, true);
     }
 
     [Fact]
-    public void Test_Run_SyncWaitDoesThrow()
+    public void Run_SyncWait_Throws()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
-
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
-
-        runner.Finish();
-
-        s1.Setup(t => t.Run(default)).Throws<Exception>();
+        var runner = CreateStepRunner();
 
         var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran2 = true;
-        });
+        var s1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
+        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
 
+        runner.AddStep(s1);
+        runner.AddStep(s2);
 
-        runner.RunAsync(default);
+        runner.Finish();
+        
+        runner.RunAsync(CancellationToken.None);
 
         Assert.Throws<AggregateException>(() => runner.Wait());
 
         Assert.NotNull(runner.Exception);
+        Assert.Equal("Test", runner.Exception.InnerExceptions.First()!.Message);
         Assert.True(ran2);
     }
 
     [Fact]
-    public void Test_Run_AddDelayed()
+    public void Run_AddDelayed()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
-
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-        var s3 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
+        var runner = CreateStepRunner();
 
         var ran1 = false;
-        s1.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran1 = true;
-        });
         var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran2 = true;
-        });
-
         var ran3 = false;
-        s3.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran3 = true;
-        });
+        var s1 = new TestStep(_ => ran1 = true, ServiceProvider);
+        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
+        var s3 = new TestStep(_ => ran3 = true, ServiceProvider);
 
-
-        _ = runner.RunAsync(default);
+        runner.AddStep(s1);
+        runner.AddStep(s2);
+        
+        _ = runner.RunAsync(CancellationToken.None);
 
         Task.Run(() =>
         {
-            runner.AddStep(s3.Object);
+            runner.AddStep(s3);
             Task.Delay(1000);
             runner.Finish();
         });
@@ -153,93 +126,32 @@ public class ParallelProducerConsumerStepRunnerTest
     }
 
     [Fact]
-    public async Task Test_Run_AddDelayed_Await()
+    public async Task Run_AddDelayed_Await()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
-
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-        var s3 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
+        var runner = CreateStepRunner();
 
         var ran1 = false;
-        s1.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran1 = true;
-        });
         var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran2 = true;
-        });
-
         var ran3 = false;
-        s3.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran3 = true;
-        });
+        var s1 = new TestStep(_ => ran1 = true, ServiceProvider);
+        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
+        var s3 = new TestStep(_ => ran3 = true, ServiceProvider);
 
-
-        var runTask = runner.RunAsync(default);
+        runner.AddStep(s1);
+        runner.AddStep(s2);
+       
+        var runTask = runner.RunAsync(CancellationToken.None);
 
         Task.Run(async () =>
         {
-            runner.AddStep(s3.Object);
+            runner.AddStep(s3);
             await Task.Delay(1000);
             runner.Finish();
-        });
+
+        }).Forget();
 
         await runTask;
-
-        Assert.True(ran1);
-        Assert.True(ran2);
-        Assert.True(ran3);
-    }
-
-    [Fact]
-    public async Task Test_Run_AddDelayed_AwaitAndWait()
-    {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
-
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-        var s3 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-        runner.AddStep(s2.Object);
-
-        var ran1 = false;
-        s1.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran1 = true;
-        });
-        var ran2 = false;
-        s2.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran2 = true;
-        });
-
-        var ran3 = false;
-        s3.Setup(t => t.Run(default)).Callback(() =>
-        {
-            ran3 = true;
-        });
-
-
-        var runTask = runner.RunAsync(default);
-
-        Task.Run(() =>
-        {
-            runner.AddStep(s3.Object);
-            Task.Delay(1000);
-            runner.Finish();
-        });
-
-        await runTask;
+        // Should not block
         runner.Wait();
 
         Assert.True(ran1);
@@ -248,32 +160,23 @@ public class ParallelProducerConsumerStepRunnerTest
     }
 
     [Fact]
-    public async Task Test_Run_AddDelayed_Cancelled()
+    public async Task Run_AddDelayed_Cancelled()
     {
-        var sc = new ServiceCollection();
-        var runner = new ParallelProducerConsumerStepRunner(2, sc.BuildServiceProvider());
+        var runner = CreateStepRunner();
 
         var tcs = new TaskCompletionSource<int>();
 
-        var s1 = new Mock<IStep>();
-        var s2 = new Mock<IStep>();
-
-        runner.AddStep(s1.Object);
-
-        var cts = new CancellationTokenSource();
-
         var ran1 = false;
-        s1.Setup(t => t.Run(cts.Token)).Callback(() =>
+        var s1 = new TestStep(_ =>
         {
             ran1 = true;
             tcs.SetResult(0);
-        });
+        }, ServiceProvider);
+        var s2 = new TestStep(_ => Assert.Fail(), ServiceProvider);
 
-        var ran2 = false;
-        s2.Setup(t => t.Run(cts.Token)).Callback(() =>
-        {
-            ran2 = true;
-        });
+        runner.AddStep(s1);
+
+        var cts = new CancellationTokenSource();
 
         var runTask = runner.RunAsync(cts.Token);
 
@@ -281,15 +184,19 @@ public class ParallelProducerConsumerStepRunnerTest
         {
             await tcs.Task.ConfigureAwait(false);
             cts.Cancel();
-            runner.AddStep(s2.Object);
+            runner.AddStep(s2);
             runner.Finish();
-        }).Forget();
+        }, CancellationToken.None).Forget();
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await runTask);
+
+        await runTask;
 
         Assert.True(ran1);
-        Assert.False(ran2);
+        Assert.Equal([s1], runner.ExecutedSteps);
 
-        Assert.Equal([s1.Object], runner.Steps);
+        Assert.True(runner.IsCancelled);
+        Assert.NotNull(runner.Exception);
+
+        Assert.IsType<OperationCanceledException>(runner.Exception.InnerExceptions.First(), true);
     }
 }

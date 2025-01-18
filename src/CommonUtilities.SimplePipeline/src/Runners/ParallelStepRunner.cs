@@ -71,8 +71,6 @@ public class ParallelStepRunner: StepRunner, ISynchronizedStepRunner
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected override void Invoke(CancellationToken token)
     {
-        ThrowIfCancelled(token);
-        StepList.AddRange(StepQueue);
         _cancel = token;
 
         for (var index = 0; index < WorkerCount; ++index) 
@@ -85,10 +83,11 @@ public class ParallelStepRunner: StepRunner, ISynchronizedStepRunner
         var canceled = false;
         while (StepQueue.TryDequeue(out var step))
         {
-            ThrowIfDisposed();
             try
             {
                 ThrowIfCancelled(_cancel);
+
+                ExecutedStepsBag.Add(step);
                 step.Run(_cancel);
             }
             catch (Exception ex)

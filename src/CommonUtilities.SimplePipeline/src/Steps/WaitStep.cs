@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +24,7 @@ public sealed class WaitStep : PipelineStep
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public override string ToString() => "Waiting for other steps";
 
     /// <summary>

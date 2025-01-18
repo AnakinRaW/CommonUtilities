@@ -1,28 +1,39 @@
-﻿using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
+using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class WaitStepTest
+public class WaitStepTest : CommonTestBase
 {
     [Fact]
-    public void Test_Wait()
+    public void Wait()
     {
-        var runner = new Mock<ISynchronizedStepRunner>();
+        var runner = new ParallelStepRunner(2, ServiceProvider);
 
-        var sc = new ServiceCollection();
-        var step = new WaitStep(runner.Object, sc.BuildServiceProvider());
-
-        var flag = false;
-        runner.Setup(r => r.Wait()).Callback(() =>
+        var completed1 = false;
+        var completed2 = false;
+        runner.AddStep(new TestStep(_ =>
         {
-            flag = true;
-        });
+            Task.Delay(1000, CancellationToken.None).Wait(CancellationToken.None);
+            completed1 = true;
+        }, ServiceProvider));
+        runner.AddStep(new TestStep(_ =>
+        {
+            Task.Delay(1000, CancellationToken.None).Wait(CancellationToken.None);
+            completed2 = true;
+        }, ServiceProvider));
 
-        step.Run(default);
-        Assert.True(flag);
+        var step = new WaitStep(runner, ServiceProvider);
 
+        var runnerTask = runner.RunAsync(CancellationToken.None);
+        step.Run(CancellationToken.None);
+
+        Assert.True(runnerTask.IsCompleted);
+        Assert.True(completed1);
+        Assert.True(completed2);
     }
 }

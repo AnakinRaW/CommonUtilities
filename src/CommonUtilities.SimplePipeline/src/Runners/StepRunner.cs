@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,15 +11,15 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// <summary>
 /// Runner engine, which executes all queued <see cref="IStep"/> sequentially in the order they are queued. 
 /// </summary>
-public class StepRunner : DisposableObject, IStepRunner
+public class StepRunner : IStepRunner
 {
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
 
     /// <summary>
-    /// Gets a modifiable list of all steps scheduled for execution.
+    /// Gets a modifiable bag of all executed steps.
     /// </summary>
-    protected readonly List<IStep> StepList;
+    protected readonly ConcurrentBag<IStep> ExecutedStepsBag = new();
 
     /// <summary>
     /// Gets the queue of all to be performed steps.
@@ -32,11 +31,8 @@ public class StepRunner : DisposableObject, IStepRunner
     /// </summary>
     protected ILogger? Logger { get; }
 
-    /// <summary>
-    /// Gets a read-only list of all steps scheduled for execution.
-    /// </summary>
-    /// <remarks>Steps queued *after* <see cref="RunAsync"/> was called, are not included.</remarks>
-    public IReadOnlyList<IStep> Steps => new ReadOnlyCollection<IStep>(StepList);
+    /// <inheritdoc />
+    public IReadOnlyCollection<IStep> ExecutedSteps => ExecutedStepsBag.ToArray();
 
     internal bool IsCancelled { get; private set; }
 
@@ -50,7 +46,6 @@ public class StepRunner : DisposableObject, IStepRunner
         if (services == null) 
             throw new ArgumentNullException(nameof(services));
         StepQueue = new ConcurrentQueue<IStep>();
-        StepList = [];
         Logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
@@ -78,13 +73,14 @@ public class StepRunner : DisposableObject, IStepRunner
     protected virtual void Invoke(CancellationToken token)
     {
         var alreadyCancelled = false;
-        StepList.AddRange(StepQueue);
+
         while (StepQueue.TryDequeue(out var step))
         {
-            ThrowIfDisposed();
             try
             {
                 ThrowIfCancelled(token);
+
+                ExecutedStepsBag.Add(step);
                 step.Run(token);
             }
             catch (StopRunnerException)
@@ -136,13 +132,5 @@ public class StepRunner : DisposableObject, IStepRunner
         token.ThrowIfCancellationRequested();
         if (IsCancelled)
             throw new OperationCanceledException(token);
-    }
-
-    /// <inheritdoc/>
-    protected override void DisposeResources()
-    {
-        base.DisposeResources();
-        foreach (var step in Steps) 
-            step.Dispose();
     }
 }

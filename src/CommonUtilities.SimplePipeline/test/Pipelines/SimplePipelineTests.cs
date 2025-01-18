@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
+using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
@@ -10,7 +11,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class SimplePipelineTests
+public class SimplePipelineTests : CommonTestBase
 {
     [Fact]
     public async Task Test_Run_SimplePipelineRunsNormally()
@@ -26,7 +27,7 @@ public class SimplePipelineTests
         pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
         pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
-            new TestStep(1, "123")
+            new TestStep(1, "123", ServiceProvider)
         }));
 
         var pipeline = pipelineMock.Object;

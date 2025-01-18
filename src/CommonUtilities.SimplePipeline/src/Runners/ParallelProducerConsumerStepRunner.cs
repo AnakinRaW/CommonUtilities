@@ -12,7 +12,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// Runner engine, which executes all queued _steps parallel. Steps may be queued while step execution has been started.
 /// The execution can finish only if <see cref="Finish"/> was called explicitly.
 /// </summary>
-public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISynchronizedStepRunner
+public sealed class ParallelProducerConsumerStepRunner : ISynchronizedStepRunner
 { 
     /// <inheritdoc/>
     public event EventHandler<StepErrorEventArgs>? Error;
@@ -25,7 +25,7 @@ public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISync
     private CancellationToken _cancel;
 
     /// <inheritdoc/>
-    public IReadOnlyList<IStep> Steps => _steps.ToArray();
+    public IReadOnlyCollection<IStep> ExecutedSteps => _steps.ToArray();
 
     private BlockingCollection<IStep> StepQueue { get; }
 
@@ -59,11 +59,10 @@ public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISync
     /// <inheritdoc/>
     public Task RunAsync(CancellationToken token)
     {
-        token.ThrowIfCancellationRequested();
         _cancel = token;
         for (var index = 0; index < _workerCount; ++index)
             _runnerTasks[index] = Task.Factory.StartNew(RunThreaded, TaskCreationOptions.LongRunning);
-        return Task.WhenAll(_runnerTasks).WaitAsync(token);
+        return Task.WhenAll(_runnerTasks); //.WaitAsync(token);
     }
 
     /// <inheritdoc/>
@@ -99,22 +98,12 @@ public sealed class ParallelProducerConsumerStepRunner : DisposableObject, ISync
         StepQueue.Add(step, CancellationToken.None);
     }
 
-    /// <inheritdoc/>
-    protected override void DisposeResources()
-    {
-        base.DisposeResources();
-        StepQueue.Dispose();
-        foreach (var step in Steps) 
-            step.Dispose();
-    }
-
     private void RunThreaded()
     {
         var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancel);
         var canceled = false;
         foreach (var step in StepQueue.GetConsumingEnumerable())
         {
-            ThrowIfDisposed();
             try
             {
                 _cancel.ThrowIfCancellationRequested();

@@ -1,34 +1,40 @@
-﻿using Moq;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Threading;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class StepFailureExceptionTests
+public class StepFailureExceptionTests : CommonTestBase
 {
     [Fact]
-    public void Test_Ctor_WithNullFailedSteps_ThrowsArgumentNullException()
+    public void Ctor_WithNullFailedSteps_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new StepFailureException(null!));
     }
 
     [Fact]
-    public void Test_Message_WithNoFailedSteps_ReturnsEmptyString()
+    public void Message_WithNoFailedSteps_ReturnsEmptyString()
     {
-        var ex = new StepFailureException(new List<IStep>());
-
+        var ex = new StepFailureException([]);
         Assert.Equal(string.Empty, ex.Message);
     }
 
     [Fact]
     public void Test_Message_WithOneFailedStep_ReturnsErrorMessage()
     {
-        var step = new Mock<IStep>();
-        step.Setup(s => s.ToString()).Returns("TestStep");
-        step.Setup(s => s.Error).Returns(new Exception("TestError"));
+        var step = new TestStep(_ => throw new Exception("TestError"), ServiceProvider);
 
-        var ex = new StepFailureException(new List<IStep> { step.Object });
+        try
+        {
+            step.Run(CancellationToken.None);
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        var ex = new StepFailureException([step]);
 
         Assert.Equal("Step 'TestStep' failed with error: TestError", ex.Message);
     }
@@ -36,16 +42,28 @@ public class StepFailureExceptionTests
     [Fact]
     public void Test_Message_WithMultipleFailedSteps_ReturnsErrorMessage()
     {
-        var step1 = new Mock<IStep>();
-        step1.Setup(s => s.ToString()).Returns("TestStep1");
-        step1.Setup(s => s.Error).Returns(new Exception("TestError1"));
+        var step1 = new TestStep(_ => throw new Exception("TestError1"), ServiceProvider);
+        var step2 = new TestStep(_ => throw new Exception("TestError2"), ServiceProvider);
 
-        var step2 = new Mock<IStep>();
-        step2.Setup(s => s.ToString()).Returns("TestStep2");
-        step2.Setup(s => s.Error).Returns(new Exception("TestError2"));
+        try
+        {
+            step1.Run(CancellationToken.None);
+        }
+        catch
+        {
+            // Ignore
+        }
+        try
+        {
+            step2.Run(CancellationToken.None);
+        }
+        catch
+        {
+            // Ignore
+        }
 
-        var ex = new StepFailureException(new List<IStep> { step1.Object, step2.Object });
+        var ex = new StepFailureException([step1, step2]);
 
-        Assert.Equal("Step 'TestStep1' failed with error: TestError1;Step 'TestStep2' failed with error: TestError2", ex.Message);
+        Assert.Equal("Step 'TestStep' failed with error: TestError1;Step 'TestStep' failed with error: TestError2", ex.Message);
     }
 }
