@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,13 +7,11 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<ParallelProducerConsumerStepRunner>
+public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase<ParallelProducerConsumerStepRunner>
 {
-    public override bool PreservesStepExecutionOrder => false;
-
-    protected override ParallelProducerConsumerStepRunner CreateStepRunner()
+    protected override ParallelProducerConsumerStepRunner CreateParallelRunner(int workerCount = 2)
     {
-        return CreateConsumerStepRunner();
+        return CreateConsumerStepRunner(workerCount);
     }
 
     private ParallelProducerConsumerStepRunner CreateConsumerStepRunner(int workerCount = 2)
@@ -49,49 +46,25 @@ public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<Paralle
         Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromSeconds(2)));
     }
 
+
     [Fact]
-    public async Task Run_AwaitDoesNotThrow()
+    public async Task Run_WaitNotFinished_CancellationShouldFinish()
     {
         var runner = CreateStepRunner();
 
-        var ran2 = false;
-        var s1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
-        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
+        var cts = new CancellationTokenSource();
+        var task = runner.RunAsync(cts.Token);
 
-        runner.AddStep(s1);
-        runner.AddStep(s2);
+        // Give it some time
+        await Task.Delay(500, CancellationToken.None);
 
-        runner.Finish();
-        
-        await runner.RunAsync(CancellationToken.None);
+        cts.Cancel();
+
+        await task;
+
+        Assert.True(runner.IsCancelled);
         Assert.NotNull(runner.Exception);
-        Assert.Equal("Test", runner.Exception.InnerExceptions.First()!.Message);
-        Assert.True(ran2);
-
-        Assert.Equivalent(new HashSet<IStep>([s1, s2]), runner.ExecutedSteps, true);
-    }
-
-    [Fact]
-    public void Run_SyncWait_Throws()
-    {
-        var runner = CreateStepRunner();
-
-        var ran2 = false;
-        var s1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
-        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
-
-        runner.AddStep(s1);
-        runner.AddStep(s2);
-
-        runner.Finish();
-        
-        runner.RunAsync(CancellationToken.None);
-
-        Assert.Throws<AggregateException>(() => runner.Wait());
-
-        Assert.NotNull(runner.Exception);
-        Assert.Equal("Test", runner.Exception.InnerExceptions.First()!.Message);
-        Assert.True(ran2);
+        Assert.IsType<OperationCanceledException>(runner.Exception.InnerExceptions.First(), true);
     }
 
     [Fact]
@@ -142,10 +115,9 @@ public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<Paralle
        
         var runTask = runner.RunAsync(CancellationToken.None);
 
-        Task.Run(async () =>
+        Task.Run(() =>
         {
             runner.AddStep(s3);
-            await Task.Delay(1000);
             runner.Finish();
 
         }).Forget();
@@ -172,7 +144,8 @@ public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<Paralle
             ran1 = true;
             tcs.SetResult(0);
         }, ServiceProvider);
-        var s2 = new TestStep(_ => Assert.Fail(), ServiceProvider);
+        var ran2 = false;
+        var s2 = new TestStep(_ => ran2 = true, ServiceProvider);
 
         runner.AddStep(s1);
 
@@ -183,20 +156,72 @@ public class ParallelProducerConsumerStepRunnerTest : StepRunnerTestBase<Paralle
         Task.Run(async () =>
         {
             await tcs.Task.ConfigureAwait(false);
+            await Task.Delay(1000, CancellationToken.None); // Give it some time, so ensure the runner is internally blocking and waiting for the next step.
             cts.Cancel();
             runner.AddStep(s2);
-            runner.Finish();
         }, CancellationToken.None).Forget();
 
 
         await runTask;
 
         Assert.True(ran1);
+        Assert.False(ran2);
         Assert.Equal([s1], runner.ExecutedSteps);
 
         Assert.True(runner.IsCancelled);
         Assert.NotNull(runner.Exception);
 
         Assert.IsType<OperationCanceledException>(runner.Exception.InnerExceptions.First(), true);
+    }
+
+    [Fact]
+    public void AddStep_AddAfterFinish()
+    {
+        var runner = CreateStepRunner();
+        var s1 = new TestStep(_ => { }, ServiceProvider);
+        runner.AddStep(s1);
+
+        runner.Finish();
+
+        Assert.Throws<InvalidOperationException>(() => runner.AddStep(s1));
+    }
+
+    [Fact]
+    public async Task RunAsync_Cancelled()
+    {
+        // Have deterministic result
+        var runner = CreateParallelRunner(1);
+
+        var cts = new CancellationTokenSource();
+
+        var b = new ManualResetEvent(false);
+
+        StepErrorEventArgs? error = null!;
+        runner.Error += (_, e) =>
+        {
+            error = e;
+        };
+
+        var ran1 = false;
+        var step1 = new TestStep(_ =>
+        {
+            ran1 = true;
+            cts.Cancel();
+            b.Set();
+        }, ServiceProvider);
+
+        var ran2 = false;
+        var step2 = new TestStep(_ => ran2 = true, ServiceProvider);
+
+        runner.AddStep(step1);
+        runner.AddStep(step2);
+
+        FinishAdding(runner);
+
+        await runner.RunAsync(cts.Token);
+
+        // This is all we can test for, because we cannot know whether the cancellation was requested while fetching step queue data
+        // or the step was already fetched
+        Assert.True(runner.IsCancelled);
     }
 }

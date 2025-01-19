@@ -20,11 +20,11 @@ public class SimplePipelineTests : CommonTestBase
 
         var sp = sc.BuildServiceProvider();
 
-        var pipelineMock = new Mock<SimplePipeline<StepRunner>>(sp, false)
+        var pipelineMock = new Mock<SimplePipeline<SequentialStepRunner>>(sp, false)
         {
             CallBase = true
         };
-        pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
+        pipelineMock.Protected().Setup<SequentialStepRunner>("CreateRunner").Returns(new SequentialStepRunner(sp));
         pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             new TestStep(1, "123", ServiceProvider)
@@ -47,12 +47,12 @@ public class SimplePipelineTests : CommonTestBase
         s.Setup(i => i.Run(It.IsAny<CancellationToken>())).Throws<Exception>();
         s.Setup(i => i.Error).Returns(new Exception());
 
-        var pipelineMock = new Mock<SimplePipeline<StepRunner>>(sp, false)
+        var pipelineMock = new Mock<SimplePipeline<SequentialStepRunner>>(sp, false)
         {
             CallBase = true
         };
 
-        pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
+        pipelineMock.Protected().Setup<SequentialStepRunner>("CreateRunner").Returns(new SequentialStepRunner(sp));
         pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             s.Object,
@@ -79,12 +79,12 @@ public class SimplePipelineTests : CommonTestBase
         var s2 = new Mock<IStep>();
         s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() => flag = true);
 
-        var pipelineMock = new Mock<SimplePipeline<StepRunner>>(sp, false)
+        var pipelineMock = new Mock<SimplePipeline<SequentialStepRunner>>(sp, false)
         {
             CallBase = true
         };
 
-        pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
+        pipelineMock.Protected().Setup<SequentialStepRunner>("CreateRunner").Returns(new SequentialStepRunner(sp));
         pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             s1.Object,
@@ -112,12 +112,12 @@ public class SimplePipelineTests : CommonTestBase
         var s2 = new Mock<IStep>();
         s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() => flag = true);
 
-        var pipelineMock = new Mock<SimplePipeline<StepRunner>>(sp, true)
+        var pipelineMock = new Mock<SimplePipeline<SequentialStepRunner>>(sp, true)
         {
             CallBase = true
         };
 
-        pipelineMock.Protected().Setup<StepRunner>("CreateRunner").Returns(new StepRunner(sp));
+        pipelineMock.Protected().Setup<SequentialStepRunner>("CreateRunner").Returns(new SequentialStepRunner(sp));
         pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
         {
             s1.Object,

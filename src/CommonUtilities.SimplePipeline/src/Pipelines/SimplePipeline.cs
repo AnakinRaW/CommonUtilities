@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base class for a simple pipeline implementation utilizing one <see cref="StepRunner"/>.
+/// Base class for a simple pipeline implementation utilizing an <see cref="IStepRunner"/>.
 /// </summary>
 /// <typeparam name="TRunner">The type of the step stepRunner.</typeparam>
-public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRunner
+public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IStepRunner
 { 
     private IStepRunner _buildStepRunner = null!;
 

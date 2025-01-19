@@ -10,9 +10,9 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
 public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunner
 {
-    protected abstract T CreateStepRunner();
-
     public abstract bool PreservesStepExecutionOrder { get; }
+
+    protected abstract T CreateStepRunner(bool deterministic = false);
 
     protected virtual void FinishAdding(T runner)
     {
@@ -42,17 +42,8 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        StepErrorEventArgs? error = null;
-        runner.Error += (s, e) =>
-        {
-            Assert.Same(runner, s);
-            error = e;
-        };
-
-        var step = new TestStep(_ =>
-        {
-            Assert.Fail();
-        }, ServiceProvider);
+        var ran = false;
+        var step = new TestStep(_ => ran = true, ServiceProvider);
 
         runner.AddStep(step);
 
@@ -60,10 +51,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
 
         await runner.RunAsync(cts.Token);
 
-        Assert.NotNull(error);
-        Assert.True(error.Cancel);
-        Assert.Same(step, error.Step);
-
+        Assert.False(ran);
         Assert.Empty(runner.ExecutedSteps);
     }
 
@@ -79,14 +67,20 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
             error = e;
         };
 
-        var ran = false;
-        var step = new TestStep(_ =>
+        var ran1 = false;
+        var ran2 = false;
+        var step1 = new TestStep(_ =>
         {
-            ran = true;
+            ran1 = true;
             throw new Exception("Test");
         }, ServiceProvider);
+        var step2 = new TestStep(_ =>
+        {
+            ran2 = true;
+        }, ServiceProvider);
 
-        runner.AddStep(step);
+        runner.AddStep(step1);
+        runner.AddStep(step2);
 
         FinishAdding(runner);
 
@@ -94,10 +88,11 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
 
         Assert.NotNull(error);
         Assert.False(error.Cancel);
-        Assert.Same(step, error.Step);
+        Assert.Same(step1, error.Step);
 
-        Assert.True(ran);
-        Assert.Equal("Test", step.Error!.Message);
+        Assert.True(ran1);
+        Assert.True(ran2);
+        Assert.Equal("Test", step1.Error!.Message);
     }
 
     [Fact]
@@ -105,9 +100,10 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
     {
         var runner = CreateStepRunner();
 
+        var hasError = false;
         runner.Error += (_, _) =>
         {
-            Assert.Fail();
+            hasError = true;
         };
 
         var ranList = new List<string>();
@@ -133,6 +129,8 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
 
         await runnerTask;
 
+        Assert.False(hasError);
+
         if (PreservesStepExecutionOrder)
             Assert.Equal(["Step1", "Step2", "Step3"], ranList);
         else
@@ -144,7 +142,37 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
     [Fact]
     public async Task RunAsync_Cancellation()
     {
-        var runner = CreateStepRunner();
+        var runner = CreateStepRunner(true);
+
+        var ranList = new List<string>();
+        var cts = new CancellationTokenSource();
+        var step1 = new TestStep(_ =>
+        {
+            Task.Delay(1000).Wait();
+            ranList.Add("Step1");
+            cts.Cancel();
+
+        }, ServiceProvider);
+        var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
+
+        runner.AddStep(step1);
+        runner.AddStep(step2);
+
+        FinishAdding(runner);
+
+        var runnerTask = runner.RunAsync(cts.Token);
+
+        await runnerTask;
+
+        Assert.Equal(["Step1"], ranList);
+        Assert.Contains(step1, runner.ExecutedSteps);
+        Assert.DoesNotContain(step2, runner.ExecutedSteps);
+    }
+
+    [Fact]
+    public async Task RunAsync_StopRunner_ShouldStopExecution()
+    {
+        var runner = CreateStepRunner(true);
 
         StepErrorEventArgs? args = null!;
         runner.Error += (_, e) =>
@@ -161,17 +189,17 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
             cts.Cancel();
 
         }, ServiceProvider);
-        var step2 = new TestStep(_ => ranList.Add("Step1"), ServiceProvider);
+        var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
 
         runner.AddStep(step1);
         runner.AddStep(step2);
 
-        var runnerTask = runner.RunAsync(cts.Token);
-
         FinishAdding(runner);
 
+        var runnerTask = runner.RunAsync(cts.Token);
+
         await runnerTask;
-        
+
         if (PreservesStepExecutionOrder)
         {
             Assert.NotNull(args);

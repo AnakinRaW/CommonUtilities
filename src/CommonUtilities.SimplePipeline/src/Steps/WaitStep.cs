@@ -6,11 +6,11 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 
 /// <summary>
-/// A step that waits for a given <see cref="ISynchronizedStepRunner"/> to finish.
+/// A step that waits for a given <see cref="IParallelStepRunner"/> to finish.
 /// </summary>
 public sealed class WaitStep : PipelineStep
 {
-    private readonly ISynchronizedStepRunner _stepRunner;
+    private readonly IParallelStepRunner _stepRunner;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WaitStep"/> class with the specified stepRunner.
@@ -18,7 +18,7 @@ public sealed class WaitStep : PipelineStep
     /// <param name="stepRunner">The step runner.</param>
     /// <param name="serviceProvider">The service provider.</param>
     /// <exception cref="ArgumentNullException"><paramref name="stepRunner"/> or <paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    public WaitStep(ISynchronizedStepRunner stepRunner, IServiceProvider serviceProvider) : base(serviceProvider)
+    public WaitStep(IParallelStepRunner stepRunner, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _stepRunner = stepRunner ?? throw new ArgumentNullException(nameof(stepRunner));
     }
