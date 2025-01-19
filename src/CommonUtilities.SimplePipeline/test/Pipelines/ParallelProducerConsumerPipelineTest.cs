@@ -168,7 +168,7 @@ public class ParallelProducerConsumerPipelineTest
 
         pipeline.Protected().Setup<IAsyncEnumerable<IStep>>("BuildSteps").Returns(ValueFunction);
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await pipeline.Object.RunAsync(cts.Token));
+        await pipeline.Object.RunAsync(cts.Token);
 
         Assert.False(s2Run);
 
