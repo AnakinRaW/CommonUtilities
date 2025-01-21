@@ -13,14 +13,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 internal class HttpClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
-
-    static HttpClientDownloader()
-    {
-        if (ServicePointManager.SecurityProtocol == 0)
-            return;
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-    }
-
+    
     public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadKind.Internet)
     {
         if (services == null) 
