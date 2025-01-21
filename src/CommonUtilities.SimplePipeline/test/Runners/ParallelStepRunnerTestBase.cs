@@ -47,10 +47,12 @@ public abstract class ParallelStepRunnerTestBase<T> : StepRunnerTestBase<T> wher
 
         FinishAdding(runner);
 
-        var runnerTask = runner.RunAsync(CancellationToken.None);
+        runner.RunAsync(CancellationToken.None).Forget();
         runner.Wait();
 
-        Assert.True(runnerTask.IsCompleted);
+        // We cannot assert on the returned task,
+        // as the impl. creates different tasks for await and Wait().
+        // This may result in a race where the Wait() reports completion before the awaitable task
 
         Assert.True(ran1);
         Assert.True(ran2);
