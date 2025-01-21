@@ -78,4 +78,17 @@ public class SynchronizedStepTest : CommonTestBase
         Task.Factory.StartNew(() => step.Run(CancellationToken.None), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         Assert.Throws<TimeoutException>(() => step.Wait(TimeSpan.FromMilliseconds(100)));
     }
+
+    [Fact]
+    public void Dispose()
+    {
+        var step = new TestSyncStep(_ =>
+        {
+            Task.Delay(1000, CancellationToken.None).Wait(CancellationToken.None);
+        }, ServiceProvider);
+
+        step.Dispose(); 
+        
+        Assert.Throws<ObjectDisposedException>(step.Wait);
+    }
 }

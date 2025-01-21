@@ -15,7 +15,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 public abstract class StepRunnerBase : IStepRunner
 {
     /// <inheritdoc/>
-    public event EventHandler<StepErrorEventArgs>? Error;
+    public event EventHandler<StepRunnerErrorEventArgs>? Error;
 
     /// <summary>
     /// Gets a modifiable bag of all executed steps.
@@ -92,7 +92,7 @@ public abstract class StepRunnerBase : IStepRunner
                             Logger?.LogTrace(e, $"Step {step} threw an exception: {e.GetType()}: {e.Message}");
                     }
 
-                    var error = new StepErrorEventArgs(step)
+                    var error = new StepRunnerErrorEventArgs(e, step)
                     {
                         Cancel = token.IsCancellationRequested || IsCancelled || e.IsExceptionType<OperationCanceledException>()
                     };
@@ -104,7 +104,7 @@ public abstract class StepRunnerBase : IStepRunner
         }
         catch (OperationCanceledException e)
         {
-            OnError(e, null);
+            OnError(e, new StepRunnerErrorEventArgs(e, null));
             IsCancelled = true;
         }
     }
@@ -114,15 +114,12 @@ public abstract class StepRunnerBase : IStepRunner
     /// </summary>
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="stepError">The event args to use.</param>
-    protected virtual void OnError(Exception exception, StepErrorEventArgs? stepError)
+    protected virtual void OnError(Exception exception, StepRunnerErrorEventArgs stepError)
     {
-        if (stepError is not null)
-        {
-            Error?.Invoke(this, stepError);
-            if (!stepError.Cancel)
-                return;
-            IsCancelled |= stepError.Cancel;
-        }
+        Error?.Invoke(this, stepError);
+        if (!stepError.Cancel)
+            return;
+        IsCancelled |= stepError.Cancel;
     }
 
     /// <summary>

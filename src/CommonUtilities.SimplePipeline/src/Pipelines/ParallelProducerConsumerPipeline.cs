@@ -37,44 +37,49 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     public sealed override async Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-        token.ThrowIfCancellationRequested();
 
-        if (PrepareSuccessful is false)
-            return;
+        LinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-        if (PrepareSuccessful is null)
+        if (!Prepared)
         {
             Task.Run(async () =>
             {
                 try
-                {
-                    var result = await PrepareAsync().ConfigureAwait(false);
-                    if (!result)
-                    {
-                        PipelineFailed = true;
-                        Cancel();
-                    }
+                { 
+                    await PrepareAsync().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     PipelineFailed = true;
                     _preparationException = e;
+                    
+                    if (FailFast)
+                        Cancel();
                 }
                 finally
                 {
                     _stepRunner.Finish();
                 }
-            }, token).Forget();
+            }, LinkedCancellationTokenSource.Token).Forget();
         }
 
         try
         {
-            await RunCoreAsync(token).ConfigureAwait(false);
+            await RunCoreAsync(LinkedCancellationTokenSource.Token).ConfigureAwait(false);
+            LinkedCancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
         catch (Exception)
         {
             PipelineFailed = true;
             throw;
+        }
+        finally
+        {
+            if (LinkedCancellationTokenSource is not null)
+            {
+                LinkedCancellationTokenSource.Dispose();
+                LinkedCancellationTokenSource = null;
+            }
         }
     }
 
@@ -89,6 +94,7 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     {
         await foreach (var step in BuildSteps().ConfigureAwait(false)) 
             _stepRunner.AddStep(step);
+        _stepRunner.Finish();
         return true;
     }
 

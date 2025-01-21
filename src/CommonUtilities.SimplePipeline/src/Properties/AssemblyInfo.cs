@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("AnakinRaW.CommonUtilities.SimplePipeline.Test")]
+[assembly: InternalsVisibleTo("AnakinRaW.CommonUtilities.StepRunnerPipeline.Test")]

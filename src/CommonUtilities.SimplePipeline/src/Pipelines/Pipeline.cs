@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,25 +14,28 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 public abstract class Pipeline : DisposableObject, IPipeline
 {
-    private CancellationTokenSource? _linkedCancellationTokenSource;
+    /// <summary>
+    /// The cancellation token source used by this pipeline to send cancellation request.
+    /// </summary>
+    protected CancellationTokenSource? LinkedCancellationTokenSource;
 
     /// <summary>
-    /// Returns the service provider of the <see cref="SimplePipeline{TRunner}"/>.
+    /// Returns the service provider of the <see cref="StepRunnerPipeline{TRunner}"/>.
     /// </summary>
     protected readonly IServiceProvider ServiceProvider;
 
     /// <summary>
-    /// Returns the logger of the <see cref="SimplePipeline{TRunner}"/>.
+    /// Returns the logger of the <see cref="StepRunnerPipeline{TRunner}"/>.
     /// </summary>
     protected readonly ILogger? Logger;
 
     /// <summary>
     /// Gets a value indicating whether the preparation of the <see cref="Pipeline"/> was successful.
     /// </summary>
-    protected bool? PrepareSuccessful { get; private set; }
+    protected bool Prepared { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the pipeline has encountered a failure.
+    /// Gets a value indicating whether the execution of the pipeline has encountered a failure.
     /// </summary>
     public bool PipelineFailed { get; protected set; }
 
@@ -51,36 +55,43 @@ public abstract class Pipeline : DisposableObject, IPipeline
     }
     
     /// <inheritdoc/>
-    public async Task<bool> PrepareAsync()
+    public async Task PrepareAsync()
     {
         ThrowIfDisposed();
-        if (PrepareSuccessful.HasValue)
-            return PrepareSuccessful.Value;
-        PrepareSuccessful = await PrepareCoreAsync().ConfigureAwait(false);
-        return PrepareSuccessful.Value;
+        if (!Prepared)
+        {
+            try
+            {
+                await PrepareCoreAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                Prepared = true;
+            }
+        }
     }
 
     /// <inheritdoc/>
     public virtual async Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-        token.ThrowIfCancellationRequested();
-        if (!await PrepareAsync().ConfigureAwait(false))
-            return;
+
+        await PrepareAsync().ConfigureAwait(false);
 
         try
         {
             try
             {
-                _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                await RunCoreAsync(_linkedCancellationTokenSource.Token).ConfigureAwait(false);
+                LinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                await RunCoreAsync(LinkedCancellationTokenSource.Token).ConfigureAwait(false);
+                LinkedCancellationTokenSource.Token.ThrowIfCancellationRequested();
             }
             finally
             {
-                if (_linkedCancellationTokenSource is not null)
+                if (LinkedCancellationTokenSource is not null)
                 {
-                    _linkedCancellationTokenSource.Dispose();
-                    _linkedCancellationTokenSource = null;
+                    LinkedCancellationTokenSource.Dispose();
+                    LinkedCancellationTokenSource = null;
                 }
             }
         }
@@ -91,15 +102,14 @@ public abstract class Pipeline : DisposableObject, IPipeline
         }
     }
 
-    /// <summary>
-    /// Cancels the pipeline.
-    /// </summary>
+    /// <inheritdoc />
     public void Cancel()
     {
-        _linkedCancellationTokenSource?.Cancel();
+        LinkedCancellationTokenSource?.Cancel();
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public override string ToString()
     {
         return GetType().Name;
@@ -139,7 +149,7 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// </summary>
     /// <param name="sender">The sender of the event.</param>
     /// <param name="e">The event arguments.</param>
-    protected virtual void OnError(object sender, StepErrorEventArgs e)
+    protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
     {
         PipelineFailed = true;
         if (FailFast || e.Cancel)

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base class for a simple pipeline implementation utilizing an <see cref="IStepRunner"/>.
+/// Base class for a pipeline implementation utilizing an <see cref="IStepRunner"/> as its primary execution engine.
 /// </summary>
 /// <typeparam name="TRunner">The type of the step stepRunner.</typeparam>
-public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IStepRunner
+public abstract class StepRunnerPipeline<TRunner> : Pipeline where TRunner : IStepRunner
 { 
     private IStepRunner _buildStepRunner = null!;
 
@@ -17,7 +18,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IStepRu
     protected override bool FailFast { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SimplePipeline{TRunner}"/> class.
+    /// Initializes a new instance of the <see cref="StepRunnerPipeline{TRunner}"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider the pipeline.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
@@ -25,12 +26,13 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IStepRu
     /// The <paramref name="failFast"/> parameter determines whether the pipeline should stop executing immediately upon encountering the first failure.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
+    protected StepRunnerPipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
     {
         FailFast = failFast;
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public override string ToString()
     {
         return GetType().Name;
@@ -76,7 +78,7 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : IStepRu
 
         if (!PipelineFailed)
             return;
-
+        
         ThrowIfAnyStepsFailed(_buildStepRunner.ExecutedSteps);
     }
 }

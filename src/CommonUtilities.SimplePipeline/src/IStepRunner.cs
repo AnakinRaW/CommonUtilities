@@ -11,14 +11,14 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 public interface IStepRunner
 {
     /// <summary>
-    /// The event that is raised when the execution of an <see cref="IStep"/> fails with an exception.
+    /// The event that is raised when the execution caused an exception.
     /// </summary>
-    event EventHandler<StepErrorEventArgs>? Error;
+    event EventHandler<StepRunnerErrorEventArgs>? Error;
 
     /// <summary>
     /// Gets a read-only list of only those steps were executed by the <see cref="IStepRunner"/>.
     /// </summary>
-    public IReadOnlyCollection<IStep> ExecutedSteps { get; }
+    IReadOnlyCollection<IStep> ExecutedSteps { get; }
 
     /// <summary>
     /// Runs all queued steps.

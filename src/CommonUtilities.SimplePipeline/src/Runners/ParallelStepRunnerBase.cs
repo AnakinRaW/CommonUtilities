@@ -63,7 +63,7 @@ public abstract class ParallelStepRunnerBase : StepRunnerBase, IParallelStepRunn
     }
 
     /// <inheritdoc />
-    protected override void OnError(Exception exception, StepErrorEventArgs? stepError)
+    protected override void OnError(Exception exception, StepRunnerErrorEventArgs stepError)
     {
         _exceptions.Add(exception);
         base.OnError(exception, stepError);

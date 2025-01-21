@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Threading;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
@@ -36,7 +37,7 @@ public class ParallelStepRunnerTest : ParallelStepRunnerTestBase<ParallelStepRun
 
         var b = new ManualResetEvent(false);
 
-        StepErrorEventArgs? error = null!;
+        StepRunnerErrorEventArgs? error = null!;
         runner.Error += (_, e) =>
         {
             error = e;

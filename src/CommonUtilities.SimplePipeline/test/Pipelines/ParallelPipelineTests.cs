@@ -1,93 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Moq.Protected;
-using Xunit;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class ParallelPipelineTests
+public class ParallelPipelineTests : StepRunnerPipelineTest<ParallelStepRunner>
 {
-    [Fact]
-    public async Task Test_Run()
+    protected override Pipeline CreatePipeline(IList<IStep> steps)
     {
-        var sc = new ServiceCollection();
-
-        var sp = sc.BuildServiceProvider();
-
-        var j = 0;
-
-        var s1 = new Mock<IStep>();
-        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            Task.Delay(1000);
-            Interlocked.Increment(ref j);
-        });
-
-        var s2 = new Mock<IStep>();
-        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            Task.Delay(1000);
-            Interlocked.Increment(ref j);
-        });
-
-        var pipelineMock = new Mock<ParallelPipeline>(sp, 2, true)
-        {
-            CallBase = true
-        };
-
-        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
-        {
-            s1.Object,
-            s2.Object
-        }));
-
-        var pipeline = pipelineMock.Object;
-
-        await pipeline.RunAsync();
-        Assert.Equal(2, j);
+        return CreatePipeline(steps, true);
     }
 
-    [Fact]
-    public async Task Test_Run_WithError()
+    protected override StepRunnerPipeline<ParallelStepRunner> CreatePipeline(IList<IStep> steps, bool failFast)
     {
-        var sc = new ServiceCollection();
-
-        var sp = sc.BuildServiceProvider();
-
-        var j = 0;
-
-        var s1 = new Mock<IStep>();
-        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
+        return new TestParallelPipeline(steps, ServiceProvider, failFast: failFast);
+    }
+    
+    private class TestParallelPipeline(IList<IStep> steps, IServiceProvider serviceProvider, int workerCount = 4, bool failFast = true)
+        : ParallelPipeline(serviceProvider, workerCount, failFast)
+    {
+        protected override Task<IList<IStep>> BuildSteps()
         {
-            Task.Delay(1000);
-            Interlocked.Increment(ref j);
-        });
-
-        var s2 = new Mock<IStep>();
-        s2.SetupGet(s => s.Error).Returns(new Exception());
-        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            Task.Delay(1000);
-        }).Throws<Exception>();
-
-        var pipelineMock = new Mock<ParallelPipeline>(sp, 2, true)
-        {
-            CallBase = true
-        };
-
-        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
-        {
-            s1.Object,
-            s2.Object
-        }));
-
-        var pipeline = pipelineMock.Object;
-
-        await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
-        Assert.Equal(1, j);
+            return Task.FromResult(steps);
+        }
     }
 }

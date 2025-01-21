@@ -10,13 +10,29 @@ public readonly struct ProgressType : IEquatable<ProgressType>
     /// <summary>
     /// Gets the unique identifier of the progress type.
     /// </summary>
-    public required string Id { get; init; }
+    public required string Id
+    {
+        get;
+        init
+        {
+            ThrowHelper.ThrowIfNullOrEmpty(value);
+            field = value;
+        }
+    }
 
     /// <summary>
     /// Gets the display name of the progress type.
     /// </summary>
-    public required string DisplayName { get; init; }
-
+    public required string DisplayName
+    {
+        get;
+        init
+        {
+            ThrowHelper.ThrowIfNullOrEmpty(value);
+            field = value;
+        }
+    }
+    
     /// <inheritdoc/>
     public bool Equals(ProgressType other)
     {

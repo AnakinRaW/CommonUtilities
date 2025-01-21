@@ -3,16 +3,19 @@
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// <see cref="EventArgs"/> for faulted <see cref="IStep"/>.
+/// The event args that represent an error during the execution of a <see cref="IStepRunner"/>.
 /// </summary>
-public class StepErrorEventArgs : EventArgs
+public class StepRunnerErrorEventArgs : EventArgs
 {
-    private bool _cancel;
+    /// <summary>
+    /// Gets the exception of the execution error.
+    /// </summary>
+    public Exception Exception { get; }
 
     /// <summary>
-    /// The faulted Step
+    /// Gets the step that caused the error or <see langword="null"/> if the step runner execution caused an error unrelated to a specific step.
     /// </summary>
-    public IStep Step { get; }
+    public IStep? Step { get; }
 
     /// <summary>
     /// Gets a value indicating whether the step was faulted due to cancellation. 
@@ -20,16 +23,18 @@ public class StepErrorEventArgs : EventArgs
     /// <remarks>Once set to <see langword="true"/>, this property cannot be set to <see langword="false"/> again.</remarks>
     public bool Cancel
     {
-        get => _cancel;
-        set => _cancel |= value;
+        get;
+        set => field |= value;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StepErrorEventArgs"/> class with the specified step.
+    /// Initializes a new instance of the <see cref="StepRunnerErrorEventArgs"/> class with the specified step.
     /// </summary>
+    /// <param name="exception">The exception.</param>
     /// <param name="step">The faulted step.</param>
-    public StepErrorEventArgs(IStep step)
+    public StepRunnerErrorEventArgs(Exception exception, IStep? step)
     {
+        Exception = exception;
         Step = step;
     }
 }

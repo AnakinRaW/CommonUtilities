@@ -65,4 +65,16 @@ public class RunPipelineStepTest : CommonTestBase
 
         Assert.ThrowsAny<OperationCanceledException>(() => step.Run(cts.Token));
     }
+
+    [Fact]
+    public void Dispose()
+    {
+        var pipeline = new DelegatePipeline(_ => Task.CompletedTask, ServiceProvider);
+        var step = new RunPipelineStep(pipeline, ServiceProvider);
+        
+        step.Dispose();
+
+        Assert.True(step.IsDisposed);
+        Assert.True(pipeline.IsDisposed);
+    }
 }

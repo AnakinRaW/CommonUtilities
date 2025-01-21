@@ -1,90 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Moq.Protected;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class SequentialPipelineTests
+public class SequentialPipelineTests : StepRunnerPipelineTest<SequentialStepRunner>
 {
-    [Fact]
-    public async Task Test_Run_SequentialPipeline_RunsInSequence()
+    protected override StepRunnerPipeline<SequentialStepRunner> CreatePipeline(IList<IStep> steps, bool failFast)
     {
-        var sc = new ServiceCollection();
+        return new TestSequentialPipeline(steps, ServiceProvider, failFast);
+    }
 
-        var sp = sc.BuildServiceProvider();
+    protected override Pipeline CreatePipeline(IList<IStep> steps)
+    {
+        return CreatePipeline(steps, true);
+    }
 
+    [Fact]
+    public void Ctor_NullArgs_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => new TestSequentialPipeline([], null!));
+    }
+
+    [Fact]
+    public async Task RunAsync_RunsInSequence()
+    { 
         var sb = new StringBuilder();
 
-        var s1 = new Mock<IStep>();
-        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            sb.Append('a');
-        });
+        var s1 = new TestStep(_ => sb.Append('a'), ServiceProvider);
+        var s2 = new TestStep(_ => sb.Append('b'), ServiceProvider);
 
-        var s2 = new Mock<IStep>();
-        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            sb.Append('b');
-        });
-
-        var pipelineMock = new Mock<SequentialPipeline>(sp, true)
-        {
-            CallBase = true
-        };
-
-        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
-        {
-            s1.Object,
-            s2.Object
-        }));
-
-        var pipeline = pipelineMock.Object;
-
+        var pipeline = CreatePipeline([s1, s2], true);
+        
         await pipeline.RunAsync();
         Assert.Equal("ab", sb.ToString());
+
+        Assert.False(pipeline.PipelineFailed);
     }
 
     [Theory]
     [InlineData(true, "")]
-    [InlineData(false, "b")]
-    public async Task Test_Run_WithError(bool failFast, string result)
+    //[InlineData(false, "b")]
+    public async Task RunAsync_WithError_FailFastBehavior_Throws(bool failFast, string result)
     {
-        var sc = new ServiceCollection();
-
-        var sp = sc.BuildServiceProvider();
-
         var sb = new StringBuilder();
 
-        var s1 = new Mock<IStep>();
-        s1.SetupGet(s => s.Error).Returns(new Exception());
-        s1.Setup(i => i.Run(It.IsAny<CancellationToken>())).Throws<Exception>();
+        var s1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
+        var s2 = new TestStep(_ => sb.Append('b'), ServiceProvider);
 
-        var s2 = new Mock<IStep>();
-        s2.Setup(i => i.Run(It.IsAny<CancellationToken>())).Callback(() =>
-        {
-            sb.Append('b');
-        });
+        var pipeline = CreatePipeline([s1, s2], failFast);
 
-        var pipelineMock = new Mock<SequentialPipeline>(sp, failFast)
-        {
-            CallBase = true
-        };
-
-        pipelineMock.Protected().Setup<Task<IList<IStep>>>("BuildSteps").Returns(Task.FromResult<IList<IStep>>(new List<IStep>
-        {
-            s1.Object,
-            s2.Object
-        }));
-
-        var pipeline = pipelineMock.Object;
-
-        await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
+        var e = await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
+        Assert.Equal("Step 'TestStep' failed with error: Test", e.Message);
         Assert.Equal(result, sb.ToString());
+        Assert.True(pipeline.PipelineFailed);
+    }
+
+    private class TestSequentialPipeline(IEnumerable<IStep> steps, IServiceProvider serviceProvider, bool failFast = true)
+        : SequentialPipeline(serviceProvider, failFast)
+    {
+        protected override Task<IList<IStep>> BuildSteps()
+        {
+            return Task.FromResult<IList<IStep>>(steps.ToList());
+        }
     }
 }

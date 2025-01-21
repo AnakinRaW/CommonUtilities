@@ -60,7 +60,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
     {
         var runner = CreateStepRunner();
 
-        StepErrorEventArgs? error = null;
+        StepRunnerErrorEventArgs? error = null;
         runner.Error += (s, e) =>
         {
             Assert.Same(runner, s);
@@ -174,7 +174,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunn
     {
         var runner = CreateStepRunner(true);
 
-        StepErrorEventArgs? args = null!;
+        StepRunnerErrorEventArgs? args = null!;
         runner.Error += (_, e) =>
         {
             args = e;

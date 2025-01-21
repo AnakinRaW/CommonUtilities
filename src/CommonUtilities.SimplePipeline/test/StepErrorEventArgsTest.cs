@@ -1,4 +1,5 @@
-﻿using AnakinRaW.CommonUtilities.Testing;
+﻿using System;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
@@ -8,10 +9,12 @@ public class StepErrorEventArgsTest : CommonTestBase
     [Fact]
     public void Test_Cancel()
     {
+        var e = new Exception("Tet");
         var step = new TestStep(_ => { }, ServiceProvider);
-        var args = new StepErrorEventArgs(step);
+        var args = new StepRunnerErrorEventArgs(e, step);
 
         Assert.Same(step, args.Step);
+        Assert.Same(e, args.Exception);
 
         Assert.False(args.Cancel);
         args.Cancel = true;

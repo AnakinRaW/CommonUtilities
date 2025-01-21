@@ -167,7 +167,7 @@ public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase
         Assert.True(ran1);
         Assert.False(ran2);
         Assert.Equal([s1], runner.ExecutedSteps);
-
+        
         Assert.True(runner.IsCancelled);
         Assert.NotNull(runner.Exception);
 
@@ -196,7 +196,7 @@ public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase
 
         var b = new ManualResetEvent(false);
 
-        StepErrorEventArgs? error = null!;
+        StepRunnerErrorEventArgs? error = null!;
         runner.Error += (_, e) =>
         {
             error = e;

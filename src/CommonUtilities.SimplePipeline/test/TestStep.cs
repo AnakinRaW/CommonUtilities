@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
 public class TestStep : PipelineStep, IProgressStep
 {
-    private readonly Action<CancellationToken> _action;
+    private readonly Action<CancellationToken>? _action;
     public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
 
     public IStepProgressReporter ProgressReporter { get; } = null!;
