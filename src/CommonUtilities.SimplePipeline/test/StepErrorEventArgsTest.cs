@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 public class StepErrorEventArgsTest : CommonTestBase
 {
     [Fact]
-    public void Test_Cancel()
+    public void Cancel()
     {
         var e = new Exception("Tet");
         var step = new TestStep(_ => { }, ServiceProvider);

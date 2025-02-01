@@ -38,7 +38,7 @@ public class EncodingExtensionsTest
     [InlineData("üöä")]
     [InlineData("123ü")]
     [InlineData("😅")]
-    public void Test_GetBytes(string data)
+    public void GetBytes(string data)
     {
         ForEachEncoding(encoding =>
         {
@@ -50,7 +50,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_GetBytes_DefaultSpan()
+    public void GetBytes_DefaultSpan()
     {
         ForEachEncoding(e =>
         {
@@ -71,7 +71,7 @@ public class EncodingExtensionsTest
     [InlineData("üöä")]
     [InlineData("123ü")]
     [InlineData("😅")]
-    public void Test_GetByteCount(string data)
+    public void GetByteCount(string data)
     {
         ForEachEncoding(e =>
         {
@@ -81,7 +81,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_GetByteCount_DefaultSpan()
+    public void GetByteCount_DefaultSpan()
     {
         ForEachEncoding(e =>
         {
@@ -92,7 +92,7 @@ public class EncodingExtensionsTest
 #if NETFRAMEWORK
 
     [Fact]
-    public void Test_GetString_DefaultSpan()
+    public void GetString_DefaultSpan()
     {
         ForEachEncoding(e =>
         {
@@ -102,7 +102,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_GetString()
+    public void GetString()
     {
         // Force compiler to use EncodingExtensions instead of implicit casting to byte[]
         Assert.Equal("\0", EncodingExtensions.GetString(Encoding.ASCII, new byte[] { 00 }.AsSpan()));
@@ -111,7 +111,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_GetChars()
+    public void GetChars()
     {
         Span<char> buffer = stackalloc char[10];
 
@@ -133,7 +133,7 @@ public class EncodingExtensionsTest
     #region EncodeString
 
     [Fact]
-    public void Test_EncodeString_NullArgs_Throws()
+    public void EncodeString_NullArgs_Throws()
     {
         Encoding encoding = null!;
         Assert.Throws<ArgumentNullException>(() => encoding.EncodeString(""));
@@ -149,7 +149,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_EncodeString_NegativeCount_Throws()
+    public void EncodeString_NegativeCount_Throws()
     {
         ForEachEncoding(e =>
         {
@@ -161,7 +161,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_EncodeString_DefaultSpan()
+    public void EncodeString_DefaultSpan()
     {
         var encodings = Encoding.GetEncodings().Select(x => Encoding.GetEncoding(x.Name));
 
@@ -182,7 +182,7 @@ public class EncodingExtensionsTest
     [InlineData("üöä", "???")]
     [InlineData("123ü", "123?")]
     [InlineData("😅", "??")]
-    public void Test_EncodeString_EncodeASCII(string input, string expected)
+    public void EncodeString_EncodeASCII(string input, string expected)
     {
         var encoding = Encoding.ASCII;
         Assert.Equal(expected, encoding.EncodeString(input));
@@ -200,7 +200,7 @@ public class EncodingExtensionsTest
     [InlineData("üöä", "üöä")]
     [InlineData("123ü", "123ü")]
     [InlineData("😅", "😅")]
-    public void Test_EncodeString_EncodeUnicode(string input, string expected)
+    public void EncodeString_EncodeUnicode(string input, string expected)
     {
         var encoding = Encoding.Unicode;
         var result = encoding.EncodeString(input);
@@ -216,7 +216,7 @@ public class EncodingExtensionsTest
     [InlineData("123", "123", 4)]
     [InlineData("", "", 0)]
     [InlineData("", "", 1)]
-    public void Test_EncodeString_Encode_CustomCount(string input, string expected, int count)
+    public void EncodeString_Encode_CustomCount(string input, string expected, int count)
     {
         var encoding = Encoding.ASCII;
         var result = encoding.EncodeString(input, count);
@@ -230,7 +230,7 @@ public class EncodingExtensionsTest
     [Theory]
     [InlineData("1", 0)]
     [InlineData("123", 2)]
-    public void Test_EncodeString_Encode_CustomCountInvalid_Throws(string input, int count)
+    public void EncodeString_Encode_CustomCountInvalid_Throws(string input, int count)
     {
         var encoding = Encoding.ASCII;
         Assert.ThrowsAny<ArgumentException>(() => encoding.EncodeString(input, count));
@@ -243,14 +243,14 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_EncodeString_Encode_SpanTooSmall_Throws()
+    public void EncodeString_Encode_SpanTooSmall_Throws()
     {
         var encoding = Encoding.ASCII;
         Assert.ThrowsAny<ArgumentException>(() => encoding.EncodeString("123".AsSpan(), Span<char>.Empty));
     }
 
     [Fact]
-    public void Test_EncodeString_Encode_LongString()
+    public void EncodeString_Encode_LongString()
     {
         var encoding = Encoding.ASCII;
         Assert.Equal(new string('a', 512), encoding.EncodeString(new string('a', 512)));
@@ -265,7 +265,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_EncodeString_Encode_CountError_Throws()
+    public void EncodeString_Encode_CountError_Throws()
     {
         ForEachEncoding(e =>
         {
@@ -280,7 +280,7 @@ public class EncodingExtensionsTest
     #region GetBytesReadOnly
 
     [Fact]
-    public void Test_GetBytesReadOnly_DefaultSpan()
+    public void GetBytesReadOnly_DefaultSpan()
     {
         ForEachEncoding(e =>
         {
@@ -302,7 +302,7 @@ public class EncodingExtensionsTest
     [InlineData("üöä")]
     [InlineData("123ü")]
     [InlineData("😅")]
-    public void Test_GetBytesReadOnly(string input)
+    public void GetBytesReadOnly(string input)
     {
         ForEachEncoding(e =>
         {
@@ -316,7 +316,7 @@ public class EncodingExtensionsTest
     }
 
     [Fact]
-    public void Test_GetBytesReadOnly_BufferMutationChangesResult()
+    public void GetBytesReadOnly_BufferMutationChangesResult()
     {
         var encoding = Encoding.ASCII;
         Span<byte> buffer = stackalloc byte[10];

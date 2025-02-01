@@ -20,7 +20,7 @@ public class WindowsPathServiceTest
     [InlineData("C:\\", FileSystemRights.Read, true)]
     [InlineData("C:\\System Volume Information", FileSystemRights.Read, false)]
     [InlineData("C:\\System Volume Information", FileSystemRights.Write, false)]
-    public void Test_UserHasDirectoryAccessRights(string? input, FileSystemRights rights, bool expected)
+    public void UserHasDirectoryAccessRights(string? input, FileSystemRights rights, bool expected)
     {
         var fs = new System.IO.Abstractions.FileSystem();
         input ??= fs.Path.GetTempPath();
@@ -29,7 +29,7 @@ public class WindowsPathServiceTest
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_UserHasDirectoryAccessRights_Throws()
+    public void UserHasDirectoryAccessRights_Throws()
     {
         var fs = new System.IO.Abstractions.FileSystem();
         Assert.Throws<DirectoryNotFoundException>(() => fs.DirectoryInfo.New("C:\\doesNotExists\\").UserHasDirectoryAccessRights(FileSystemRights.Read));

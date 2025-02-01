@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class DisposableObjectTest
 {
     [Fact]
-    public void Test_DisposableObject_Lifecycle()
+    public void DisposableObject_Lifecycle()
     {
         var disposeCounter = 0;
         var disposable = new TestDisposable(() =>

@@ -13,6 +13,11 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     
     private readonly HashSet<DownloadKind> _supportedSources;
 
+    /// <summary>
+    /// Returns the service provider the download provider.
+    /// </summary>
+    protected readonly IServiceProvider ServiceProvider;
+
     /// <inheritdoc/>
     public string Name { get; }
 
@@ -21,7 +26,9 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedKinds">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, DownloadKind supportedKinds) : this(name, [supportedKinds])
+    /// <param name="serviceProvider">The service provider.</param>
+    protected DownloadProviderBase(string name, DownloadKind supportedKinds, IServiceProvider serviceProvider) 
+        : this(name, [supportedKinds], serviceProvider)
     {
     }
 
@@ -30,9 +37,11 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, IEnumerable<DownloadKind> supportedSources)
+    /// <param name="serviceProvider">The service provider.</param>
+    protected DownloadProviderBase(string name, IEnumerable<DownloadKind> supportedSources, IServiceProvider serviceProvider)
     {
         ThrowHelper.ThrowIfNullOrEmpty(name);
+        ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Name = name;
         _supportedSources = [..supportedSources];
     }
@@ -53,6 +62,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <summary>
     /// Concrete implementation for downloading a file.
     /// </summary>
+    /// <remarks>Download time and bit rate is automatically set after this method returns.</remarks>
     /// <param name="uri">The location of the source file.</param>
     /// <param name="outputStream">The output stream.</param>
     /// <param name="progress">Progress with already updated performance data.</param>

@@ -7,16 +7,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProviderBase("File", DownloadKind.File)
+/// <summary>
+/// A download provider to download files from the file system.
+/// </summary>
+public sealed class FileDownloader : DownloadProviderBase
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileDownloader"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    public FileDownloader(IServiceProvider serviceProvider) : base("File", DownloadKind.File, serviceProvider)
+    {
+    }
+
+    /// <inheritdoc />
     protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         if (uri is { IsFile: false, IsUnc: false })
             throw new ArgumentException("Expected file or UNC path", nameof(uri));
-        return new DownloadResult
+        return new DownloadResult(uri)
         {
-            Uri = uri.LocalPath,
             DownloadedSize = await CopyFileToStreamAsync(uri.LocalPath, outputStream, progress, cancellationToken).ConfigureAwait(false)
         };
     }
@@ -24,7 +35,7 @@ internal class FileDownloader(IServiceProvider serviceProvider) : DownloadProvid
     private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
+        var fileSystem = ServiceProvider.GetRequiredService<IFileSystem>();
         if (!fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
 #if NETSTANDARD2_1 || NET

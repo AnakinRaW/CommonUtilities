@@ -10,70 +10,55 @@ using Microsoft.Extensions.Logging;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class HttpClientDownloader : DownloadProviderBase
+/// <summary>
+/// A download provider using .NET's HttpClient implementation to download files from the Internet.
+/// </summary>
+public sealed class HttpClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
-    
-    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadKind.Internet)
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HttpClientDownloader"/> class.
+    /// </summary>
+    /// <param name="services">The service provider.</param>
+    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadKind.Internet, services)
     {
-        if (services == null) 
-            throw new ArgumentNullException(nameof(services));
-        _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
+        _logger = ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
+    /// <inheritdoc />
     protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var summary = new DownloadResult();
+        var summary = new DownloadResult(uri);
         var webRequest = CreateRequest(uri);
         var response = await GetHttpResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
         {
             if (response is not null)
             {
-                if (response.IsSuccessStatusCode)
-                {
 #if NET
-                    await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 #else
-                    using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-                    var contentLengthData = response.Content.Headers.ContentLength ?? 0;
-                    var contentLength = contentLengthData;
+                var contentLengthData = response.Content.Headers.ContentLength ?? 0;
+                var contentLength = contentLengthData;
 
-                    var requestRegistration = cancellationToken.Register(webRequest.Dispose);
-                    try
-                    {
-                        summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream, contentLength, outputStream, progress,
-                            cancellationToken).ConfigureAwait(false);
-                        return summary;
-                    }
-                    finally
-                    {
+                var requestRegistration = cancellationToken.Register(webRequest.Dispose);
+                try
+                {
+                    summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream, contentLength, outputStream, progress,
+                        cancellationToken).ConfigureAwait(false);
+                    return summary;
+                }
+                finally
+                {
 #if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
-                        await requestRegistration.DisposeAsync();
+                    await requestRegistration.DisposeAsync();
 #else
                         requestRegistration.Dispose();
 #endif
-
-                    }
-                }
-                else
-                {
-                    var message = cancellationToken.IsCancellationRequested
-                        ? "DownloadCore failed along with a cancellation request."
-                        : "DownloadCore failed";
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger?.LogTrace("WebClient error '" + response.StatusCode + "' with '" + uri.AbsoluteUri + "' - " +
-                                          message);
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-                    else
-                    {
-                        _logger?.LogTrace("WebClient error '" + response.StatusCode + "' with '" + uri.AbsoluteUri + "'.");
-                        throw new HttpRequestException(message);
-                    }
                 }
             }
             return summary;
@@ -112,13 +97,12 @@ internal class HttpClientDownloader : DownloadProviderBase
                 .ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            
-            var responseUri = response.RequestMessage?.RequestUri?.ToString();
-            if (!string.IsNullOrEmpty(responseUri) &&
-                !uri.ToString().Equals(responseUri, StringComparison.InvariantCultureIgnoreCase))
+
+            var redirectUri = response.Headers.Location;
+            if (redirectUri is not null)
             {
-                result.Uri = responseUri!;
-                _logger?.LogTrace($"Uri '{uri}' redirected to '{responseUri}'");
+                _logger?.LogTrace($"Uri '{uri}' redirected to '{redirectUri}'");
+                result.Uri = redirectUri;
             }
 
             switch (response.StatusCode)

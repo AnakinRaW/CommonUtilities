@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using Moq;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class LeastRecentlyUsedDownloadProvidersTest
+public class LeastRecentlyUsedDownloadProvidersTest : CommonTestBase
 {
     private readonly LeastRecentlyUsedDownloadProviders _provider = new();
 
     [Fact]
-    public void TestAddProviders()
+    public void LastSuccessfulProvider()
     {
         _provider.LastSuccessfulProvider = "1";
         _provider.LastSuccessfulProvider = "2";
@@ -22,7 +22,7 @@ public class LeastRecentlyUsedDownloadProvidersTest
     }
 
     [Fact]
-    public void TestGetPriorityEmpty()
+    public void GetProvidersInPriorityOrder_EmptyProvided()
     {
         _provider.LastSuccessfulProvider = "A";
         _provider.LastSuccessfulProvider = "B";
@@ -33,37 +33,36 @@ public class LeastRecentlyUsedDownloadProvidersTest
     }
 
     [Fact]
-    public void TestGetWithHighestPriority()
+    public void GetProvidersInPriorityOrder_GetWithHighestPriority()
     {
-        _provider.LastSuccessfulProvider = "A";
-        _provider.LastSuccessfulProvider = "A";
-        _provider.LastSuccessfulProvider = "B";
+        _provider.LastSuccessfulProvider = "File";
+        _provider.LastSuccessfulProvider = "File";
+        _provider.LastSuccessfulProvider = "HttpClient";
         
-        var a = new Mock<IDownloadProvider>();
-        a.Setup(p => p.Name).Returns("A");
+        var a = new FileDownloader(ServiceProvider);
+        var b = new HttpClientDownloader(ServiceProvider);
 
-        var b = new Mock<IDownloadProvider>();
-        b.Setup(p => p.Name).Returns("B");
-
-        var providers = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider> { b.Object, a.Object }).Select(x => x.Name).ToList();
-        Assert.Equal(["A", "B"], providers);
+        var providers = _provider.GetProvidersInPriorityOrder([b, a])
+            .Select(x => x.Name)
+            .ToList();
+        Assert.Equal(["File", "HttpClient"], providers);
     }
 
     [Fact]
-    public void TestGetSamePriority()
+    public void GetProvidersInPriorityOrder_TestGetSamePriority()
     {
-        _provider.LastSuccessfulProvider = "A";
-        _provider.LastSuccessfulProvider = "B";
+        _provider.LastSuccessfulProvider = "File";
+        _provider.LastSuccessfulProvider = "HttpClient";
 
-        var a = new Mock<IDownloadProvider>();
-        a.Setup(p => p.Name).Returns("A");
+        var a = new FileDownloader(ServiceProvider);
+        var b = new HttpClientDownloader(ServiceProvider);
 
-        var b = new Mock<IDownloadProvider>();
-        b.Setup(p => p.Name).Returns("B");
+        var providers = _provider.GetProvidersInPriorityOrder([a, b])
+            .Select(x => x.Name)
+            .ToList();
 
-        var providers = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider> { a.Object, b.Object }).Select(x => x.Name).ToList();
-        Assert.Contains("A", providers);
-        Assert.Contains("B", providers);
+        Assert.Contains("File", providers);
+        Assert.Contains("HttpClient", providers);
     }
 
     [Fact]
@@ -72,11 +71,12 @@ public class LeastRecentlyUsedDownloadProvidersTest
         _provider.LastSuccessfulProvider = "A";
         _provider.LastSuccessfulProvider = "B";
 
-        var c = new Mock<IDownloadProvider>();
-        c.Setup(p => p.Name).Returns("C");
-        
+        var file = new FileDownloader(ServiceProvider);
 
-        var providers = _provider.GetProvidersInPriorityOrder(new List<IDownloadProvider>{c.Object}).Select(x => x.Name).ToList();
-        Assert.Equal(["C"], providers);
+
+        var providers = _provider.GetProvidersInPriorityOrder([file])
+            .Select(x => x.Name)
+            .ToList();
+        Assert.Equal(["File"], providers);
     }
 }

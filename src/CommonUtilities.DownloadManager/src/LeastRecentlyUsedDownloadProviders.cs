@@ -3,24 +3,30 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 internal class LeastRecentlyUsedDownloadProviders
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock SyncRoot = new();
+#else
     private static readonly object SyncRoot = new();
-    private readonly ConcurrentDictionary<string, int> _preferredProviders = new();
+#endif
 
-    private string? _lastSuccessfulProvider;
+    private readonly ConcurrentDictionary<string, int> _preferredProviders = new();
 
     public string? LastSuccessfulProvider
     {
-        get => _lastSuccessfulProvider;
+        get;
         set
         {
             if (value == null)
                 return;
-            _lastSuccessfulProvider = value;
+            field = value;
             _preferredProviders.AddOrUpdate(value, 1, (_, existingVal) => ++existingVal);
         }
     }

@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 public class PathNormalizerTest
 {
     [Fact]
-    public void Test_Normalize_Throws()
+    public void Normalize_Throws()
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
@@ -56,7 +56,7 @@ public class PathNormalizerTest
 
 
     [Fact]
-    public void Test_Normalize_Span_DefaultAndEmpty()
+    public void Normalize_Span_DefaultAndEmpty()
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
@@ -71,7 +71,7 @@ public class PathNormalizerTest
     }
 
     [Fact]
-    public void Test_Normalize_Span_TooShort()
+    public void Normalize_Span_TooShort()
     {
         Assert.Throws<ArgumentException>(() =>
         {
@@ -82,7 +82,7 @@ public class PathNormalizerTest
     }
 
     [Fact]
-    public void Test_Normalize()
+    public void Normalize()
     {
         foreach (var testData in NormalizeTestDataSource())
         {

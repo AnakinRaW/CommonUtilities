@@ -17,9 +17,8 @@ namespace AnakinRaW.CommonUtilities.DownloadManager;
 /// </summary>
 public sealed class DownloadManager : IDownloadManager 
 {
-
     private readonly ILogger? _logger;
-    private readonly IDownloadManagerConfiguration _configuration;
+    private readonly DownloadManagerConfiguration _configuration;
 
     private readonly List<IDownloadProvider> _allProviders = [];
     private readonly LeastRecentlyUsedDownloadProviders _leastRecentlyUsedDownloadProviders = new();
@@ -30,14 +29,25 @@ public sealed class DownloadManager : IDownloadManager
     /// <summary>
     /// Initializes a new instance of the <see cref="DownloadManager"/> class.
     /// </summary>
-    /// <param name="serviceProvider">The service provider of this instance.</param>
+    /// <param name="serviceProvider"></param>
     public DownloadManager(IServiceProvider serviceProvider)
+        : this(DownloadManagerConfiguration.Default, serviceProvider)
     {
+
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DownloadManager"/> class with the specified configuration.
+    /// </summary>
+    /// <param name="configuration">The download configuration to use.</param>
+    /// <param name="serviceProvider">The service provider of this instance.</param>
+    public DownloadManager(DownloadManagerConfiguration configuration, IServiceProvider serviceProvider)
+    {
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         if (serviceProvider == null) 
             throw new ArgumentNullException(nameof(serviceProvider));
+
         _logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
-        _configuration = serviceProvider.GetService<IDownloadManagerConfigurationProvider>()?.GetConfiguration() ??
-                         DownloadManagerConfiguration.Default;
         switch (_configuration.InternetClient)
         {
             case InternetClient.HttpClient:
@@ -48,8 +58,6 @@ public sealed class DownloadManager : IDownloadManager
                 AddDownloadProvider(new WebClientDownloader(serviceProvider));
                 break;
 #endif
-            default:
-                throw new ArgumentOutOfRangeException();
         }
         AddDownloadProvider(new FileDownloader(serviceProvider));
     }
@@ -65,50 +73,42 @@ public sealed class DownloadManager : IDownloadManager
     }
 
     /// <inheritdoc/>
-    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
-        IDownloadValidator? validator = null, CancellationToken cancellationToken = default)
+    public Task<DownloadResult> DownloadAsync(
+        Uri uri, 
+        Stream outputStream, 
+        DownloadUpdateCallback? progress,
+        IDownloadValidator? validator = null, 
+        CancellationToken cancellationToken = default)
     {
         if (outputStream == null)
             throw new ArgumentNullException(nameof(outputStream));
         if (!outputStream.CanWrite)
             throw new NotSupportedException("Input stream must be writable.");
+        if (!uri.IsAbsoluteUri)
+            throw new ArgumentException("Uri must be absolute.", nameof(uri));
 
         _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
 
         if (uri is { IsFile: false, IsUnc: false })
         {
-            if (!string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase) && 
-                !string.Equals(uri.Scheme, "https", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(uri.Scheme, "ftp", StringComparison.OrdinalIgnoreCase))
+            var scheme = uri.Scheme;
+            if (!string.Equals(scheme, "http", StringComparison.OrdinalIgnoreCase) && 
+                !string.Equals(scheme, "https", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(scheme, "ftp", StringComparison.OrdinalIgnoreCase))
             {
-                var argumentException = new ArgumentException($"Uri scheme '{uri.Scheme}' is not supported.");
-                _logger?.LogTrace($"Uri scheme '{uri.Scheme}' is not supported. {argumentException.Message}");
-                throw argumentException;
-            }
-            if (uri.AbsoluteUri.Length < 7)
-            {
-                var argumentException = new ArgumentException($"Invalid Uri: {uri.AbsoluteUri}.");
-                _logger?.LogTrace($"The Uri is too short: {uri.AbsoluteUri}; {argumentException.Message}");
+                var argumentException = new ArgumentException($"Uri scheme '{scheme}' is not supported.");
+                _logger?.LogTrace(argumentException, argumentException.Message);
                 throw argumentException;
             }
         }
 
-        try
-        {
-            var providers = GetMatchingProviders(uri);
-            return Task.Run(async () =>
-                await DownloadWithRetry(providers, uri, outputStream, progress, validator, cancellationToken)
-                    .ConfigureAwait(false), cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogTrace($"Unable to get download provider: {ex.Message}");
-            throw;
-        }
+        var providers = GetMatchingProviders(uri);
+        return Task.Run(async () =>
+            await DownloadWithRetry(providers, uri, outputStream, progress, validator, cancellationToken)
+                .ConfigureAwait(false), cancellationToken);
     }
 
-    // ReSharper disable once UnusedMember.Global
-    internal void RemoveAllEngines()
+    internal void RemoveAllProviders()
     {
         _allProviders.Clear();
     }

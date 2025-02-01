@@ -31,7 +31,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public void Test_Ctor_ProviderAlreadyExists_Throws()
+    public void Ctor_ProviderAlreadyExists_Throws()
     {
         var sc = new ServiceCollection();
         sc.AddSingleton<IFileSystem>(_fileSystem);
@@ -41,7 +41,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public void Test_GetHash_FromFile_ThrowsFileNotFound()
+    public void GetHash_FromFile_ThrowsFileNotFound()
     {
         Assert.Throws<FileNotFoundException>(() =>
             _hashingService.GetHash(_fileSystem.FileInfo.New("test.txt"), HashTypeKey.SHA512));
@@ -51,7 +51,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public void Test_GetHash_ProviderNotFound_ThrowsHashProviderNotFoundException()
+    public void GetHash_ProviderNotFound_ThrowsHashProviderNotFoundException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -72,7 +72,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async Task Test_GetHashAsync_ProviderNotFound_ThrowsHashProviderNotFoundException()
+    public async Task GetHashAsync_ProviderNotFound_ThrowsHashProviderNotFoundException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -89,7 +89,7 @@ public class HashingServiceTest
 
 
     [Fact]
-    public void Test_GetHash_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
+    public void GetHash_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -106,7 +106,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async Task Test_GetHashAsync_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
+    public async Task GetHashAsync_AlwaysOneProvider_DestinationTooShort_ThrowsIndexOutOfRangeException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -121,7 +121,7 @@ public class HashingServiceTest
 
     [Theory]
     [MemberData(nameof(ProviderKnownHashTypes))]
-    public void Test_GetHash_NullSpanShouldNotThrow(HashTypeKey hashKey)
+    public void GetHash_NullSpanShouldNotThrow(HashTypeKey hashKey)
     {
         ReadOnlySpan<char> nullSpan = [];
         _hashingService.GetHash(nullSpan, stackalloc byte[hashKey.HashSize], Encoding.ASCII, hashKey);
@@ -129,7 +129,7 @@ public class HashingServiceTest
 
     [Theory]
     [MemberData(nameof(ProviderKnownHashTypes))]
-    public void Test_GetHash_DestinationTooSmall_ThrowsArgumentException(HashTypeKey hashKey)
+    public void GetHash_DestinationTooSmall_ThrowsArgumentException(HashTypeKey hashKey)
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -151,7 +151,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public void Test_GetHash_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
+    public void GetHash_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -172,7 +172,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async Task Test_GetHashAsync_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
+    public async Task GetHashAsync_WrongOutputSizeProvider_HashWrongSize_ThrowsInvalidOperationException()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -189,7 +189,7 @@ public class HashingServiceTest
 
 
     [Fact]
-    public void Test_GetHash_AlwaysOneProvider()
+    public void GetHash_AlwaysOneProvider()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -227,7 +227,7 @@ public class HashingServiceTest
     }
 
     [Fact]
-    public async Task Test_GetHashAsync_AlwaysOneProvider()
+    public async Task GetHashAsync_AlwaysOneProvider()
     {
         _fileSystem.Initialize().WithFile("test.txt");
 
@@ -264,7 +264,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
 #endif
 
-    public void Test_GetHash_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
+    public void GetHash_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
 
@@ -313,7 +313,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA3_384))]
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
 #endif
-    public async Task Test_GetHashAsync_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
+    public async Task GetHashAsync_DefaultProviders(HashTypeKey hashType, string input, string expectedHashString)
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(a => a.HasStringContent(input));
 

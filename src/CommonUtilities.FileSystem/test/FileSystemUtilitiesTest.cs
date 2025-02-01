@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 public class FileSystemUtilitiesTest
 {
     [Fact]
-    public void Test_ExecuteFileActionWithRetry_Throws()
+    public void ExecuteFileActionWithRetry_Throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => FileSystemUtilities.ExecuteFileSystemActionWithRetry(-1, 0, () => { }));
         Assert.Throws<ArgumentNullException>(() => FileSystemUtilities.ExecuteFileSystemActionWithRetry(0, 0, null!));
@@ -18,7 +18,7 @@ public class FileSystemUtilitiesTest
     }
 
     [Fact]
-    public void Test_ExecuteFileActionWithRetry_ErrorAction()
+    public void ExecuteFileActionWithRetry_ErrorAction()
     {
         var errorAction = 0;
         Assert.False(FileSystemUtilities.ExecuteFileSystemActionWithRetry(2, 0, () => throw new IOException(), false,
@@ -41,7 +41,7 @@ public class FileSystemUtilitiesTest
     }
 
     [Fact]
-    public void Test_ExecuteFileActionWithRetry()
+    public void ExecuteFileActionWithRetry()
     {
         var actionRunCount = 0;
         Assert.True(FileSystemUtilities.ExecuteFileSystemActionWithRetry(2, 0, () =>
@@ -52,7 +52,7 @@ public class FileSystemUtilitiesTest
     }
 
     [Fact]
-    public void Test_ExecuteFileActionWithRetry_Retry()
+    public void ExecuteFileActionWithRetry_Retry()
     {
         var actionRunCount = 0;
         var fail = true;

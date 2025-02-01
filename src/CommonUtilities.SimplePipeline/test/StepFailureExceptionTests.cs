@@ -21,7 +21,7 @@ public class StepFailureExceptionTests : CommonTestBase
     }
 
     [Fact]
-    public void Test_Message_WithOneFailedStep_ReturnsErrorMessage()
+    public void Message_WithOneFailedStep_ReturnsErrorMessage()
     {
         var step = new TestStep(_ => throw new Exception("TestError"), ServiceProvider);
 
@@ -40,7 +40,7 @@ public class StepFailureExceptionTests : CommonTestBase
     }
 
     [Fact]
-    public void Test_Message_WithMultipleFailedSteps_ReturnsErrorMessage()
+    public void Message_WithMultipleFailedSteps_ReturnsErrorMessage()
     {
         var step1 = new TestStep(_ => throw new Exception("TestError1"), ServiceProvider);
         var step2 = new TestStep(_ => throw new Exception("TestError2"), ServiceProvider);

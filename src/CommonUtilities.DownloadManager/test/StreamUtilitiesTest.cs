@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 public class StreamUtilitiesTest
 {
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_StreamsNotDisposed()
+    public async Task CopyStreamWithProgressAsync_StreamsNotDisposed()
     {
         var inputData = Array.Empty<byte>();
         var input = new MemoryStream(inputData);
@@ -21,7 +21,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_StreamLengthAndCorrectCopy()
+    public async Task CopyStreamWithProgressAsync_StreamLengthAndCorrectCopy()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -35,7 +35,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_InputLengthTooSmall()
+    public async Task CopyStreamWithProgressAsync_InputLengthTooSmall()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -45,7 +45,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_InputLengthTooLarge()
+    public async Task CopyStreamWithProgressAsync_InputLengthTooLarge()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -55,7 +55,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_ProgressReport()
+    public async Task CopyStreamWithProgressAsync_ProgressReport()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);
@@ -71,7 +71,7 @@ public class StreamUtilitiesTest
     }
 
     [Fact]
-    public async Task Test_CopyStreamWithProgressAsync_Cancellation()
+    public async Task CopyStreamWithProgressAsync_Cancellation()
     {
         var inputData = new byte[] { 1, 2, 3 };
         var input = new MemoryStream(inputData);

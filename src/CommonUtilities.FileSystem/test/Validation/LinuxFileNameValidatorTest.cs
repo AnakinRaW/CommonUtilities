@@ -35,7 +35,7 @@ public class LinuxFileNameValidatorTest
     [InlineData("\\file")]
     [InlineData("     ")]
     [InlineData("...")]
-    public void Test_IsValidFileName_ValidNames(string input)
+    public void IsValidFileName_ValidNames(string input)
     {
         Assert.Equal(FileNameValidationResult.Valid, LinuxFileNameValidator.Instance.IsValidFileName(input));
         Assert.Equal(FileNameValidationResult.Valid, LinuxFileNameValidator.Instance.IsValidFileName(input.AsSpan()));
@@ -57,7 +57,7 @@ public class LinuxFileNameValidatorTest
     [InlineData("123\0", FileNameValidationResult.InvalidCharacter)]
     [InlineData("/file", FileNameValidationResult.InvalidCharacter)]
     [InlineData("file/", FileNameValidationResult.InvalidCharacter)]
-    public void Test_IsValidFileName_InvalidNames(string? input, FileNameValidationResult expected)
+    public void IsValidFileName_InvalidNames(string? input, FileNameValidationResult expected)
     {
         Assert.Equal(expected, LinuxFileNameValidator.Instance.IsValidFileName(input));
         Assert.Equal(expected, LinuxFileNameValidator.Instance.IsValidFileName(input.AsSpan()));
