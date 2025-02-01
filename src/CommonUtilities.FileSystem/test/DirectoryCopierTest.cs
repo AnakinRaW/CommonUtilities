@@ -155,8 +155,7 @@ public class DirectoryCopierTest
         }
     }
 
-    //[Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
-    [Fact]
+    [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
     public void MoveDirectory_CannotDeleteSource()
     {
         _fileSystem.Initialize()
