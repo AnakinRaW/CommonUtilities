@@ -127,14 +127,17 @@ public class DownloadManagerTest : CommonTestBase
     {
         var manager = new DownloadManager(ServiceProvider);
 
-        var _ = FileSystem.File.Create("empty.txt");
+        var fi = FileSystem.FileInfo.New("empty.txt");
+        var _ = fi.Create();
         _.Dispose();
 
         var output = new MemoryStream();
-        var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri("file:///empty.txt"), output, null, null, CancellationToken.None));
 
-        Assert.Equal("File download failed: Empty file downloaded on 'file:///empty.txt'.", e.Message);
+        var uri = new Uri($"file:///{fi.FullName}");
+        var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
+            await manager.DownloadAsync(uri, output, null, null, CancellationToken.None));
+
+        Assert.Equal($"File download failed: Empty file downloaded on '{uri}'.", e.Message);
     }
 
     [Fact]
@@ -142,11 +145,12 @@ public class DownloadManagerTest : CommonTestBase
     { 
         var manager = new DownloadManager(new DownloadManagerConfiguration{AllowEmptyFileDownload = true}, ServiceProvider);
 
-        var _ = FileSystem.File.Create("empty.txt");
+        var fi = FileSystem.FileInfo.New("empty.txt");
+        var _ = fi.Create();
         _.Dispose();
 
         var output = new MemoryStream();
-        var result = await manager.DownloadAsync(new Uri("file:///empty.txt"), output, null, null, CancellationToken.None);
+        var result = await manager.DownloadAsync(new Uri($"file:///{fi.FullName}"), output, null, null, CancellationToken.None);
         Assert.Equal(0, result.DownloadedSize);
     }
 
@@ -263,7 +267,7 @@ public class DownloadManagerTest : CommonTestBase
         var validator = new HashDownloadValidator(hash.ToArray(), HashTypeKey.MD5, ServiceProvider);
 
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, validator, CancellationToken.None));
+            await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, validator, CancellationToken.None));
     }
 
     [Theory]
@@ -284,7 +288,7 @@ public class DownloadManagerTest : CommonTestBase
         var hash = SHA256.Create().ComputeHash(bytes);
         var validator = new HashDownloadValidator(hash, HashTypeKey.SHA256, ServiceProvider);
 
-        await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, validator, CancellationToken.None);
+        await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, validator, CancellationToken.None);
     }
 
     [Fact]
@@ -300,11 +304,12 @@ public class DownloadManagerTest : CommonTestBase
             },
             ServiceProvider);
 
+        var uri = new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}");
         var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, new ThrowingValidator(),
+            await manager.DownloadAsync(uri, output, null, new ThrowingValidator(),
                 CancellationToken.None));
 
-        Assert.Equal("File download failed: Validation of 'file:///test.txt' failed with exception: Test", e.Message);
+        Assert.Equal($"File download failed: Validation of '{uri}' failed with exception: Test", e.Message);
     }
 
     [Fact]
@@ -321,7 +326,7 @@ public class DownloadManagerTest : CommonTestBase
         manager.AddDownloadProvider(provider1);
         manager.AddDownloadProvider(provider2);
 
-        await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, null, CancellationToken.None);
+        await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, null, CancellationToken.None);
 
         Assert.Equal(2, counter.Value);
     }
