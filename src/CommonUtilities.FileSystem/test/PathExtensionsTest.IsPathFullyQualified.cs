@@ -11,13 +11,13 @@ public class IsPathFullyQualifiedTest
     private readonly IFileSystem _fileSystem = new MockFileSystem();
 
     [Fact]
-    public void Test_IsPathFullyQualified_NullArgument()
+    public void IsPathFullyQualified_NullArgument()
     {
         Assert.Throws<ArgumentNullException>(() => _fileSystem.Path.IsPathFullyQualified(((string?)null)!));
     }
 
     [Fact]
-    public void Test_IsPathFullyQualified_Empty()
+    public void IsPathFullyQualified_Empty()
     {
         Assert.False(_fileSystem.Path.IsPathFullyQualified(""));
         Assert.False(_fileSystem.Path.IsPathFullyQualified(ReadOnlySpan<char>.Empty));
@@ -29,7 +29,7 @@ public class IsPathFullyQualifiedTest
     [InlineData(".")]
     [InlineData("C:")]
     [InlineData("C:foo.txt")]
-    public void Test_IsPathFullyQualified_Windows_Invalid(string path)
+    public void IsPathFullyQualified_Windows_Invalid(string path)
     {
         Assert.False(_fileSystem.Path.IsPathFullyQualified(path));
         Assert.False(_fileSystem.Path.IsPathFullyQualified(path.AsSpan()));
@@ -50,7 +50,7 @@ public class IsPathFullyQualifiedTest
     [InlineData(@"C:/foo1")]
     [InlineData(@"C://")]
     [InlineData(@"C://foo2")]
-    public void Test_IsPathFullyQualified_Windows_Valid(string path)
+    public void IsPathFullyQualified_Windows_Valid(string path)
     {
         Assert.True(_fileSystem.Path.IsPathFullyQualified(path));
         Assert.True(_fileSystem.Path.IsPathFullyQualified(path.AsSpan()));
@@ -66,7 +66,7 @@ public class IsPathFullyQualifiedTest
     [InlineData(@"C:")]
     [InlineData(@"C:/")]
     [InlineData(@"C://")]
-    public void Test_IsPathFullyQualified_Unix_Invalid(string path)
+    public void IsPathFullyQualified_Unix_Invalid(string path)
     {
         Assert.False(_fileSystem.Path.IsPathFullyQualified(path));
         Assert.False(_fileSystem.Path.IsPathFullyQualified(path.AsSpan()));
@@ -79,7 +79,7 @@ public class IsPathFullyQualifiedTest
     [InlineData("//")]
     [InlineData("//foo.txt")]
     [InlineData("//..")]
-    public void Test_IsPathFullyQualified_Unix_Valid(string path)
+    public void IsPathFullyQualified_Unix_Valid(string path)
     {
         Assert.True(_fileSystem.Path.IsPathFullyQualified(path));
         Assert.True(_fileSystem.Path.IsPathFullyQualified(path.AsSpan()));

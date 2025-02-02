@@ -2,7 +2,7 @@
 
 namespace AnakinRaW.CommonUtilities.Test.Collections;
 
-public class FrugalList_Test_String : FrugalListTestBase<string>
+public class FrugalListTest_String : FrugalListTestBase<string>
 {
     protected override string CreateT(int seed)
     {
@@ -14,7 +14,7 @@ public class FrugalList_Test_String : FrugalListTestBase<string>
     }
 }
 
-public class FrugalList_Test_Int : FrugalListTestBase<int>
+public class FrugalListTest_Int : FrugalListTestBase<int>
 {
     protected override int CreateT(int seed)
     {

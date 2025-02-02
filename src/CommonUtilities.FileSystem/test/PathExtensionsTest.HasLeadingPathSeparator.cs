@@ -16,7 +16,7 @@ public class HasLeadingPathSeparatorTest
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Test_HasLeadingPathSeparator(string? input)
+    public void HasLeadingPathSeparator(string? input)
     {
         Assert.False(_fileSystem.Path.HasLeadingDirectorySeparator(input));
         Assert.False(_fileSystem.Path.HasLeadingDirectorySeparator(input.AsSpan()));
@@ -42,7 +42,7 @@ public class HasLeadingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [MemberData(nameof(TestData_StartsWithDirectorySeparator_Windows))]
-    public void Test_HasLeadingPathSeparator_Windows(string input, bool expected)
+    public void HasLeadingPathSeparator_Windows(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasLeadingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasLeadingDirectorySeparator(input.AsSpan()));
@@ -60,7 +60,7 @@ public class HasLeadingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
     [MemberData(nameof(TestData_StartsWithDirectorySeparator_Linux))]
-    public void Test_HasLeadingPathSeparator_Linux(string input, bool expected)
+    public void HasLeadingPathSeparator_Linux(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasLeadingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasLeadingDirectorySeparator(input.AsSpan()));

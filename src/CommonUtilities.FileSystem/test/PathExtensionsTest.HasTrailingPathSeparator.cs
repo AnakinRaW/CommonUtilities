@@ -19,7 +19,7 @@ public class HasTrailingPathSeparatorTest
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Test_HasTrailingPathSeparator(string? input)
+    public void HasTrailingPathSeparator(string? input)
     {
         Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
@@ -48,7 +48,7 @@ public class HasTrailingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [MemberData(nameof(TestData_EndsInDirectorySeparator_Windows))]
-    public void Test_HasTrailingPathSeparator_Windows(string input, bool expected)
+    public void HasTrailingPathSeparator_Windows(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
@@ -68,7 +68,7 @@ public class HasTrailingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
     [MemberData(nameof(TestData_EndsInDirectorySeparator_Linux))]
-    public void Test_HasTrailingPathSeparator_Linux(string input, bool expected)
+    public void HasTrailingPathSeparator_Linux(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
