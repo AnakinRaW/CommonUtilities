@@ -1,8 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions;
 using Xunit;
+#if NET
+using System.IO;
+#endif
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
@@ -11,7 +14,7 @@ public class HasTrailingPathSeparatorTest
     // Using the actual file system here since we are not modifying it.
     // Also, we want to assure that everything works on the real system,
     // not that an arbitrary test implementation works.
-    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
     
     [Theory]
     [InlineData("")]

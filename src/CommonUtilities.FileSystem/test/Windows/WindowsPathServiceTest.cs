@@ -2,6 +2,7 @@
 using System.Security.AccessControl;
 using AnakinRaW.CommonUtilities.FileSystem.Windows;
 using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions;
 using Xunit;
 #if NET
 using System.Runtime.Versioning;
@@ -22,7 +23,7 @@ public class WindowsPathServiceTest
     [InlineData("C:\\System Volume Information", FileSystemRights.Write, false)]
     public void UserHasDirectoryAccessRights(string? input, FileSystemRights rights, bool expected)
     {
-        var fs = new System.IO.Abstractions.FileSystem();
+        var fs = new RealFileSystem();
         input ??= fs.Path.GetTempPath();
         var dir = fs.DirectoryInfo.New(input);
         Assert.Equal(expected, dir.UserHasDirectoryAccessRights(rights));
@@ -31,7 +32,7 @@ public class WindowsPathServiceTest
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void UserHasDirectoryAccessRights_Throws()
     {
-        var fs = new System.IO.Abstractions.FileSystem();
+        var fs = new RealFileSystem();
         Assert.Throws<DirectoryNotFoundException>(() => fs.DirectoryInfo.New("C:\\doesNotExists\\").UserHasDirectoryAccessRights(FileSystemRights.Read));
     }
 }

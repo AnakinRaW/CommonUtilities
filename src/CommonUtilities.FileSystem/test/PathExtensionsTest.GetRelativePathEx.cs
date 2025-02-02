@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions;
 using Testably.Abstractions.Testing;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetRelativePathExTest
 {
-    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData(@"C:\", @"C:\", @".")]

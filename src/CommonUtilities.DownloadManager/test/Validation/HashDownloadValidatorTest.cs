@@ -148,7 +148,7 @@ public class HashDownloadValidatorTest : CommonTestBase
     {
 #if NET
         return Convert.FromHexString(hexString);
-#endif
+#else
         var data = new byte[hexString.Length / 2];
         for (var index = 0; index < data.Length; index++)
         {
@@ -157,6 +157,7 @@ public class HashDownloadValidatorTest : CommonTestBase
         }
 
         return data;
+#endif
     }
 
 
