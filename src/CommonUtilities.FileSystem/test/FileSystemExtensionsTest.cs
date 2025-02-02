@@ -10,7 +10,7 @@ public class FileSystemExtensionsTest
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
-    public void Test_CreateTemporaryFolderInTempWithRetry()
+    public void CreateTemporaryFolderInTempWithRetry()
     {
         _fileSystem.Initialize();
         var dir = _fileSystem.CreateTemporaryFolderInTempWithRetry();
@@ -22,7 +22,7 @@ public class FileSystemExtensionsTest
 
 
     [Fact]
-    public void Test_CreateFileWithRetry()
+    public void CreateFileWithRetry()
     {
         _fileSystem.Initialize().WithFile("test.txt")
             .Which(a => a.HasStringContent("test"));

@@ -9,7 +9,6 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 public sealed class StepFailureException : Exception
 {
-    private readonly string? _error = null;
     private readonly IEnumerable<IStep> _failedSteps;
 
     /// <inheritdoc/>
@@ -19,12 +18,10 @@ public sealed class StepFailureException : Exception
     {
         get
         {
-            if (_error != null)
-                return _error;
             var stringBuilder = new StringBuilder();
             
             foreach (var step in _failedSteps)
-                stringBuilder.Append("Step '" + step + $"' failed with error: {step.Error?.Message};");
+                stringBuilder.Append($"Step '{step}' failed with error: {step.Error?.Message};");
             return stringBuilder.ToString().TrimEnd(';');
         }
     }

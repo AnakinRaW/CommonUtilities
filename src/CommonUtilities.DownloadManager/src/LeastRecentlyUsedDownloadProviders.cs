@@ -3,29 +3,35 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
-internal class PreferredDownloadProviders
+internal class LeastRecentlyUsedDownloadProviders
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock SyncRoot = new();
+#else
     private static readonly object SyncRoot = new();
+#endif
+
     private readonly ConcurrentDictionary<string, int> _preferredProviders = new();
 
-    private string? _lastSuccessfulProviderName;
-
-    public string? LastSuccessfulProviderName
+    public string? LastSuccessfulProvider
     {
-        get => _lastSuccessfulProviderName;
+        get;
         set
         {
             if (value == null)
                 return;
-            _lastSuccessfulProviderName = value;
+            field = value;
             _preferredProviders.AddOrUpdate(value, 1, (_, existingVal) => ++existingVal);
         }
     }
 
-    public IList<IDownloadProvider> GetProvidersInPriorityOrder(IEnumerable<IDownloadProvider> providers)
+    public IList<IDownloadProvider> GetProvidersInPriorityOrder(ICollection<IDownloadProvider> providers)
     { 
         lock (SyncRoot)
         { 

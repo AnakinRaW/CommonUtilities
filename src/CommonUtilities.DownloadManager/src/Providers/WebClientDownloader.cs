@@ -10,28 +10,33 @@ using Microsoft.Extensions.Logging;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
-internal class WebClientDownloader : DownloadProviderBase
+/// <summary>
+/// A download provider using .NET's WebClient implementation to download files from the Internet.
+/// </summary>
+public sealed class WebClientDownloader : DownloadProviderBase
 {
     private readonly ILogger? _logger;
 
     static WebClientDownloader()
     {
-        if (ServicePointManager.SecurityProtocol == 0)
-            return;
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        if (ServicePointManager.SecurityProtocol != 0)
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
     }
 
-    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadKind.Internet)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WebClientDownloader"/> class.
+    /// </summary>
+    /// <param name="services">The service provider.</param>
+    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadKind.Internet, services)
     {
-        if (services == null) 
-            throw new ArgumentNullException(nameof(services));
-        _logger = services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
+        _logger = ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
-    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    /// <inheritdoc />
+    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var summary = new DownloadResult();
+        var summary = new DownloadResult(uri);
 
         var webRequest = CreateRequest(uri);
 
@@ -56,8 +61,11 @@ internal class WebClientDownloader : DownloadProviderBase
                     var requestRegistration = cancellationToken.Register(webRequest.Abort);
                     try
                     {
-                        summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(responseStream,
-                            totalStreamLength, outputStream, progress,
+                        summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(
+                            responseStream,
+                            totalStreamLength, 
+                            outputStream,
+                            progress,
                             cancellationToken).ConfigureAwait(false);
                         return summary;
                     }
@@ -123,14 +131,14 @@ internal class WebClientDownloader : DownloadProviderBase
             using (cancellationToken.Register(webRequest.Abort))
                 httpWebResponse = (HttpWebResponse)await webRequest.GetResponseAsync().ConfigureAwait(false);
 
-            var responseUri = httpWebResponse.ResponseUri.ToString();
-            if (!string.IsNullOrEmpty(responseUri) &&
-                !uri.ToString().EndsWith(responseUri, StringComparison.InvariantCultureIgnoreCase))
-            {
-                result.Uri = responseUri;
-                _logger?.LogTrace($"Uri '{uri}' + redirected to '{responseUri}'");
-            }
+            var responseUri = httpWebResponse.ResponseUri;
 
+            if (!uri.Equals(responseUri))
+            {
+                _logger?.LogTrace($"Uri '{uri}' redirected to '{responseUri}'");
+                result.Uri = responseUri;
+            }
+            
             switch (httpWebResponse.StatusCode)
             {
                 case HttpStatusCode.OK:

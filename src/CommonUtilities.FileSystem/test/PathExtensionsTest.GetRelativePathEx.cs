@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions;
 using Testably.Abstractions.Testing;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetRelativePathExTest
 {
-    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData(@"C:\", @"C:\", @".")]
@@ -46,7 +47,7 @@ public class GetRelativePathExTest
     [InlineData(@"\\LOCALHOST\Share\a", @"\\LOCALHOST\Share\b", @"..\b")]
     // Tests which don't exist from .NET runtime
     [InlineData(@"C:\a", @"C:\a\.\.", @".")]
-    public void Test_GetRelativePathEx_FromAbsolute_Windows(string root, string path, string expected)
+    public void GetRelativePathEx_FromAbsolute_Windows(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
         Assert.Equal(expected, result);
@@ -62,7 +63,7 @@ public class GetRelativePathExTest
     [InlineData(@"C:\a", @"b", @"b")]
     [InlineData(@"C:\a", @"a\b", @"a\b")]
     [InlineData(@"C:\a", @"a\..\b", @"a\..\b")]
-    public void Test_GetRelativePathEx_FromRelative_Windows(string root, string path, string expected)
+    public void GetRelativePathEx_FromRelative_Windows(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
         Assert.Equal(expected, result);
@@ -74,7 +75,7 @@ public class GetRelativePathExTest
     [InlineData(@"C:\a", @"C:a\", @"..\current\a\")]
     [InlineData(@"C:\a\b", @"C:a\b", @"..\..\current\a\b")]
     [InlineData(@"C:\a", @"X:a", @"X:\a")]
-    public void Test_GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
+    public void GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
     {
         var fileSystem = new MockFileSystem();
         fileSystem.WithDrive("C:").WithDrive("X:");
@@ -107,7 +108,7 @@ public class GetRelativePathExTest
     [InlineData("/a/", @"/A/b", @"../A/b")]
     // Tests which don't exist from .NET runtime
     [InlineData(@"/a", @"/a/./.", @".")]
-    public void Test_GetRelativePathEx_FromAbsolute_Linux(string root, string path, string expected)
+    public void GetRelativePathEx_FromAbsolute_Linux(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
         Assert.Equal(expected, result);
@@ -122,7 +123,7 @@ public class GetRelativePathExTest
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
     [InlineData("/a", "a", "a")]
     [InlineData("/a/b", "a/b", "a/b")]
-    public void Test_GetRelativePathEx_FromRelative_Linux(string root, string path, string expected)
+    public void GetRelativePathEx_FromRelative_Linux(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
         Assert.Equal(expected, result);

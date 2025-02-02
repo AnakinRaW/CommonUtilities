@@ -1,76 +1,106 @@
 ﻿using System;
 using System.Threading;
-using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Moq.Protected;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class PipelineStepTest
+public class PipelineStepTest : CommonTestBase
 {
     [Fact]
-    public void Test_Disposed()
+    public void Ctor_NullArgs_Throws()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
-
-        step.Object.Dispose();
-        Assert.True(step.Object.IsDisposed);
+        Assert.Throws<ArgumentNullException>(() => new TestStep(_ => { }, null!));
     }
 
     [Fact]
-    public void Test_Run()
+    public void Disposed()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
+        var step = new TestStep(_ => { }, ServiceProvider);
 
-        step.Object.Run(default);
-
-        step.Protected().Verify("RunCore", Times.Exactly(1), false, (CancellationToken)default);
+        step.Dispose();
+        Assert.True(step.IsDisposed);
     }
 
     [Fact]
-    public void Test_Run_ThrowsException()
+    public void Run()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
-        {
-            CallBase = true
-        };
+        var ran = false;
+        var step = new TestStep(_ => { ran = true; }, ServiceProvider);
 
-        var e = new Exception();
-        step.Protected().Setup("RunCore", false, (CancellationToken)default)
-            .Throws(e);
+        step.Run(CancellationToken.None);
 
-        Assert.Throws<Exception>(() => step.Object.Run(default));
-        Assert.Same(e, step.Object.Error);
-
+        Assert.True(ran);
     }
 
     [Fact]
-    public void Test_Run_WithCancellation_ThrowsOperationCanceledException()
+    public void Run_ThrowsException()
     {
-        var sc = new ServiceCollection();
-        var step = new Mock<PipelineStep>(sc.BuildServiceProvider())
+        var expectedError = new Exception();
+
+        var step = new TestStep(_ => throw expectedError, ServiceProvider);
+
+        Assert.Throws<Exception>(() => step.Run(CancellationToken.None));
+        Assert.Same(expectedError, step.Error);
+    }
+
+    [Fact]
+    public void Run_WithCancellation_ThrowsOperationCanceledException()
+    {
+        var step = new TestStep(ct =>
         {
-            CallBase = true
-        };
+            ct.ThrowIfCancellationRequested();
+        }, ServiceProvider);
 
         var cts = new CancellationTokenSource();
         cts.Cancel();
+        
+        Assert.Throws<OperationCanceledException>(() => step.Run(cts.Token));
+        Assert.Null(step.Error);
+    }
 
-        step.Protected().Setup("RunCore", false, cts.Token)
-            .Callback<CancellationToken>(d => d.ThrowIfCancellationRequested());
+    [Fact]
+    public void Run_StopRunnerException_IsNotAddedToErrors()
+    {
+        var step = new TestStep(_ => throw new StopRunnerException(), ServiceProvider);
 
-        Assert.Throws<OperationCanceledException>(() => step.Object.Run(cts.Token));
-        Assert.Null(step.Object.Error);
+        Assert.Throws<StopRunnerException>(() => step.Run(CancellationToken.None));
+        Assert.Null(step.Error);
+    }
+
+    [Fact]
+    public void Run_AggregateException()
+    {
+        var expected = new AggregateException(new Exception("Test"));
+        var step = new TestStep(_ => throw expected, ServiceProvider);
+
+        Assert.Throws<AggregateException>(() => step.Run(CancellationToken.None));
+        Assert.Same(expected, step.Error);
+    }
+
+    [Fact]
+    public void Run_AggregateException_OriginatedFromOperationCancelled()
+    {
+        var expected = new Exception("Test");
+        var step = new TestStep(_ => throw new AggregateException(new OperationCanceledException(null, expected)), ServiceProvider);
+
+        Assert.Throws<AggregateException>(() => step.Run(CancellationToken.None));
+        Assert.Same(expected, step.Error);
+    }
+
+    [Fact]
+    public void Run_AggregateException_OriginatedFromOperationCancelled_NoInnerException()
+    {
+        var step = new TestStep(_ => throw new AggregateException(new OperationCanceledException()), ServiceProvider);
+
+        Assert.Throws<AggregateException>(() => step.Run(CancellationToken.None));
+        Assert.Null(step.Error);
+    }
+
+    [Fact]
+    public void ToString_IsTypeName()
+    {
+        var step = new TestStep(_ => { }, ServiceProvider);
+        Assert.Equal(step.GetType().Name, step.ToString());
     }
 }

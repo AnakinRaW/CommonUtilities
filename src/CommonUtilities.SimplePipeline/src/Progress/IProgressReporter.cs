@@ -4,7 +4,7 @@
 /// Receives progress information of an operation which is then reported.
 /// </summary>
 /// <typeparam name="T">The type of detailed progress information.</typeparam>
-public interface IProgressReporter<in T> where T : new()
+public interface IProgressReporter<in T>
 {
     /// <summary>
     /// Reports the current progress of an operation.

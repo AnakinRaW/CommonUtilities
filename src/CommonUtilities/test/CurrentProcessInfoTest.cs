@@ -5,7 +5,7 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class CurrentProcessInfoTests
 {
     [Fact]
-    public void Test_CurrentProcessInfo()
+    public void Current()
     {
         var currentProcessInfo = CurrentProcessInfo.Current;
         Assert.NotEqual(0, currentProcessInfo.Id);

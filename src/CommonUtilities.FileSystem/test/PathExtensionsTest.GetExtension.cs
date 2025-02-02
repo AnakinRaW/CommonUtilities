@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO.Abstractions;
+using Testably.Abstractions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class GetExtensionTest
 {
-    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     public static TheoryData<string, string> TestData_GetExtension => new()
     {

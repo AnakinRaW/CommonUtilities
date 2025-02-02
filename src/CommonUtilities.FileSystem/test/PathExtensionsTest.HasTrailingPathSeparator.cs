@@ -1,8 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
+using Testably.Abstractions;
 using Xunit;
+#if NET
+using System.IO;
+#endif
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
@@ -11,12 +14,12 @@ public class HasTrailingPathSeparatorTest
     // Using the actual file system here since we are not modifying it.
     // Also, we want to assure that everything works on the real system,
     // not that an arbitrary test implementation works.
-    private readonly IFileSystem _fileSystem = new System.IO.Abstractions.FileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
     
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Test_HasTrailingPathSeparator(string? input)
+    public void HasTrailingPathSeparator(string? input)
     {
         Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.False(_fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
@@ -45,7 +48,7 @@ public class HasTrailingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [MemberData(nameof(TestData_EndsInDirectorySeparator_Windows))]
-    public void Test_HasTrailingPathSeparator_Windows(string input, bool expected)
+    public void HasTrailingPathSeparator_Windows(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));
@@ -65,7 +68,7 @@ public class HasTrailingPathSeparatorTest
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
     [MemberData(nameof(TestData_EndsInDirectorySeparator_Linux))]
-    public void Test_HasTrailingPathSeparator_Linux(string input, bool expected)
+    public void HasTrailingPathSeparator_Linux(string input, bool expected)
     {
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input));
         Assert.Equal(expected, _fileSystem.Path.HasTrailingDirectorySeparator(input.AsSpan()));

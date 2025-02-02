@@ -20,7 +20,7 @@ public class WindowsFileNameValidatorTest
     [InlineData("NUL.txt")] // Though it's not recommend by MS, it's actually allowed to use this name in explorer
     [InlineData("nameWithNonASCII_ö")]
     [InlineData("\u0160")]
-    public void Test_IsValidFileName_ValidNames(string input)
+    public void IsValidFileName_ValidNames(string input)
     {
         Assert.Equal(FileNameValidationResult.Valid, WindowsFileNameValidator.Instance.IsValidFileName(input));
         Assert.Equal(FileNameValidationResult.Valid, WindowsFileNameValidator.Instance.IsValidFileName(input.AsSpan()));
@@ -84,7 +84,7 @@ public class WindowsFileNameValidatorTest
     [InlineData("\\file", FileNameValidationResult.InvalidCharacter)]
     [InlineData("/file", FileNameValidationResult.InvalidCharacter)]
     [InlineData("|file", FileNameValidationResult.InvalidCharacter)]
-    public void Test_IsValidFileName_InvalidNames(string? input, FileNameValidationResult expected, bool ignoreWhenNoWindowsReserved = false)
+    public void IsValidFileName_InvalidNames(string? input, FileNameValidationResult expected, bool ignoreWhenNoWindowsReserved = false)
     {
         Assert.Equal(expected, WindowsFileNameValidator.Instance.IsValidFileName(input));
         Assert.Equal(expected, WindowsFileNameValidator.Instance.IsValidFileName(input.AsSpan(), true));

@@ -4,7 +4,7 @@ using AnakinRaW.CommonUtilities.Collections;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections;
 
-public class ReadOnlyFrugalList_Test_String : ReadOnlyFrugalListTestBase<string>
+public class ReadOnlyFrugalListTest_String : ReadOnlyFrugalListTestBase<string>
 {
     protected override string CreateT(int seed)
     {
@@ -16,7 +16,7 @@ public class ReadOnlyFrugalList_Test_String : ReadOnlyFrugalListTestBase<string>
     }
 }
 
-public class ReadOnlyFrugalList_Test_Int : ReadOnlyFrugalListTestBase<int>
+public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
 {
     protected override int CreateT(int seed)
     {
@@ -26,7 +26,7 @@ public class ReadOnlyFrugalList_Test_Int : ReadOnlyFrugalListTestBase<int>
 }
 
 
-public class ReadOnlyFrugalList_Test_Int_FromFrugal : ReadOnlyFrugalListTestBase<int>
+public class ReadOnlyFrugalListTest_Int_FromFrugal : ReadOnlyFrugalListTestBase<int>
 {
     protected override int CreateT(int seed)
     {

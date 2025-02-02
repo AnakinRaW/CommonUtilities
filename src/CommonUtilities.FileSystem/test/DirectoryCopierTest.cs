@@ -11,13 +11,13 @@ public class DirectoryCopierTest
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
-    public void Test_Ctor_Throws()
+    public void Ctor_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new DirectoryCopier(null!));
     }
     
     [Fact]
-    public void Test_ThrowsArgumentNullExceptions()
+    public void MoveDirectory_CopyDirectory_ThrowsArgumentNullExceptions()
     {
         var copier = new DirectoryCopier(_fileSystem);
         Assert.Throws<ArgumentNullException>(() => copier.MoveDirectory(null!, "path"));
@@ -27,7 +27,7 @@ public class DirectoryCopierTest
     }
 
     [Fact]
-    public async Task Test_ThrowsArgumentNullExceptionsAsync()
+    public async Task MoveDirectoryAsync_CopyDirectoryAsync_ThrowsArgumentNullExceptionsAsync()
     {
         var copier = new DirectoryCopier(_fileSystem);
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.MoveDirectoryAsync(null!, "path"));
@@ -42,7 +42,7 @@ public class DirectoryCopierTest
     }
 
     [Fact]
-    public void Test_CopyDirectory()
+    public void CopyDirectory()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -60,7 +60,7 @@ public class DirectoryCopierTest
         });
 
         // https://github.com/Testably/Testably.Abstractions/issues/549
-        //var fsStream = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var fsStream = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         copier.CopyDirectory("test", "other", progress, Exclude2);
         Assert.Equal(1.0, progressValue);
@@ -69,7 +69,7 @@ public class DirectoryCopierTest
         Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
 
-        //fsStream.Dispose();
+        fsStream.Dispose();
 
         return;
 
@@ -81,7 +81,7 @@ public class DirectoryCopierTest
     }
 
     [Fact]
-    public async Task Test_CopyDirectoryAsync()
+    public async Task CopyDirectoryAsync()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -99,7 +99,7 @@ public class DirectoryCopierTest
         });
 
         // https://github.com/Testably/Testably.Abstractions/issues/549
-        //var fsStream = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var fsStream = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         await copier.CopyDirectoryAsync("test", "other", progress, Exclude2);
         Assert.Equal(1.0, progressValue);
@@ -108,7 +108,7 @@ public class DirectoryCopierTest
         Assert.True(_fileSystem.File.Exists("other/sub/4.txt"));
         Assert.Equal("3", _fileSystem.File.ReadAllText("other/3.txt"));
 
-        //fsStream.Dispose();
+        fsStream.Dispose();
 
         return;
 
@@ -119,7 +119,7 @@ public class DirectoryCopierTest
     }
 
     [Fact]
-    public void Test_MoveDirectory()
+    public void MoveDirectory()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -156,7 +156,7 @@ public class DirectoryCopierTest
     }
 
     [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
-    public void Test_MoveDirectory_CannotDeleteSource()
+    public void MoveDirectory_CannotDeleteSource()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -189,7 +189,7 @@ public class DirectoryCopierTest
     }
 
     [Fact]
-    public async Task Test_MoveDirectoryAsync()
+    public async Task MoveDirectoryAsync()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))

@@ -1,49 +1,70 @@
 ﻿using System;
 using System.IO;
-using System.IO.Abstractions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
-using Microsoft.Extensions.DependencyInjection;
-using Testably.Abstractions.Testing;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
-public class FileDownloadTest
+public class FileDownloadTest : DownloadProviderTestBase
 {
-    private readonly MockFileSystem _fileSystem = new();
-    private readonly FileDownloader _provider;
+    private const string Data = "This is some text.";
 
-    public FileDownloadTest()
+    protected override Type ExpectedSourceNotFoundExceptionType => typeof(FileNotFoundException);
+
+    protected override IDownloadProvider CreateProvider()
     {
-        var sc = new ServiceCollection();
-        sc.AddSingleton<IFileSystem>(_fileSystem);
-        _provider = new FileDownloader(sc.BuildServiceProvider());
+        return new FileDownloader(ServiceProvider);
+    }
+
+    protected override Uri CreateSource(bool exists)
+    {
+        var source = FileSystem.FileInfo.New("test.file");
+        if (exists) 
+            FileSystem.File.WriteAllText(source.FullName, Data);
+
+        return new Uri($"file://{source.FullName}");
     }
 
     [Fact]
-    public async Task Test_DownloadAsync()
+    public void Ctor_NullArgs_Throws()
     {
-        const string data = "This is some text.";
-        _fileSystem.Initialize().WithFile("test.file").Which(f => f.HasStringContent(data));
-        var source = _fileSystem.FileInfo.New("test.file");
+        Assert.Throws<ArgumentNullException>(() => new FileDownloader(null!));
+    }
 
+    [Fact]
+    public async Task DownloadAsync_ExpectedData()
+    {
+        var source = CreateSource(true);
         var outStream = new MemoryStream();
-        var result = await _provider.DownloadAsync(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None);
+        
+        var result = await Download(source, outStream, CancellationToken.None);
 
-        Assert.Equal<long>(data.Length, result.DownloadedSize);
+        Assert.Equal(Data.Length, result.DownloadedSize);
         var copyData = Encoding.Default.GetString(outStream.ToArray());
-        Assert.Equal(data, copyData);
+        Assert.Equal(Data, copyData);
     }
 
-    [Fact]
-    public async Task Test_DownloadAsync_ThrowsFileNotFound()
+    [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
+    public async Task DownloadAsync_UncPath()
     {
-        var source = _fileSystem.FileInfo.New("test.file");
+        var source = new Uri("file://server/test.file");
+        Assert.True(source.IsUnc);
+        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await Download(source, new MemoryStream()));
+    }
+
+    [Theory]
+    [InlineData("http://example.com/test.txt")]
+    [InlineData("https://example.com/test.txt")]
+    [InlineData("ftp://example.com/test.txt")]
+    [InlineData("xxx://example.com/test.txt")]
+    public async Task DownloadAsync_NotAFileSource_Throws(string uri)
+    {
+        var source = new Uri(uri);
         var outStream = new MemoryStream();
-        await Assert.ThrowsAsync<FileNotFoundException>(() =>
-            _provider.DownloadAsync(new Uri($"file://{source.FullName}"), outStream, null, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await Download(source, outStream, CancellationToken.None));
     }
 }

@@ -39,7 +39,7 @@ public class IsChildOfTest
     [InlineData("D:/current", "D:/", false)]
     [InlineData("D:/current", "D:a", false)]
     [InlineData("D:/current", "D:/current/a", true)]
-    public void TestIsChild_Windows(string basePath, string candidate, bool expected)
+    public void IsChild_Windows(string basePath, string candidate, bool expected)
     {
         _fileSystem.Initialize().WithSubdirectory("C:\\current");
         _fileSystem.Directory.SetCurrentDirectory("C:\\current");
@@ -59,7 +59,7 @@ public class IsChildOfTest
     [InlineData("/a1/", "/a/b", false)]
     [InlineData("/", "a", true)]
     [InlineData("/current", "a", true)]
-    public void TestIsChild_Linux(string basePath, string candidate, bool expected)
+    public void IsChild_Linux(string basePath, string candidate, bool expected)
     {
         _fileSystem.Initialize().WithSubdirectory("/current");
         _fileSystem.Directory.SetCurrentDirectory("/current");
@@ -74,7 +74,7 @@ public class IsChildOfTest
     [InlineData("test", "/")]
     [InlineData("/", "test")]
     [InlineData("test", "test")]
-    public void TestIsChild_NoFullyQualifiedPathsForROS_Linux(string basePath, string candidate)
+    public void IsChild_NoFullyQualifiedPathsForROS_Linux(string basePath, string candidate)
     {
         Assert.Throws<ArgumentException>(() => _fileSystem.Path.IsChildOf(basePath.AsSpan(), candidate.AsSpan()));
     }
@@ -83,7 +83,7 @@ public class IsChildOfTest
     [InlineData("test", "test")]
     [InlineData("C:/test", "test")]
     [InlineData("test", "C:/test")]
-    public void TestIsChild_NoFullyQualifiedPathsForROS_Windows(string basePath, string candidate)
+    public void IsChild_NoFullyQualifiedPathsForROS_Windows(string basePath, string candidate)
     {
         Assert.Throws<ArgumentException>(() => _fileSystem.Path.IsChildOf(basePath.AsSpan(), candidate.AsSpan()));
     }

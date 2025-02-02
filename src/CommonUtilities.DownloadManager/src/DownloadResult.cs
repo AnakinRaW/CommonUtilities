@@ -30,18 +30,16 @@ public sealed class DownloadResult
     /// <summary>
     /// Gets the actual URI used to download the file.
     /// </summary>
-    public string Uri { get; internal set; }
-
-    internal DownloadResult() : this(string.Empty, 0L, 0.0, TimeSpan.Zero)
+    public Uri? Uri { get; internal set; }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DownloadResult"/> class with the specified download uri
+    /// </summary>
+    /// <param name="uri">The origin uri of the download.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="uri"/> is <see langword="null"/>.</exception>
+    public DownloadResult(Uri uri)
     {
-    }
-
-    internal DownloadResult(string downloadProvider, long downloadSize, double bitRate, TimeSpan downloadTime)
-    {
-        DownloadProvider = downloadProvider;
-        DownloadedSize = downloadSize;
-        BitRate = bitRate;
-        DownloadTime = downloadTime;
-        Uri = string.Empty;
+        Uri = uri ?? throw new ArgumentNullException(nameof(uri));
+        DownloadProvider = string.Empty;
     }
 }

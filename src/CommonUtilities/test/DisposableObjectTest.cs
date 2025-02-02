@@ -1,8 +1,4 @@
-using Moq;
 using System;
-using System.Reflection;
-using AnakinRaW.CommonUtilities.Testing;
-using Moq.Protected;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
@@ -10,36 +6,58 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class DisposableObjectTest
 {
     [Fact]
-    public void Test_DisposableObject_Lifecycle()
+    public void DisposableObject_Lifecycle()
     {
-        var disposable = new Mock<DisposableObject>
+        var disposeCounter = 0;
+        var disposable = new TestDisposable(() =>
         {
-            CallBase = true
+            disposeCounter++;
+        });
+
+        var eventCounter = 0;
+        disposable.Disposing += (sender, args) =>
+        {
+            Assert.Same(disposable, sender);
+            eventCounter++;
         };
 
-        Assert.False(disposable.Object.IsDisposed);
+        Assert.False(disposable.IsDisposed);
+        Assert.Equal(0, disposeCounter);
+        Assert.Equal(0, eventCounter);
 
-        var throwIfDisposed = disposable.Object.GetType().GetMethod("ThrowIfDisposed", BindingFlags.NonPublic | BindingFlags.Instance);
-
+        
         // Must not throw!
-        throwIfDisposed!.Invoke(disposable.Object, null);
+        disposable.ExposeThrowIfDisposed();
 
-        disposable.Object.Dispose();
+        Assert.False(disposable.IsDisposed);
+        Assert.Equal(0, disposeCounter);
+        Assert.Equal(0, eventCounter);
 
-        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
-        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
-
-        Assert.True(disposable.Object.IsDisposed);
+        disposable.Dispose();
+        
+        Assert.True(disposable.IsDisposed);
+        Assert.Equal(1, disposeCounter);
+        Assert.Equal(1, eventCounter);
 
         // Disposing again
-        disposable.Object.Dispose();
+        disposable.Dispose();
 
-        Assert.True(disposable.Object.IsDisposed);
+        Assert.True(disposable.IsDisposed);
+        Assert.Equal(1, disposeCounter);
+        Assert.Equal(1, eventCounter);
+    }
 
-        disposable.Protected().Verify("DisposeManagedResources", Times.Once());
-        disposable.Protected().Verify("DisposeNativeResources", Times.Once());
+    private class TestDisposable(Action onDispose) : DisposableObject
+    {
+        public void ExposeThrowIfDisposed()
+        {
+            ThrowIfDisposed();
+        }
 
-        AssertExtensions.Throws_IgnoreTargetInvocationException<ObjectDisposedException>(() =>
-            throwIfDisposed!.Invoke(disposable.Object, null));
+        protected override void DisposeResources()
+        {
+            onDispose();
+            base.DisposeResources();
+        }
     }
 }

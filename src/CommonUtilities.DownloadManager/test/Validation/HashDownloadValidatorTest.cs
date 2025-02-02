@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Validation;
 using AnakinRaW.CommonUtilities.Hashing;
+using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
 
-public class HashDownloadValidatorTest
+public class HashDownloadValidatorTest : CommonTestBase
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly Mock<IHashingService> _hashingService = new();
-
-    public HashDownloadValidatorTest()
+    protected override void SetupServices(IServiceCollection serviceCollection)
     {
-        var sc = new ServiceCollection();
-        sc.AddSingleton(_hashingService.Object);
-        _serviceProvider = sc.BuildServiceProvider();
+        base.SetupServices(serviceCollection);
+        serviceCollection.AddSingleton<IHashingService>(sp => new HashingService(sp));
+    }
+
+    [Fact]
+    public void Ctor_ArgsNull_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => new HashDownloadValidator(null, HashTypeKey.None, null!));
     }
 
     public static IEnumerable<object[]> ValidContextData()
@@ -38,9 +38,9 @@ public class HashDownloadValidatorTest
 
     [Theory]
     [MemberData(nameof(ValidContextData))]
-    public void Test_Ctor_ValidateCorrect(HashTypeKey type, byte[] data)
+    public void Ctor_ValidateCorrect(HashTypeKey type, byte[] data)
     {
-        _ = new HashDownloadValidator(data, type, _serviceProvider);
+        _ = new HashDownloadValidator(data, type, ServiceProvider);
     }
 
     public static IEnumerable<object[]> InvalidContextData()
@@ -65,50 +65,40 @@ public class HashDownloadValidatorTest
 
     [Theory]
     [MemberData(nameof(InvalidContextData))]
-    public void Test_Ctor_InvalidateCorrect(HashTypeKey type, byte[] data)
+    public void Ctor_InvalidateCorrect(HashTypeKey type, byte[] data)
     {
-        Assert.Throws<ArgumentException>(() => new HashDownloadValidator(data, type, _serviceProvider));
+        Assert.Throws<ArgumentException>(() => new HashDownloadValidator(data, type, ServiceProvider));
     }
-    
+
     [Fact]
-    public async Task Test_Validate_NoneHashType()
+    public async Task Validate_NullStream_Throws()
     {
-        var validator = new HashDownloadValidator(null, HashTypeKey.None, _serviceProvider);
+        var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await validator.Validate(null!, 0));
+    }
+
+    [Fact]
+    public async Task Validate_NoneHashType()
+    {
+        var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
         var result = await validator.Validate(new MemoryStream(new byte[3]), 0);
         Assert.True(result);
     }
 
     [Fact]
-    public async Task Test_Validate_StreamNotSeekable_ThrowsNotSupportedException()
+    public async Task Validate_StreamNotSeekable_ThrowsNotSupportedException()
     {
-        var validator = new HashDownloadValidator(null, HashTypeKey.None, _serviceProvider);
+        var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
         await Assert.ThrowsAsync<NotSupportedException>(async () =>
             await validator.Validate(new NonSeekableStream(), 0));
     }
 
-    [Fact]
-    public async Task Test_Validate_HashesToNotMatch()
+    [Theory]
+    [MemberData(nameof(ValidContextData))]
+    public async Task Validate_HashesToNotMatch(HashTypeKey hashType, byte[] notExpectedHash)
     {
-        var expected = GenerateRandomHash(HashTypeKey.MD5);
-        byte[] actual;
-
-        do
-        {
-            actual = GenerateRandomHash(HashTypeKey.MD5);
-        } while (actual.SequenceEqual(expected));
-
-        _hashingService.Setup(h => h.GetHash(It.IsAny<Stream>(), HashTypeKey.MD5))
-            .Returns(actual);
-
-        var validator = new HashDownloadValidator(expected, HashTypeKey.MD5, _serviceProvider);
-        var result = await validator.Validate(new MemoryStream(new byte[3]), 0);
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task Test_Validate_HashesMatch()
-    {
-        var hash = GenerateRandomHash(HashTypeKey.MD5);
+        if (hashType == HashTypeKey.None)
+            return;
 
         const long actualDownloadedBytes = 3;
         var dlStream = new MemoryStream([0, 1, 2, 3, 4]);
@@ -116,28 +106,58 @@ public class HashDownloadValidatorTest
         // Pretend the download progressed to EOF
         dlStream.Position = dlStream.Length;
 
-        _hashingService.Setup(h => h.GetHashAsync(dlStream, HashTypeKey.MD5, CancellationToken.None))
-            .Callback((Stream s, HashTypeKey h, CancellationToken c) =>
-            {
-                Assert.Equal(dlStream.Length - actualDownloadedBytes, dlStream.Position);
-            })
-            .Returns(new ValueTask<byte[]>(hash));
+        // notExpectedHash is always empty
+        var validator = new HashDownloadValidator(notExpectedHash, hashType, ServiceProvider);
+        var result = await validator.Validate(dlStream, actualDownloadedBytes);
+        Assert.False(result);
+    }
 
+    public static IEnumerable<object[]> Validate_Match_Data()
+    {
+        // The actual data to hash is [2, 3, 4]
+        yield return [HashTypeKey.None, ""]; // Hash is not used.
+        yield return [HashTypeKey.MD5, "13427305830A139207A3DA251A52B53C"];
+        yield return [HashTypeKey.SHA1, "6F74E8562462DC98C09E9934311F327788817395"];
+        yield return [HashTypeKey.SHA256, "1F528FFD2895634C176537C055DAA5C0971B7915519999337A0E355410D8FD98"];
+        yield return [HashTypeKey.SHA384, "845350D2E58AF7445DFD9224FAC0B764EE04FCC77BF2B02F0C1B00634AB2E7F16EAC0D89E031E977677FFFF13EB25882"];
+        yield return [HashTypeKey.SHA512, "31C5EA6CB50F6DF3E1110E08BC3FBE3F5E02EE959E2AA6D2106C6B30429DD0B6E183DB5AA35973B1998A534956C78A8B117239FD39F63F1256D867F11CB9A073"];
+    }
 
-        var validator = new HashDownloadValidator(hash, HashTypeKey.MD5, _serviceProvider);
+    [Theory]
+    [MemberData(nameof(Validate_Match_Data))]
+    public async Task Validate_HashesMatch(HashTypeKey hashType, string expectedHashString)
+    { 
+        const long actualDownloadedBytes = 3;
+        var dlStream = new MemoryStream([0, 1, 2, 3, 4]);
+
+        // Pretend the download progressed to EOF
+        dlStream.Position = dlStream.Length;
+
+        var expectedHash = ConvertHexStringToByteArray(expectedHashString);
+
+        var validator = new HashDownloadValidator(expectedHash, hashType, ServiceProvider);
         var result = await validator.Validate(dlStream, actualDownloadedBytes);
         Assert.True(result);
 
-        _hashingService.Verify(v => v.GetHashAsync(dlStream, HashTypeKey.MD5, CancellationToken.None), Times.Once);
+        if (hashType != HashTypeKey.None) 
+            Assert.Equal(5, dlStream.Position);
     }
 
-    private static byte[] GenerateRandomHash(HashTypeKey hashType)
+
+    public static byte[] ConvertHexStringToByteArray(string hexString)
     {
-        var hashSize = hashType.HashSize;
-        var hash = new byte[hashSize];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(hash);
-        return hash;
+#if NET
+        return Convert.FromHexString(hexString);
+#else
+        var data = new byte[hexString.Length / 2];
+        for (var index = 0; index < data.Length; index++)
+        {
+            var byteValue = hexString.Substring(index * 2, 2);
+            data[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        }
+
+        return data;
+#endif
     }
 
 

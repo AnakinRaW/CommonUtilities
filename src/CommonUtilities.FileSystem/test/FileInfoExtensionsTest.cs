@@ -11,7 +11,7 @@ public class FileInfoExtensionsTest
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
-    public void Test_DeleteIfInTemp()
+    public void DeleteIfInTemp()
     {
         _fileSystem.Initialize();
 
@@ -43,7 +43,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_DeleteWithRetry()
+    public void DeleteWithRetry()
     {
         _fileSystem.Initialize()
             .WithFile("text1.txt")
@@ -85,7 +85,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_TryDeleteWithRetry()
+    public void TryDeleteWithRetry()
     {
         _fileSystem.Initialize()
             .WithFile("text1.txt")
@@ -123,7 +123,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_CopyWithRetry_ThrowsFileNotFound()
+    public void CopyWithRetry_ThrowsFileNotFound()
     {
         _fileSystem.Initialize();
         var fileToCopy = _fileSystem.FileInfo.New("test.txt");
@@ -131,7 +131,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_CopyWithRetry()
+    public void CopyWithRetry()
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
         _fileSystem.Initialize().WithFile("test1.txt");
@@ -144,7 +144,7 @@ public class FileInfoExtensionsTest
 
 
     [Fact]
-    public void Test_MoveToEx_ThrowsFileNotFoundException()
+    public void MoveToEx_ThrowsFileNotFoundException()
     {
         var fileToMove = _fileSystem.FileInfo.New("test.txt");
         Assert.Throws<FileNotFoundException>(() => fileToMove.MoveToEx("test.txt", false));
@@ -152,7 +152,7 @@ public class FileInfoExtensionsTest
 
 
     [Fact]
-    public void Test_MoveToEx_NoOverwrite_ThrowsIOException()
+    public void MoveToEx_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
         _fileSystem.Initialize().WithFile("test1.txt");
@@ -162,7 +162,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_MoveToEx_WithOverwrite()
+    public void MoveToEx_WithOverwrite()
     {
 
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
@@ -176,7 +176,7 @@ public class FileInfoExtensionsTest
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_MoveToEx_AcrossVolume_Windows()
+    public void MoveToEx_AcrossVolume_Windows()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize().WithFile("test.txt").Which(f => f.HasStringContent("1234"));
@@ -190,14 +190,14 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_CreateRandomHiddenTemporaryFile_DirectoryNotFound()
+    public void CreateRandomHiddenTemporaryFile_DirectoryNotFound()
     {
         _fileSystem.Initialize();
         Assert.Throws<DirectoryNotFoundException>(() => _fileSystem.File.CreateRandomHiddenTemporaryFile("test"));
     }
 
     [Fact]
-    public void Test_CreateRandomHiddenTemporaryFile_UseUserTempWhenPathIsNull()
+    public void CreateRandomHiddenTemporaryFile_UseUserTempWhenPathIsNull()
     {
         _fileSystem.Initialize();
         var fs = _fileSystem.File.CreateRandomHiddenTemporaryFile();
@@ -216,7 +216,7 @@ public class FileInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_CreateRandomHiddenTemporaryFile()
+    public void CreateRandomHiddenTemporaryFile()
     {
         _fileSystem.Initialize()
             .WithSubdirectory("test");

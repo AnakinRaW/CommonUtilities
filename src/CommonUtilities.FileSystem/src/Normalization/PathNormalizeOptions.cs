@@ -6,7 +6,7 @@
 /// <remarks>
 /// The <see cref="PathNormalizeOptions"/> structure includes some static properties that return predefined options.
 /// </remarks>
-public record struct PathNormalizeOptions
+public sealed class PathNormalizeOptions
 {
     /// <summary>
     /// Returns a <see cref="PathNormalizeOptions"/> to normalize paths using the current system's primary directory separators.
@@ -54,6 +54,13 @@ public record struct PathNormalizeOptions
     /// Gets or sets whether directory separator shall be unified across the path based on <see cref="UnifySeparatorKind"/>.
     /// </summary>
     public bool UnifyDirectorySeparators { get; init; }
+
+    /// <summary>
+    /// Gets or sets whether directory separator normalization on a Linux system shall treat backslash characters '\'
+    /// as a separator and normalize it. When set to <see langword="true"/>, a backslash character is treated as a directory separator.
+    /// When set to <see langword="false"/>, a backslash character is not treated as a directory separator and thus is not getting normalized.
+    /// </summary>
+    public bool TreatBackslashAsSeparator { get; init; }
 
     /// <summary>
     /// Gets or sets a value how directory separators shall be treated. Default is <see cref="DirectorySeparatorKind.System"/>.

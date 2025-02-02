@@ -14,7 +14,7 @@ public class FileSystemInfoExtensionTest
     [InlineData("C:\\test")]
     [InlineData("C:\\test.txt")]
     [InlineData("test.txt")]
-    public void Test_GetDriveSize_Windows(string path)
+    public void GetDriveSize_Windows(string path)
     {
         _fileSystem.WithDrive("C:", c => c.SetTotalSize(1234));
         var fsi = _fileSystem.FileInfo.New(path);
@@ -27,7 +27,7 @@ public class FileSystemInfoExtensionTest
     [InlineData("/a")]
     [InlineData("a/")]
     [InlineData("a")]
-    public void Test_GetDriveSize_Linux(string path)
+    public void GetDriveSize_Linux(string path)
     {
         _fileSystem.WithDrive("/", c => c.SetTotalSize(1234));
         var fsi = _fileSystem.FileInfo.New(path);

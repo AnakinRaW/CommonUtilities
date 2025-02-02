@@ -1,15 +1,21 @@
-﻿using Moq;
+﻿using System;
+using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class StepErrorEventArgsTest
+public class StepErrorEventArgsTest : CommonTestBase
 {
     [Fact]
-    public void Test_Cancel()
+    public void Cancel()
     {
-        var step = new Mock<IStep>();
-        var args = new StepErrorEventArgs(step.Object);
+        var e = new Exception("Tet");
+        var step = new TestStep(_ => { }, ServiceProvider);
+        var args = new StepRunnerErrorEventArgs(e, step);
+
+        Assert.Same(step, args.Step);
+        Assert.Same(e, args.Exception);
+
         Assert.False(args.Cancel);
         args.Cancel = true;
         Assert.True(args.Cancel);

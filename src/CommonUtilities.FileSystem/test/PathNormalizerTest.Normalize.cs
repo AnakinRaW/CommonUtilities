@@ -9,38 +9,80 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 public class PathNormalizerTest
 {
     [Fact]
-    public void Test_Normalize_Throws()
+    public void Normalize_Throws()
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
-            PathNormalizer.Normalize(null!, new PathNormalizeOptions());
+            PathNormalizer.Normalize((string)null!, new PathNormalizeOptions());
         });
-
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize("abc", null!);
+        });
         Assert.Throws<ArgumentException>(() =>
         {
-            PathNormalizer.Normalize("", new PathNormalizeOptions());
+            PathNormalizer.Normalize(string.Empty, new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize(new ReadOnlySpan<char>(), new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            PathNormalizer.Normalize("abc".AsSpan(), null!);
+        });
+        Assert.Throws<ArgumentException>(() =>
+        {
+            PathNormalizer.Normalize(string.Empty.AsSpan(), new PathNormalizeOptions());
+        });
+
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            var buffer = new char[4];
+            PathNormalizer.Normalize(ReadOnlySpan<char>.Empty, buffer, new PathNormalizeOptions());
+        });
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            var buffer =  new char[4];
+            PathNormalizer.Normalize("abc".AsSpan(), buffer, null!);
+        });
+        Assert.Throws<ArgumentException>(() =>
+        {
+            var buffer = new char[4];
+            PathNormalizer.Normalize("".AsSpan(), buffer, new PathNormalizeOptions());
         });
     }
 
 
     [Fact]
-    public void Test_Normalize_Span_TooShort()
+    public void Normalize_Span_DefaultAndEmpty()
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
             Span<char> buffer = new char[10];
-            return PathNormalizer.Normalize(((string)null!).AsSpan(), buffer, new PathNormalizeOptions());
+            return PathNormalizer.Normalize(default, buffer, new PathNormalizeOptions());
         });
-
         Assert.Throws<ArgumentException>(() =>
         {
             Span<char> buffer = new char[10];
-            return PathNormalizer.Normalize("".AsSpan(), buffer, new PathNormalizeOptions());
+            return PathNormalizer.Normalize(string.Empty.AsSpan(), buffer, new PathNormalizeOptions());
         });
     }
 
     [Fact]
-    public void Test_Normalize()
+    public void Normalize_Span_TooShort()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        {
+            const string value = "somePath";
+            Span<char> buffer = new char[1];
+            return PathNormalizer.Normalize(value.AsSpan(), buffer, new PathNormalizeOptions());
+        });
+    }
+
+    [Fact]
+    public void Normalize()
     {
         foreach (var testData in NormalizeTestDataSource())
         {
@@ -49,7 +91,12 @@ public class PathNormalizerTest
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
                 result);
 
+            var resultFromRos = PathNormalizer.Normalize(testData.Input.AsSpan(), testData.Options);
+            Assert.Equal(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? testData.ExpectedWindows : testData.ExpectedLinux,
+                resultFromRos);
 
+            // Just give it some space with +10
             Span<char> buffer = new char[testData.Input.Length + 10];
             var charsWritten = PathNormalizer.Normalize(testData.Input.AsSpan(), buffer, testData.Options);
 
@@ -70,19 +117,12 @@ public class PathNormalizerTest
             ExpectedWindows = "a/b\\C",
             Options = new PathNormalizeOptions()
         };
-        yield return new NormalizeTestData
-        {
-            Input = "a/b\\C",
-            ExpectedLinux = "a/b\\C",
-            ExpectedWindows = "a/b\\C",
-            Options = default
-        };
 
         // Default Dir separator unification
         yield return new NormalizeTestData
         {
             Input = "a/b\\C",
-            ExpectedLinux = "a/b/C",
+            ExpectedLinux = "a/b\\C",
             ExpectedWindows = "a\\b\\C",
             Options =
                 new PathNormalizeOptions
@@ -95,7 +135,33 @@ public class PathNormalizerTest
             Input = "a/b\\C",
             ExpectedLinux = "a/b/C",
             ExpectedWindows = "a\\b\\C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    TreatBackslashAsSeparator = true,
+                    UnifyDirectorySeparators = true
+                }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a/b\\C",
+            ExpectedWindows = "a\\b\\C",
             Options = PathNormalizeOptions.UnifySeparators
+        };
+
+        // Forces Linux Dir separator unification
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a/b\\C",
+            ExpectedWindows = "a/b/C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    UnifyDirectorySeparators = true,
+                    UnifySeparatorKind = DirectorySeparatorKind.Linux
+                }
         };
 
         // Forces Linux Dir separator unification
@@ -108,6 +174,7 @@ public class PathNormalizerTest
                 new PathNormalizeOptions
                 {
                     UnifyDirectorySeparators = true,
+                    TreatBackslashAsSeparator = true,
                     UnifySeparatorKind = DirectorySeparatorKind.Linux
                 }
         };
@@ -122,6 +189,19 @@ public class PathNormalizerTest
                 new PathNormalizeOptions
                 {
                     UnifyDirectorySeparators = true,
+                    UnifySeparatorKind = DirectorySeparatorKind.Windows
+                }
+        };
+        yield return new NormalizeTestData
+        {
+            Input = "a/b\\C",
+            ExpectedLinux = "a\\b\\C",
+            ExpectedWindows = "a\\b\\C",
+            Options =
+                new PathNormalizeOptions
+                {
+                    UnifyDirectorySeparators = true,
+                    TreatBackslashAsSeparator = true,
                     UnifySeparatorKind = DirectorySeparatorKind.Windows
                 }
         };

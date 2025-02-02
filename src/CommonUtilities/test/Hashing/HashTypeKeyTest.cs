@@ -7,7 +7,7 @@ namespace AnakinRaW.CommonUtilities.Test.Hashing;
 public class HashTypeKeyTest
 {
     [Fact]
-    public void Test_Ctor()
+    public void Ctor()
     {
         var key = new HashTypeKey("123", 1);
         Assert.Equal("123", key.Name);
@@ -15,7 +15,7 @@ public class HashTypeKeyTest
     }
 
     [Fact]
-    public void Test_None()
+    public void None()
     {
         var key = HashTypeKey.None;
         Assert.Null(key.Name);
@@ -24,7 +24,7 @@ public class HashTypeKeyTest
     }
 
     [Fact]
-    public void Test_Ctor_Throws()
+    public void Ctor_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new HashTypeKey(null!, 1));
         Assert.Throws<ArgumentException>(() => new HashTypeKey("", 1));
@@ -33,7 +33,7 @@ public class HashTypeKeyTest
     }
 
     [Fact]
-    public void Test_Equals_GetHashCode()
+    public void Equals_GetHashCode()
     {
         var key1 = new HashTypeKey("abc", 1);
         var key2 = new HashTypeKey("ABC", 1);

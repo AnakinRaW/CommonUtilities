@@ -10,7 +10,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<Product>.NET Common Utilities</Product>
-		<Copyright>Copyright © AnakinRaW 2024</Copyright>
+		<Copyright>Copyright © AnakinRaW 2025</Copyright>
 		<Authors>AnakinRaW</Authors>
 		<Owners>AnakinRaW</Owners>
 		<PackageProjectUrl>https://github.com/AnakinRaW/CommonUtilities</PackageProjectUrl>
@@ -25,7 +25,7 @@
 		</PackageReference>
 		<PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
 			<PrivateAssets>all</PrivateAssets>
-			<Version>3.7.112</Version>
+			<Version>3.7.115</Version>
 		</PackageReference>
 		<None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
 	</ItemGroup>

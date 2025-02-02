@@ -12,7 +12,7 @@ public class DirectoryInfoExtensionsTest
     private readonly MockFileSystem _fileSystem = new();
 
     [Fact]
-    public void Test_DeleteWithRetry()
+    public void DeleteWithRetry()
     {
         _fileSystem.Initialize()
             .WithFile("test/text1.txt")
@@ -43,7 +43,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_TryDeleteWithRetry()
+    public void TryDeleteWithRetry()
     {
         _fileSystem.Initialize()
             .WithFile("test/text1.txt")
@@ -74,7 +74,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_MoveToEx_ThrowsDirectoryNotFound()
+    public void MoveToEx_ThrowsDirectoryNotFound()
     {
         _fileSystem.Initialize();
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
@@ -82,7 +82,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_MoveToEx_NoOverwrite_ThrowsIOException()
+    public void MoveToEx_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -95,7 +95,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [Fact]
-    public void Test_MoveToEx_CleanOverride()
+    public void MoveToEx_CleanOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -118,7 +118,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_MoveToEx_MergeOverride()
+    public void MoveToEx_MergeOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -140,7 +140,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_MoveToEx_MoveAcrossVolumes()
+    public void MoveToEx_MoveAcrossVolumes()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()
@@ -154,7 +154,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_MoveToEx_WithProgress()
+    public void MoveToEx_WithProgress()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -175,7 +175,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
-    public void Test_MoveToEx_CannotDeleteSource()
+    public void MoveToEx_CannotDeleteSource()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -194,7 +194,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [Fact]
-    public async Task Test_MoveToAsync_ThrowsDirectoryNotFound()
+    public async Task MoveToAsync_ThrowsDirectoryNotFound()
     {
         _fileSystem.Initialize();
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
@@ -203,7 +203,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_MoveToAsync_NoOverwrite_ThrowsIOException()
+    public async Task MoveToAsync_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -216,7 +216,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [Fact]
-    public async Task Test_MoveToAsync_CleanOverride()
+    public async Task MoveToAsync_CleanOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -239,7 +239,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_MoveToAsync_MergeOverride()
+    public async Task MoveToAsync_MergeOverride()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -261,7 +261,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public async Task Test_MoveToAsync_MoveAcrossVolumes()
+    public async Task MoveToAsync_MoveAcrossVolumes()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()
@@ -275,7 +275,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_MoveToAsync_WithProgress()
+    public async Task MoveToAsync_WithProgress()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -296,7 +296,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact(Skip = "https://github.com/Testably/Testably.Abstractions/issues/549")]
-    public async Task Test_MoveToAsync_CannotDeleteSource()
+    public async Task MoveToAsync_CannotDeleteSource()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -314,14 +314,14 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_Copy_ThrowsDirectoryNotFound()
+    public void Copy_ThrowsDirectoryNotFound()
     {
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
         Assert.Throws<DirectoryNotFoundException>(() => dirToCopy.Copy("test1", null, DirectoryOverwriteOption.NoOverwrite));
     }
 
     [Fact]
-    public void Test_Copy_NoOverwrite_ThrowsIOException()
+    public void Copy_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -334,7 +334,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_Copy_CleanOverwrite()
+    public void Copy_CleanOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -355,7 +355,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public void Test_Copy_MergeOverwrite()
+    public void Copy_MergeOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -376,7 +376,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_Copy_AcrossDrives()
+    public void Copy_AcrossDrives()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()
@@ -392,14 +392,14 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_CopyAsync_ThrowsDirectoryNotFound()
+    public async Task CopyAsync_ThrowsDirectoryNotFound()
     {
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await dirToCopy.CopyAsync("test1", null, DirectoryOverwriteOption.NoOverwrite));
     }
 
     [Fact]
-    public async Task Test_CopyAsync_NoOverwrite_ThrowsIOException()
+    public async Task CopyAsync_NoOverwrite_ThrowsIOException()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -412,7 +412,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_CopyAsync_CleanOverwrite()
+    public async Task CopyAsync_CleanOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -433,7 +433,7 @@ public class DirectoryInfoExtensionsTest
     }
 
     [Fact]
-    public async Task Test_CopyAsync_MergeOverwrite()
+    public async Task CopyAsync_MergeOverwrite()
     {
         _fileSystem.Initialize()
             .WithFile("test/1.txt").Which(f => f.HasStringContent("1"))
@@ -454,7 +454,7 @@ public class DirectoryInfoExtensionsTest
 
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public async Task Test_CopyAsync_AcrossDrives()
+    public async Task CopyAsync_AcrossDrives()
     {
         _fileSystem.WithDrive("D:");
         _fileSystem.Initialize()

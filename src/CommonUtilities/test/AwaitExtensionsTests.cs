@@ -12,13 +12,13 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class AwaitExtensionsTests
 {
     [Fact]
-    public async Task Test_WaitForExitAsync_NullArgument()
+    public async Task WaitForExitAsync_NullArgument()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public async Task Test_WaitForExitAsync_ExitCode_Windows()
+    public async Task WaitForExitAsync_ExitCode_Windows()
     {
         var p = Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
@@ -31,7 +31,7 @@ public class AwaitExtensionsTests
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
-    public void Test_WaitForExitAsync_AlreadyExited_Windows()
+    public void WaitForExitAsync_AlreadyExited_Windows()
     {
         var p = Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
@@ -46,7 +46,7 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task Test_WaitForExitAsync_UnstartedProcess()
+    public async Task WaitForExitAsync_UnstartedProcess()
     {
         var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
         var process = new Process();
@@ -56,13 +56,19 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task Test_WaitForExitAsync_DoesNotCompleteTillKilled()
+    public async Task WaitForExitAsync_DoesNotCompleteTillKilled()
     {
-        var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+        };
+        var p = Process.Start(processStartInfo)!;
         var expectedExitCode =
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
-        var p = Process.Start(new ProcessStartInfo(processName)
-            { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
         try
         {
             var t = AwaitExtensions.WaitForExitAsync(p);
@@ -87,11 +93,17 @@ public class AwaitExtensionsTests
     }
 
     [Fact]
-    public async Task Test_WaitForExitAsync_Canceled()
+    public async Task WaitForExitAsync_Canceled()
     {
-        var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
-        var p = Process.Start(new ProcessStartInfo(processName)
-            { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden })!;
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+        };
+        var p = Process.Start(processStartInfo)!;
         try
         {
             var cts = new CancellationTokenSource();

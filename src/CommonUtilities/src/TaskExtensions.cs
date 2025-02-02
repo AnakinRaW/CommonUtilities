@@ -1,6 +1,9 @@
-﻿using System;
+﻿using System.Threading.Tasks;
+#if !NET6_0_OR_GREATER
+using System;
+using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
+#endif
 
 namespace AnakinRaW.CommonUtilities;
 
@@ -17,17 +20,42 @@ public static class TaskExtensions
     {
     }
 
+#if !NET6_0_OR_GREATER
+
     /// <summary>
-    /// Asynchronously waits for the task to complete, or for the cancellation token to be canceled.
+    /// Gets a <see cref="Task{TResult}"/> that will complete when this <see cref="Task{TResult}"/> completes
+    /// or when the specified <see cref="CancellationToken"/> has cancellation requested.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result produced by this <see cref="Task{TResult}"/>.</typeparam>
+    /// <param name="task">The task to wait for. May not be <c>null</c>.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for a cancellation request.</param>
+    /// <returns>The <see cref="Task"/> representing the asynchronous wait. It may or may not be the same instance as the current instance.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> is <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">The cancellation token was canceled. This exception is stored into the returned task.</exception>
+    public static Task<TResult> WaitAsync<TResult>(this Task<TResult> task, CancellationToken cancellationToken)
+    {
+        if (task == null)
+            throw new ArgumentNullException(nameof(task));
+        if (task.IsCompleted || !cancellationToken.CanBeCanceled)
+            return task;
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<TResult>(cancellationToken);
+        return DoWaitAsync(task, cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets a <see cref="Task"/> that will complete when this Task completes or when the specified <see cref="CancellationToken"/> has cancellation requested.
     /// </summary>
     /// <param name="task">The task to wait for. May not be <c>null</c>.</param>
-    /// <param name="cancellationToken">The cancellation token that cancels the wait.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for a cancellation request.</param>
+    /// <returns>The <see cref="Task"/> representing the asynchronous wait. It may or may not be the same instance as the current instance.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> is <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">The cancellation token was canceled. This exception is stored into the returned task.</exception>
     public static Task WaitAsync(this Task task, CancellationToken cancellationToken)
     {
         if (task == null)
             throw new ArgumentNullException(nameof(task));
-
-        if (!cancellationToken.CanBeCanceled)
+        if (task.IsCompleted || !cancellationToken.CanBeCanceled)
             return task;
         if (cancellationToken.IsCancellationRequested)
             return Task.FromCanceled(cancellationToken);
@@ -36,8 +64,14 @@ public static class TaskExtensions
 
     private static async Task DoWaitAsync(Task task, CancellationToken cancellationToken)
     {
-        using var cancelTaskSource = new CancellationTokenTaskSource<object>(cancellationToken);
+        using var cancelTaskSource = new CancellationTokenTaskSource<EmptyStruct>(cancellationToken);
         await (await Task.WhenAny(task, cancelTaskSource.Task).ConfigureAwait(false)).ConfigureAwait(false);
+    }
+
+    private static async Task<TResult> DoWaitAsync<TResult>(Task<TResult> task, CancellationToken cancellationToken)
+    {
+        using var cancelTaskSource = new CancellationTokenTaskSource<TResult>(cancellationToken);
+        return await (await Task.WhenAny(task, cancelTaskSource.Task).ConfigureAwait(false)).ConfigureAwait(false);
     }
 
     internal sealed class CancellationTokenTaskSource<T> : IDisposable
@@ -63,4 +97,9 @@ public static class TaskExtensions
             _registration?.Dispose();
         }
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    private struct EmptyStruct;
+
+#endif
 }

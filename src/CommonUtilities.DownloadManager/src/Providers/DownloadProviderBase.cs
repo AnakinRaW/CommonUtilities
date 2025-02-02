@@ -13,6 +13,11 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     
     private readonly HashSet<DownloadKind> _supportedSources;
 
+    /// <summary>
+    /// Returns the service provider the download provider.
+    /// </summary>
+    protected readonly IServiceProvider ServiceProvider;
+
     /// <inheritdoc/>
     public string Name { get; }
 
@@ -21,7 +26,9 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedKinds">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, DownloadKind supportedKinds) : this(name, [supportedKinds])
+    /// <param name="serviceProvider">The service provider.</param>
+    protected DownloadProviderBase(string name, DownloadKind supportedKinds, IServiceProvider serviceProvider) 
+        : this(name, [supportedKinds], serviceProvider)
     {
     }
 
@@ -30,9 +37,11 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// </summary>
     /// <param name="name">The name of the concrete instance.</param>
     /// <param name="supportedSources">The supported download locations by this instance.</param>
-    protected DownloadProviderBase(string name, IEnumerable<DownloadKind> supportedSources)
+    /// <param name="serviceProvider">The service provider.</param>
+    protected DownloadProviderBase(string name, IEnumerable<DownloadKind> supportedSources, IServiceProvider serviceProvider)
     {
         ThrowHelper.ThrowIfNullOrEmpty(name);
+        ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Name = name;
         _supportedSources = [..supportedSources];
     }
@@ -44,7 +53,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     }
 
     /// <inheritdoc/>
-    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         return DownloadWithBitRate(uri, outputStream, progress, cancellationToken);
@@ -53,30 +62,31 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <summary>
     /// Concrete implementation for downloading a file.
     /// </summary>
+    /// <remarks>Download time and bit rate is automatically set after this method returns.</remarks>
     /// <param name="uri">The location of the source file.</param>
     /// <param name="outputStream">The output stream.</param>
     /// <param name="progress">Progress with already updated performance data.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    protected abstract Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, ProgressUpdateCallback? progress,
+    protected abstract Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken);
 
     private async Task<DownloadResult> DownloadWithBitRate(
         Uri uri,
         Stream outputStream,
-        ProgressUpdateCallback? progress,
+        DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
         var start = DateTime.Now;
         var lastProgressUpdate = start;
-        ProgressUpdateCallback? wrappedProgress = null;
+        DownloadUpdateCallback? wrappedProgress = null;
         if (progress != null)
             wrappedProgress = p =>
             {
                 var now = DateTime.Now;
                 var timeSpan = now - lastProgressUpdate;
                 var bitRate = 8.0 * p.BytesRead / timeSpan.TotalSeconds;
-                progress(new ProgressUpdateStatus(p.BytesRead, p.TotalBytes, bitRate));
+                progress(new DownloadUpdate(p.BytesRead, p.TotalBytes, bitRate));
                 lastProgressUpdate = now;
             };
         var downloadSummary = await DownloadAsyncCore(uri, outputStream, wrappedProgress, cancellationToken).ConfigureAwait(false);

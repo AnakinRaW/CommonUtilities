@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </remarks>
 public abstract class ParallelProducerConsumerPipeline : Pipeline
 { 
-    private readonly ParallelProducerConsumerRunner _runner;
+    private readonly ParallelProducerConsumerStepRunner _stepRunner;
 
     private Exception? _preparationException;
 
@@ -30,51 +30,56 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     protected ParallelProducerConsumerPipeline(int workerCount, bool failFast, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         FailFast = failFast;
-        _runner = new ParallelProducerConsumerRunner(workerCount, serviceProvider);
+        _stepRunner = new ParallelProducerConsumerStepRunner(workerCount, serviceProvider);
     }
 
     /// <inheritdoc/>
     public sealed override async Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-        token.ThrowIfCancellationRequested();
 
-        if (PrepareSuccessful is false)
-            return;
+        LinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-        if (PrepareSuccessful is null)
+        if (!Prepared)
         {
             Task.Run(async () =>
             {
                 try
-                {
-                    var result = await PrepareAsync().ConfigureAwait(false);
-                    if (!result)
-                    {
-                        PipelineFailed = true;
-                        Cancel();
-                    }
+                { 
+                    await PrepareAsync().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     PipelineFailed = true;
                     _preparationException = e;
+                    
+                    if (FailFast)
+                        Cancel();
                 }
                 finally
                 {
-                    _runner.Finish();
+                    _stepRunner.Finish();
                 }
-            }, token).Forget();
+            }, LinkedCancellationTokenSource.Token).Forget();
         }
 
         try
         {
-            await RunCoreAsync(token).ConfigureAwait(false);
+            await RunCoreAsync(LinkedCancellationTokenSource.Token).ConfigureAwait(false);
+            LinkedCancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
         catch (Exception)
         {
             PipelineFailed = true;
             throw;
+        }
+        finally
+        {
+            if (LinkedCancellationTokenSource is not null)
+            {
+                LinkedCancellationTokenSource.Dispose();
+                LinkedCancellationTokenSource = null;
+            }
         }
     }
 
@@ -88,7 +93,8 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     protected override async Task<bool> PrepareCoreAsync()
     {
         await foreach (var step in BuildSteps().ConfigureAwait(false)) 
-            _runner.AddStep(step);
+            _stepRunner.AddStep(step);
+        _stepRunner.Finish();
         return true;
     }
 
@@ -97,12 +103,12 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     {
         try
         {
-            _runner.Error += OnError;
-            await _runner.RunAsync(token).ConfigureAwait(false);
+            _stepRunner.Error += OnError;
+            await _stepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            _runner.Error -= OnError;
+            _stepRunner.Error -= OnError;
         }
 
         if (!PipelineFailed)
@@ -111,13 +117,6 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
         if (_preparationException is not null)
             throw _preparationException;
 
-        ThrowIfAnyStepsFailed(_runner.Steps);
-    }
-
-    /// <inheritdoc />
-    protected override void DisposeManagedResources()
-    {
-        base.DisposeManagedResources();
-        _runner.Dispose();
+        ThrowIfAnyStepsFailed(_stepRunner.ExecutedSteps);
     }
 }

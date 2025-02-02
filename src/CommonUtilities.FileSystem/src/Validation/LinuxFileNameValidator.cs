@@ -6,15 +6,16 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Validation;
 /// <summary>
 /// A file name validator for the Linux-based systems.
 /// </summary>
-public class LinuxFileNameValidator : FileNameValidator
+public sealed class LinuxFileNameValidator : FileNameValidator
 {
     /// <summary>
     /// Gets a singleton instance of the <see cref="LinuxFileNameValidator"/> class.
     /// </summary>
     public static readonly LinuxFileNameValidator Instance = new();
 
-    // From dotnet/runtime Path.Unix.cs
-    private static char[] InvalidFileNameChars => ['\0', '/'];
+    private LinuxFileNameValidator()
+    {
+    }
 
     /// <inheritdoc />
     public override FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName)
@@ -39,21 +40,7 @@ public class LinuxFileNameValidator : FileNameValidator
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ContainsInvalidChars(ReadOnlySpan<char> value)
     {
-        foreach (var t in value)
-            if (IsInvalidFileCharacter(t))
-                return true;
-
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsInvalidFileCharacter(char c)
-    {
-        foreach (var charToCheck in InvalidFileNameChars)
-        {
-            if (charToCheck == c)
-                return true;
-        }
-        return false;
+        // From dotnet/runtime Path.Unix.cs
+        return value.IndexOfAny('\0', '/') != -1;
     }
 }

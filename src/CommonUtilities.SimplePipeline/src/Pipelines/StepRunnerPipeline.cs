@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base class for a simple pipeline implementation utilizing one <see cref="StepRunner"/>.
+/// Base class for a pipeline implementation utilizing an <see cref="IStepRunner"/> as its primary execution engine.
 /// </summary>
-/// <typeparam name="TRunner">The type of the step runner.</typeparam>
-public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRunner
+/// <typeparam name="TRunner">The type of the step stepRunner.</typeparam>
+public abstract class StepRunnerPipeline<TRunner> : Pipeline where TRunner : IStepRunner
 { 
-    private IRunner _buildRunner = null!;
+    private IStepRunner _buildStepRunner = null!;
 
     /// <inheritdoc />
     protected override bool FailFast { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SimplePipeline{TRunner}"/> class.
+    /// Initializes a new instance of the <see cref="StepRunnerPipeline{TRunner}"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider the pipeline.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
@@ -26,21 +26,22 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     /// The <paramref name="failFast"/> parameter determines whether the pipeline should stop executing immediately upon encountering the first failure.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    protected SimplePipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
+    protected StepRunnerPipeline(IServiceProvider serviceProvider, bool failFast = true) : base(serviceProvider)
     {
         FailFast = failFast;
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public override string ToString()
     {
         return GetType().Name;
     }
 
     /// <summary>
-    /// Creates the step runner for the pipeline.
+    /// Creates the step stepRunner for the pipeline.
     /// </summary>
-    /// <returns>The step runner instance.</returns>
+    /// <returns>The step stepRunner instance.</returns>
     protected abstract TRunner CreateRunner();
 
     /// <summary>
@@ -55,10 +56,10 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     /// <inheritdoc/>
     protected override async Task<bool> PrepareCoreAsync()
     {
-        _buildRunner = CreateRunner() ?? throw new InvalidOperationException("RunnerFactory created null value!");
+        _buildStepRunner = CreateRunner() ?? throw new InvalidOperationException("RunnerFactory created null value!");
         var steps = await BuildSteps().ConfigureAwait(false);
         foreach (var step in steps)
-            _buildRunner.AddStep(step);
+            _buildStepRunner.AddStep(step);
         return true;
     }
 
@@ -67,24 +68,17 @@ public abstract class SimplePipeline<TRunner> : Pipeline where TRunner : StepRun
     {
         try
         {
-            _buildRunner.Error += OnError;
-            await _buildRunner.RunAsync(token).ConfigureAwait(false);
+            _buildStepRunner.Error += OnError;
+            await _buildStepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            _buildRunner.Error -= OnError;
+            _buildStepRunner.Error -= OnError;
         }
 
         if (!PipelineFailed)
             return;
-
-        ThrowIfAnyStepsFailed(_buildRunner.Steps);
-    }
-
-    /// <inheritdoc />
-    protected override void DisposeManagedResources()
-    {
-        base.DisposeManagedResources();
-        _buildRunner.Dispose();
+        
+        ThrowIfAnyStepsFailed(_buildStepRunner.ExecutedSteps);
     }
 }

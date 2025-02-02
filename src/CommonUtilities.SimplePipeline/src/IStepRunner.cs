@@ -8,27 +8,27 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// The execution engine to run one or many <see cref="IStep"/>s.
 /// </summary>
-public interface IRunner : IDisposable
+public interface IStepRunner
 {
     /// <summary>
-    /// The event that is raised when the execution of an <see cref="IStep"/> fails with an exception.
+    /// The event that is raised when the execution caused an exception.
     /// </summary>
-    event EventHandler<StepErrorEventArgs>? Error;
+    event EventHandler<StepRunnerErrorEventArgs>? Error;
 
     /// <summary>
-    /// Gets a read-only list of only those steps that are scheduled for execution for the <see cref="IRunner"/>.
+    /// Gets a read-only list of only those steps were executed by the <see cref="IStepRunner"/>.
     /// </summary>
-    public IReadOnlyList<IStep> Steps { get; }
+    IReadOnlyCollection<IStep> ExecutedSteps { get; }
 
     /// <summary>
     /// Runs all queued steps.
     /// </summary>
-    /// <param name="token">The cancellation token, allowing the runner to cancel the operation.</param>
+    /// <param name="token">The cancellation token, allowing the stepRunner to cancel the operation.</param>
     /// <returns>A task that represents the completion of the operation.</returns>
     Task RunAsync(CancellationToken token);
 
     /// <summary>
-    /// Adds an <see cref="IStep"/> to the <see cref="IRunner"/>.
+    /// Adds an <see cref="IStep"/> to the <see cref="IStepRunner"/>.
     /// </summary>
     /// <param name="step">The step to app.</param>
     /// /// <exception cref="ArgumentNullException"><paramref name="step"/> is <see langword="null"/>.</exception>

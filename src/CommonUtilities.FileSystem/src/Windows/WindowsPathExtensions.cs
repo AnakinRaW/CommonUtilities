@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Testably.Abstractions;
 #if NET8_0_OR_GREATER
 using System.Runtime.Versioning;
 #endif
