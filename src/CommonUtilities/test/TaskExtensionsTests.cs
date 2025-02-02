@@ -8,6 +8,16 @@ namespace AnakinRaW.CommonUtilities.Test;
 public class TaskExtensionsTests
 {
     [Fact]
+    public void Forget()
+    {
+        Task.FromException(new FormatException()).WaitAsync(new CancellationToken(true)).Forget();
+        Task.FromException<int>(new FormatException()).WaitAsync(new CancellationToken(true)).Forget();
+        Task.FromCanceled(new CancellationToken(true)).WaitAsync(new CancellationToken(true)).Forget();
+        Task.FromCanceled<int>(new CancellationToken(true)).WaitAsync(new CancellationToken(true)).Forget();
+        Task.FromResult(42).WaitAsync(new CancellationToken(true)).Forget();
+    }
+
+    [Fact]
     public void WaitAsyncTResult_TokenThatCannotCancel_ReturnsSourceTask()
     {
         var tcs = new TaskCompletionSource<object>();
@@ -87,5 +97,45 @@ public class TaskExtensionsTests
                 return oce.CancellationToken;
         }
         return CancellationToken.None;
+    }
+
+    // From .NET Runtime TaskAwaiterTests.cs
+
+    [Fact]
+    public static async Task WaitAsync_CanceledAndTimedOut_AlreadyCompleted_UsesTaskResult()
+    {
+        await Task.CompletedTask.WaitAsync(new CancellationToken(true));
+        Assert.Equal(42, await Task.FromResult(42).WaitAsync(new CancellationToken(true)));
+        await Assert.ThrowsAsync<FormatException>(() => Task.FromException(new FormatException()).WaitAsync(new CancellationToken(true)));
+        await Assert.ThrowsAsync<FormatException>(() => Task.FromException<int>(new FormatException()).WaitAsync(new CancellationToken(true)));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => Task.FromCanceled(new CancellationToken(true)).WaitAsync(new CancellationToken(true)));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => Task.FromCanceled<int>(new CancellationToken(true)).WaitAsync(new CancellationToken(true)));
+    }
+
+    [Fact]
+    public static async Task WaitAsync_TimeoutOrCanceled_Throws()
+    {
+        var tcs = new TaskCompletionSource<int>();
+        var cts = new CancellationTokenSource();
+
+        Task assert1 = Assert.ThrowsAsync<TaskCanceledException>(() => ((Task)tcs.Task).WaitAsync(cts.Token));
+        Task assert3 = Assert.ThrowsAsync<TaskCanceledException>(() => tcs.Task.WaitAsync(cts.Token));
+        Assert.False(assert1.IsCompleted);
+        Assert.False(assert3.IsCompleted);
+
+        cts.Cancel();
+        await Task.WhenAll(assert1, assert3);
+    }
+
+    [Fact]
+    public static async Task WaitAsync_NoCancellationOrTimeoutOccurs_Success()
+    {
+        var cts = new CancellationTokenSource();
+
+        var tcsg = new TaskCompletionSource<int>();
+        var tg = tcsg.Task.WaitAsync(cts.Token);
+        Assert.False(tg.IsCompleted);
+        tcsg.SetResult(42);
+        Assert.Equal(42, await tg);
     }
 }
