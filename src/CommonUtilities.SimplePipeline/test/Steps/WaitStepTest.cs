@@ -32,7 +32,10 @@ public class WaitStepTest : CommonTestBase
         var runnerTask = runner.RunAsync(CancellationToken.None);
         step.Run(CancellationToken.None);
 
-        Assert.True(runnerTask.IsCompleted);
+        // We cannot assert on the runnerTask task,
+        // as the impl. creates different tasks for await and Wait().
+        // This may result in a race where the Wait() reports completion before the awaitable task
+
         Assert.True(completed1);
         Assert.True(completed2);
     }
