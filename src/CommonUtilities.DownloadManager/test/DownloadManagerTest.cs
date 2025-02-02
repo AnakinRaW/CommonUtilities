@@ -133,7 +133,7 @@ public class DownloadManagerTest : CommonTestBase
 
         var output = new MemoryStream();
 
-        var uri = new Uri($"file:///{fi.FullName}");
+        var uri = new Uri(fi.FullName);
         var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(uri, output, null, null, CancellationToken.None));
 
@@ -149,8 +149,10 @@ public class DownloadManagerTest : CommonTestBase
         var _ = fi.Create();
         _.Dispose();
 
+        var uri = new Uri(fi.FullName);
+
         var output = new MemoryStream();
-        var result = await manager.DownloadAsync(new Uri($"file:///{fi.FullName}"), output, null, null, CancellationToken.None);
+        var result = await manager.DownloadAsync(uri, output, null, null, CancellationToken.None);
         Assert.Equal(0, result.DownloadedSize);
     }
 
@@ -288,7 +290,7 @@ public class DownloadManagerTest : CommonTestBase
         var hash = SHA256.Create().ComputeHash(bytes);
         var validator = new HashDownloadValidator(hash, HashTypeKey.SHA256, ServiceProvider);
 
-        await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, validator, CancellationToken.None);
+        await manager.DownloadAsync(new Uri(FileSystem.Path.GetFullPath("test.txt")), output, null, validator, CancellationToken.None);
     }
 
     [Fact]
@@ -304,7 +306,7 @@ public class DownloadManagerTest : CommonTestBase
             },
             ServiceProvider);
 
-        var uri = new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}");
+        var uri = new Uri(FileSystem.Path.GetFullPath("test.txt"));
         var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
             await manager.DownloadAsync(uri, output, null, new ThrowingValidator(),
                 CancellationToken.None));
