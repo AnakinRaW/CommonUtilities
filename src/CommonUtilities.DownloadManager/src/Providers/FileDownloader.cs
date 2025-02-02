@@ -12,12 +12,15 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Providers;
 /// </summary>
 public sealed class FileDownloader : DownloadProviderBase
 {
+    private readonly IFileSystem _fileSystem;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FileDownloader"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider.</param>
     public FileDownloader(IServiceProvider serviceProvider) : base("File", DownloadKind.File, serviceProvider)
     {
+        _fileSystem = ServiceProvider.GetRequiredService<IFileSystem>();
     }
 
     /// <inheritdoc />
@@ -35,13 +38,12 @@ public sealed class FileDownloader : DownloadProviderBase
     private async Task<long> CopyFileToStreamAsync(string filePath, Stream outStream, DownloadUpdateCallback? progress,
         CancellationToken cancellationToken)
     {
-        var fileSystem = ServiceProvider.GetRequiredService<IFileSystem>();
-        if (!fileSystem.File.Exists(filePath))
+       if (!_fileSystem.File.Exists(filePath))
             throw new FileNotFoundException(nameof(filePath));
 #if NETSTANDARD2_1 || NET
-        await using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
+        await using var fileStream = _fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
 #else
-        using var fileStream = fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
+        using var fileStream = _fileSystem.FileStream.New(filePath, FileMode.Open, FileAccess.Read);
 #endif
 
         return await StreamUtilities.CopyStreamWithProgressAsync(fileStream, outStream, progress, cancellationToken);

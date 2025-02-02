@@ -17,6 +17,8 @@ namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
 public class DownloadManagerTest : CommonTestBase
 {
+    private const string Destination = "file.txt";
+
     protected override void SetupServices(IServiceCollection serviceCollection)
     {
         base.SetupServices(serviceCollection);
@@ -88,7 +90,7 @@ public class DownloadManagerTest : CommonTestBase
 
         manager.RemoveAllProviders();
 
-        var file = FileSystem.FileStream.New("file.txt", FileMode.Create);
+        var file = FileSystem.FileStream.New(Destination, FileMode.Create);
 
         var progressTriggered = false;
 
@@ -99,7 +101,7 @@ public class DownloadManagerTest : CommonTestBase
         Assert.False(progressTriggered);
         file.Dispose();
 
-        Assert.Empty(FileSystem.File.ReadAllBytes("file.txt")); 
+        Assert.Empty(FileSystem.File.ReadAllBytes(Destination)); 
         return;
 
         void ProgressMethod(DownloadUpdate status)
@@ -179,15 +181,15 @@ public class DownloadManagerTest : CommonTestBase
     [Fact]
     public async Task DownloadAsync_LocalFile()
     {
-        var uri = new Uri("file:///test.txt");
         var provider = new FileDownloader(ServiceProvider);
 
         var bytes = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         FileSystem.File.WriteAllBytes("test.txt", bytes);
 
+        var uri = new Uri(FileSystem.Path.GetFullPath("test.txt"));
         await DownloadAsyncTest(provider, uri, bytes.Length, true);
 
-        Assert.Equal(bytes, FileSystem.File.ReadAllBytes("file.txt"));
+        Assert.Equal(bytes, FileSystem.File.ReadAllBytes(Destination));
     }
 
     [Fact]
@@ -218,7 +220,7 @@ public class DownloadManagerTest : CommonTestBase
 
         await DownloadAsyncTest(provider, uri, 0, false);
 
-        Assert.Equal([], FileSystem.File.ReadAllBytes("file.txt"));
+        Assert.Equal([], FileSystem.File.ReadAllBytes(Destination));
     }
 
     [Theory]
@@ -238,12 +240,14 @@ public class DownloadManagerTest : CommonTestBase
             },
             ServiceProvider);
 
+        var uri = new Uri(FileSystem.Path.GetFullPath("test.txt"));
+
         if (policy == ValidationPolicy.Required)
             await Assert.ThrowsAsync<NotSupportedException>(async () =>
-                await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, null, CancellationToken.None));
+                await manager.DownloadAsync(uri, output, null, null, CancellationToken.None));
         else
         {
-            var r = await manager.DownloadAsync(new Uri("file:///test.txt"), output, null, null, CancellationToken.None);
+            var r = await manager.DownloadAsync(uri, output, null, null, CancellationToken.None);
             Assert.Equal(10, r.DownloadedSize);
         }
 
@@ -341,7 +345,7 @@ public class DownloadManagerTest : CommonTestBase
         manager.RemoveAllProviders();
         manager.AddDownloadProvider(provider);
 
-        var file = FileSystem.FileStream.New("file.txt", FileMode.Create);
+        var file = FileSystem.FileStream.New(Destination, FileMode.Create);
 
         var progressTriggered = false;
 
