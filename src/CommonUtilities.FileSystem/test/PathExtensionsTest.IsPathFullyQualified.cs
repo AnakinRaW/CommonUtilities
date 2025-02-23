@@ -1,14 +1,14 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.Testing;
+using System;
 using System.IO.Abstractions;
-using AnakinRaW.CommonUtilities.Testing;
-using Testably.Abstractions.Testing;
+using Testably.Abstractions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class IsPathFullyQualifiedTest
 {
-    private readonly IFileSystem _fileSystem = new MockFileSystem();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     [Fact]
     public void IsPathFullyQualified_NullArgument()

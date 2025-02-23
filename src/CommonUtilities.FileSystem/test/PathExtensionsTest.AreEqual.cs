@@ -1,13 +1,14 @@
-﻿using System;
-using AnakinRaW.CommonUtilities.Testing;
-using Testably.Abstractions.Testing;
+﻿using AnakinRaW.CommonUtilities.Testing;
+using System;
+using System.IO.Abstractions;
+using Testably.Abstractions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
 public class PathAreEqualTest
 {
-    private readonly MockFileSystem _fileSystem = new();
+    private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
     [InlineData("a", "A", true)]
