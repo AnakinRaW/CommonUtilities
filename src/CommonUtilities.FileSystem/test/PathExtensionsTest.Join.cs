@@ -49,14 +49,14 @@ public class PathJoinTest
         };
 
     [Theory, MemberData(nameof(TestData_JoinTwoPaths))]
-    public void JoinTwoPaths(string path1, string path2, string expected)
+    public void JoinTwoPaths(string? path1, string? path2, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(path1.AsSpan(), path2.AsSpan()));
         Assert.Equal(expected, _fileSystem.Path.Join(path1, path2));
     }
 
     [Theory, MemberData(nameof(TestData_JoinTwoPaths))]
-    public void TryJoinTwoPaths(string path1, string path2, string expected)
+    public void TryJoinTwoPaths(string? path1, string? path2, string expected)
     {
         var output = new char[expected.Length];
 
@@ -105,14 +105,14 @@ public class PathJoinTest
         };
 
     [Theory, MemberData(nameof(TestData_JoinThreePaths))]
-    public void JoinThreePaths(string path1, string path2, string path3, string expected)
+    public void JoinThreePaths(string? path1, string? path2, string? path3, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(path1.AsSpan(), path2.AsSpan(), path3.AsSpan()));
         Assert.Equal(expected, _fileSystem.Path.Join(path1, path2, path3));
     }
 
     [Theory, MemberData(nameof(TestData_JoinThreePaths))]
-    public void TryJoinThreePaths(string path1, string path2, string path3, string expected)
+    public void TryJoinThreePaths(string? path1, string? path2, string? path3, string expected)
     {
         var output = new char[expected.Length];
 
@@ -190,7 +190,7 @@ public class PathJoinTest
         };
 
     [Theory, MemberData(nameof(TestData_JoinFourPaths))]
-    public void JoinFourPaths(string path1, string path2, string path3, string path4, string expected)
+    public void JoinFourPaths(string? path1, string? path2, string? path3, string? path4, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(path1.AsSpan(), path2.AsSpan(), path3.AsSpan(), path4.AsSpan()));
         Assert.Equal(expected, _fileSystem.Path.Join(path1, path2, path3, path4));
@@ -210,35 +210,35 @@ public class PathJoinTest
     }
 
     [Theory, MemberData(nameof(TestData_JoinOnePath))]
-    public void JoinStringArray_1(string path1, string expected)
+    public void JoinStringArray_1(string? path1, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(new[] { path1 }));
         Assert.Equal(expected, _fileSystem.Path.Join((ReadOnlySpan<string?>)new[] { path1 }));
     }
 
     [Theory, MemberData(nameof(TestData_JoinTwoPaths))]
-    public void JoinStringArray_2(string path1, string path2, string expected)
+    public void JoinStringArray_2(string? path1, string? path2, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(new[] { path1, path2 }));
         Assert.Equal(expected, _fileSystem.Path.Join((ReadOnlySpan<string?>)new[] { path1, path2 }));
     }
 
     [Theory, MemberData(nameof(TestData_JoinThreePaths))]
-    public void JoinStringArray_3(string path1, string path2, string path3, string expected)
+    public void JoinStringArray_3(string? path1, string? path2, string? path3, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(new[] { path1, path2, path3 }));
         Assert.Equal(expected, _fileSystem.Path.Join((ReadOnlySpan<string?>)new[] { path1, path2, path3 }));
     }
 
     [Theory, MemberData(nameof(TestData_JoinFourPaths))]
-    public void JoinStringArray_4(string path1, string path2, string path3, string path4, string expected)
+    public void JoinStringArray_4(string? path1, string? path2, string? path3, string? path4, string expected)
     {
         Assert.Equal(expected, _fileSystem.Path.Join(new[] { path1, path2, path3, path4 }));
         Assert.Equal(expected, _fileSystem.Path.Join(((ReadOnlySpan<string?>)new[] { path1, path2, path3, path4 })));
     }
 
     [Theory, MemberData(nameof(TestData_JoinFourPaths))]
-    public void JoinStringArray_8(string path1, string path2, string path3, string path4, string fourJoined)
+    public void JoinStringArray_8(string? path1, string? path2, string? path3, string? path4, string fourJoined)
     {
         Assert.Equal(_fileSystem.Path.Join(fourJoined, fourJoined),
             _fileSystem.Path.Join(path1, path2, path3, path4, path1, path2, path3, path4));

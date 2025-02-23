@@ -107,7 +107,7 @@ public static partial class PathExtensions
 	/// <param name="path2">The second path to join.</param>
 	/// <param name="path3">The third path to join.</param>
 	/// <returns>The concatenated path.</returns>
-	public static string Join(this IPath _, string? path1, string? path2, string path3)
+	public static string Join(this IPath _, string? path1, string? path2, string? path3)
     {
         if (string.IsNullOrEmpty(path1))
             return Join(_, path2, path3);
@@ -184,7 +184,7 @@ public static partial class PathExtensions
 	/// <param name="path3">The third path to join.</param>
 	/// <param name="path4">The fourth path to join.</param>
 	/// <returns>The concatenated path.</returns>
-	public static string Join(this IPath _, string? path1, string? path2, string path3, string path4)
+	public static string Join(this IPath _, string? path1, string? path2, string? path3, string? path4)
     {
         if (string.IsNullOrEmpty(path1))
             return Join(_, path2, path3, path4);
