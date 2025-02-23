@@ -27,6 +27,7 @@ public static partial class PathExtensions
     internal static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
     internal static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
     internal static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
+    internal static readonly string DirectorySeparatorCharAsString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\\" : "/";
 
     private static readonly char[] PathChars = [VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar];
 
@@ -314,7 +315,7 @@ public static partial class PathExtensions
     /// This method resolves the full paths of <paramref name="pathA"/> and <paramref name="pathB"/> and checks whether they
     /// match under the rules of the current file system. This includes character casing and directory separator variants.
     /// </remarks>
-    /// <param name="_"></param>
+    /// <param name="_">The file system's path instance.</param>
     /// <param name="pathA">The first path to compare</param>
     /// <param name="pathB">The second path to compare</param>
     /// <returns><see langword="true"/> if both <paramref name="pathA"/> and <paramref name="pathB"/> are equal on this system; otherwise, <see langword="false"/>.</returns>
@@ -323,6 +324,109 @@ public static partial class PathExtensions
     {
         return PathsEqual(_.GetFullPath(pathA), _.GetFullPath(pathB));
     }
+
+#if !NET9_0_OR_GREATER
+
+    /// <summary>
+    /// Concatenates a span of paths into a single path.
+    /// </summary>
+    /// <param name="_">The file system's path instance.</param>
+    /// <param name="paths">A span of paths.</param>
+    /// <returns>The concatenated path.</returns>
+    public static string Join(this IPath _, params ReadOnlySpan<string?> paths)
+    {
+        if (paths.IsEmpty)
+            return string.Empty;
+
+        var maxSize = 0;
+        foreach (var path in paths) 
+            maxSize += path?.Length ?? 0;
+        maxSize += paths.Length - 1;
+
+        var builder = new ValueStringBuilder(stackalloc char[260]); // MaxShortPath on Windows
+        builder.EnsureCapacity(maxSize);
+
+        foreach (var path in paths)
+        {
+            if (string.IsNullOrEmpty(path))
+                continue;
+            if (builder.Length != 0)
+            {
+                if (!IsAnyDirectorySeparator(builder[builder.Length - 1]) && !IsAnyDirectorySeparator(path![0]))
+                    builder.Append(_.DirectorySeparatorChar);
+            }
+
+            builder.Append(path);
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// Combines a span of strings into a path.
+    /// </summary>
+    /// <param name="_">The file system's path instance.</param>
+    /// <param name="paths">A span of parts of the path.</param>
+    /// <returns>The combined paths.</returns>
+    /// <exception cref="ArgumentNullException">One of the strings in the span is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">
+    /// .NET Framework and .NET Core versions older than 2.1:
+    /// One of the strings in the span contains one or more of the invalid characters defined in <see cref="IPath.GetInvalidPathChars"/>
+    /// .</exception>
+    public static string Combine(this IPath _, params ReadOnlySpan<string> paths)
+    {
+        var maxSize = 0;
+        var firstComponent = 0;
+
+        // We have two passes, the first calculates how large a buffer to allocate and does some precondition
+        // checks on the paths passed in.  The second actually does the combination.
+
+        for (var i = 0; i < paths.Length; i++)
+        {
+            var segment = paths[i];
+            ThrowHelper.ThrowIfNull(segment, nameof(paths));
+
+            if (segment.Length == 0)
+                continue;
+
+            if (_.IsPathRooted(segment))
+            {
+                firstComponent = i;
+                maxSize = segment.Length;
+            }
+            else
+                maxSize += segment.Length;
+
+            var ch = segment[segment.Length - 1];
+            if (!IsAnyDirectorySeparator(ch))
+                maxSize++;
+        }
+
+        var builder = new ValueStringBuilder(stackalloc char[260]); // MaxShortPath on Windows
+        builder.EnsureCapacity(maxSize);
+
+        for (var i = firstComponent; i < paths.Length; i++)
+        {
+            var segment = paths[i];
+            if (segment.Length == 0)
+                continue;
+
+            if (builder.Length == 0)
+                builder.Append(segment);
+            else
+            {
+                var ch = builder[builder.Length - 1];
+                if (!IsAnyDirectorySeparator(ch)) 
+                    builder.Append(_.DirectorySeparatorChar);
+
+                builder.Append(segment);
+            }
+        }
+
+        return builder.ToString();
+    }
+
+#endif
 
     internal static bool PathsEqual(string path1, string path2)
     {

@@ -1,4 +1,4 @@
-﻿#if NET48_OR_GREATER || NETSTANDARD2_0
+﻿#if NETFRAMEWORK || NETSTANDARD2_0
 
 using System.IO.Abstractions;
 using System;
@@ -39,7 +39,7 @@ public static partial class PathExtensions
     /// <summary>
     /// Returns the extension of a file path that is represented by a read-only character span.
     /// </summary>
-    /// <param name="_"></param>
+    /// <param name="_">The path.</param>
     /// <param name="path">The file path from which to get the extension.</param>
     /// <returns>The extension of the specified path (including the period, "."), or Empty if <paramref name="path"/> does not have extension information.</returns>
     /// <remarks>
@@ -70,7 +70,7 @@ public static partial class PathExtensions
     /// <summary>
     /// Returns the file name and extension of a file path that is represented by a read-only character span.
     /// </summary>
-    /// <param name="_"></param>
+    /// <param name="_">The path.</param>
     /// <param name="path">A read-only span that contains the path from which to obtain the file name and extension.</param>
     /// <returns>The characters after the last directory separator character in <paramref name="path"/>.</returns>
     /// <remarks>
@@ -112,7 +112,7 @@ public static partial class PathExtensions
     /// <summary>
     /// Gets the root directory information from the path contained in the specified character span.
     /// </summary>
-    /// <param name="_"></param>
+    /// <param name="_">The path.</param>
     /// <param name="path">A read-only span of characters containing the path from which to obtain root directory information.</param>
     /// <returns>A read-only span of characters containing the root directory of <paramref name="path"/>.</returns>
     public static ReadOnlySpan<char> GetPathRoot(this IPath _, ReadOnlySpan<char> path)
@@ -141,7 +141,7 @@ public static partial class PathExtensions
     /// for C: (rooted, but relative). "C:\a" is rooted and not relative (the current directory
     /// will not be used to modify the path).
     /// </remarks>
-    /// <param name="_"></param>
+    /// <param name="_">The path.</param>
     /// <param name="path">A file path.</param>
     /// <returns><see langword="true"/> if the path is fixed to a specific drive or UNC path; <see langword="false"/> if the path is relative to the current drive or working directory.</returns>
     public static bool IsPathFullyQualified(this IPath _, ReadOnlySpan<char> path)
@@ -175,7 +175,7 @@ public static partial class PathExtensions
     /// for C: (rooted, but relative). "C:\a" is rooted and not relative (the current directory
     /// will not be used to modify the path).
     /// </remarks>
-    /// <param name="_"></param>
+    /// <param name="_">The path.</param>
     /// <param name="path">A file path.</param>
     /// <returns><see langword="true"/> if the path is fixed to a specific drive or UNC path; <see langword="false"/> if the path is relative to the current drive or working directory.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="path"/>is <see langword="null"/>.</exception>
@@ -197,6 +197,43 @@ public static partial class PathExtensions
         var length = path.Length;
         return (length >= 1 && IsAnyDirectorySeparator(path[0]))
                || (length >= 2 && IsValidDriveChar(path[0]) && path[1] == VolumeSeparatorChar);
+    }
+
+    /// <summary>
+    /// Returns the directory information for the specified path represented by a character span.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the string overload, this method doesn't normalize directory separators.
+    /// </remarks>
+    /// <param name="_">The path.</param>
+    /// <param name="path">The path to retrieve the directory information from.</param>
+    /// <returns>
+    /// Directory information for <paramref name="path"/>, or an empty span if <paramref name="path"/> is <see langword="null"/>,
+    /// an empty span, or a root (such as \, C:, or \server\share).
+    /// </returns>
+    public static ReadOnlySpan<char> GetDirectoryName(this IPath _, ReadOnlySpan<char> path)
+    {
+        if (IsEffectivelyEmpty(path))
+            return ReadOnlySpan<char>.Empty;
+
+        var end = GetDirectoryNameOffset(path);
+        return end >= 0 ? path.Slice(0, end) : ReadOnlySpan<char>.Empty;
+    }
+
+    internal static int GetDirectoryNameOffset(ReadOnlySpan<char> path)
+    {
+        int rootLength = GetRootLength(path);
+        int end = path.Length;
+        if (end <= rootLength)
+            return -1;
+
+        while (end > rootLength && !IsAnyDirectorySeparator(path[--end])) ;
+
+        // Trim off any remaining separators (to deal with C:\foo\\bar)
+        while (end > rootLength && IsAnyDirectorySeparator(path[end - 1]))
+            end--;
+
+        return end;
     }
 
     internal static bool IsEffectivelyEmpty(ReadOnlySpan<char> path)

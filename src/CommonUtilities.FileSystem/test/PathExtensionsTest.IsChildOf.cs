@@ -1,6 +1,6 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.Testing;
+using System;
 using System.IO.Abstractions;
-using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions.Testing;
 using Xunit;
 
