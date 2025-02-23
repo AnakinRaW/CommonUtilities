@@ -1,4 +1,4 @@
-﻿#if NET48_OR_GREATER || NETSTANDARD2_0
+﻿#if NETFRAMEWORK || NETSTANDARD2_0
 
 using System;
 using System.Diagnostics;
