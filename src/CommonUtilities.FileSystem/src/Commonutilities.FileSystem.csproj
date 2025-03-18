@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>Helper classes and methods targeting the file system.</Description>
@@ -27,13 +27,13 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Testably.Abstractions" Version="9.0.0" />
-		<PackageReference Include="System.Memory" Version="4.6.0" />
+		<PackageReference Include="System.Memory" Version="4.6.1" />
 		<PackageReference Include="IsExternalInit" Version="1.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-		<PackageReference Include="Testably.Abstractions.AccessControl" Version="4.0.0" />
+		<PackageReference Include="Testably.Abstractions.AccessControl" Version="4.0.1" />
 	</ItemGroup>
 
 </Project>
