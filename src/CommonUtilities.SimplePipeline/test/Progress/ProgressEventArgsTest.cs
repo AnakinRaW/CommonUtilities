@@ -26,7 +26,10 @@ public class ProgressEventArgsTest
     [Fact]
     public void Ctor_WithExplicitInfo()
     {
-        var args = new ProgressEventArgs<TestInfoStruct>("abc", 0.5);
+        var args = new ProgressEventArgs<TestInfoStruct>("abc", 0.5, new TestInfoStruct
+        {
+            Progress = 1
+        });
 
         Assert.Equal(1, args.ProgressInfo.Progress);
         Assert.Equal(0.5, args.Progress);
