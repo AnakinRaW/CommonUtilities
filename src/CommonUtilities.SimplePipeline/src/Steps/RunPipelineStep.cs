@@ -17,11 +17,11 @@ public class RunPipelineStep(IPipeline pipeline, IServiceProvider serviceProvide
     /// <inheritdoc />
     protected override void RunSynchronized(CancellationToken token)
     {
-        Logger?.LogInformation($"Running {_pipeline}...");
+        Logger?.LogTrace($"Running {_pipeline}...");
         try
         {
             _pipeline.RunAsync(token).Wait();
-            Logger?.LogInformation($"Finished {_pipeline}");
+            Logger?.LogTrace($"Finished {_pipeline}");
         }
         catch (AggregateException e)
         {

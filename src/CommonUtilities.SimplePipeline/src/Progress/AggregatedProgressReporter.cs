@@ -7,14 +7,14 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 /// Base class for aggregating progress from multiple steps into a single progress report.
 /// </summary>
 /// <typeparam name="TInfo">The type of detailed progress information.</typeparam>
-public abstract class AggregatedProgressReporter<TInfo> : AggregatedProgressReporter<IProgressStep, TInfo>
+public abstract class AggregatedProgressReporter<TInfo> : AggregatedProgressReporter<IProgressStep<TInfo>, TInfo>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AggregatedProgressReporter{TInfo}"/> class with the specified progress reporter.
     /// </summary>
     /// <param name="progressReporter">The progress reporter to report the aggregated progress to.</param>
     /// <param name="steps">The steps that can report progress to this instance.</param>
-    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter, IEnumerable<IProgressStep> steps) : base(progressReporter, steps)
+    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter, IEnumerable<IProgressStep<TInfo>> steps) : base(progressReporter, steps)
     {
     }
 
@@ -27,27 +27,22 @@ public abstract class AggregatedProgressReporter<TInfo> : AggregatedProgressRepo
     /// <param name="equalityComparer">The equality comparer used to identify whether a reporting step is contained in this instance.</param>
     protected AggregatedProgressReporter(
         IProgressReporter<TInfo> progressReporter, 
-        IEnumerable<IProgressStep> steps,
-        IEqualityComparer<IProgressStep> equalityComparer) : base(progressReporter, steps, equalityComparer)
+        IEnumerable<IProgressStep<TInfo>> steps,
+        IEqualityComparer<IProgressStep<TInfo>> equalityComparer) : base(progressReporter, steps, equalityComparer)
     {
     }
 }
 
 /// <summary>
-/// Base class for a <see cref="IStepProgressReporter"/> that supports reporting aggregated progress information for multiple progress steps.
+/// Base class for aggregating progress from multiple steps into a single progress report.
 /// </summary>
 /// <typeparam name="TStep">The type of the progress step.</typeparam>
 /// <typeparam name="TInfo">The type of the detailed progress information.</typeparam>
-public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressReporter
-    where TStep : IProgressStep
+public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObject
+    where TStep : IProgressStep<TInfo>
 {
     private readonly IProgressReporter<TInfo> _progressReporter;
     private readonly HashSet<TStep> _progressSteps;
-
-    /// <summary>
-    /// Gets the progress type this instance reports to.
-    /// </summary>
-    protected abstract ProgressType Type { get; }
 
     /// <summary>
     /// Gets the total size of all steps.
@@ -71,13 +66,33 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressRe
     }
 
     /// <summary>
+    /// Gets the progress text to report for the given step.
+    /// </summary>
+    /// <param name="step">The step for which to get the progress text.</param>
+    /// <param name="progressText">The progress text of the original progress event.</param>
+    /// <returns>The progress text to report for the given step.</returns>
+    protected abstract string GetProgressText(TStep step, string progressText);
+
+    /// <summary>
+    /// Calculates the aggregated progress for the given step and progress value, and updates the progress info
+    /// object with any additional information to be included in the progress report.
+    /// </summary>
+    /// <param name="step">The step for which to calculate the progress.</param>
+    /// <param name="progress">The progress value for the step.</param>
+    /// <returns>The aggregated progress for all steps.</returns>
+    protected abstract ProgressEventArgs<TInfo> CalculateAggregatedProgress(TStep step, ProgressEventArgs<TInfo> progress);
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="AggregatedProgressReporter{TStep, TInfo}"/> class
     /// with the specified progress reporter and steps.
     /// </summary>
     /// <param name="progressReporter">The progress reporter to report the aggregated progress to.</param>
     /// <param name="steps">The steps that can report progress to this instance.</param>
     /// <param name="equalityComparer">The equality comparer used to identify whether a reporting step is contained in this instance.</param>
-    protected AggregatedProgressReporter(IProgressReporter<TInfo> progressReporter, IEnumerable<TStep> steps, IEqualityComparer<TStep> equalityComparer)
+    protected AggregatedProgressReporter(
+        IProgressReporter<TInfo> progressReporter, 
+        IEnumerable<TStep> steps, 
+        IEqualityComparer<TStep> equalityComparer)
     {
         if (steps == null)
             throw new ArgumentNullException(nameof(steps));
@@ -87,57 +102,31 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : IStepProgressRe
         _progressSteps = new HashSet<TStep>(equalityComparer);
         _progressReporter = progressReporter ?? throw new ArgumentNullException(nameof(progressReporter));
 
-        foreach (var task in steps)
+        foreach (var step in steps)
         {
-            if (_progressSteps.Add(task))
-                TotalSize += task.Size;
+            if (!_progressSteps.Add(step))
+                continue;
+            step.Progress += OnStepProgress;
+            TotalSize += step.Size;
         }
     }
 
-    /// <summary>
-    /// Reports the progress of the specified progress step if registered for the progress reporter.
-    /// </summary>
-    /// <param name="step">The step to report the progress for.</param>
-    /// <param name="progress">The progress value.</param>
-    public void Report(TStep step, double progress)
+    private void OnStepProgress(object sender, ProgressEventArgs<TInfo> e)
     {
-        if (step == null)
+        if (sender is not TStep step)
             throw new ArgumentNullException(nameof(step));
         if (!_progressSteps.Contains(step))
             return;
 
-        ReportInternal(step, progress);
+        var aggregatedProgress = CalculateAggregatedProgress(step, e);
+        _progressReporter.Report(GetProgressText(step, e.ProgressText), aggregatedProgress.Progress, step.Type, e.ProgressInfo);
     }
 
-    void IStepProgressReporter.Report(IProgressStep step, double progress)
+    /// <inheritdoc />
+    protected override void DisposeResources()
     {
-        if (step == null) 
-            throw new ArgumentNullException(nameof(step));
-        if (step is not TStep tStep)
-            throw new InvalidCastException($"Cannot cast step '{step.GetType().FullName}' to {typeof(TStep).FullName}");
-        Report(tStep, progress);
+        foreach (var step in _progressSteps) 
+            step.Progress -= OnStepProgress;
+        _progressSteps.Clear();
     }
-
-    private void ReportInternal(TStep step, double progress)
-    {
-        var currentProgress = CalculateAggregatedProgress(step, progress, out var actualProgressInfo);
-        _progressReporter.Report(GetProgressText(step), currentProgress, Type, actualProgressInfo);
-    }
-
-    /// <summary>
-    /// Gets the progress text to report for the given step.
-    /// </summary>
-    /// <param name="step">The step for which to get the progress text.</param>
-    /// <returns>The progress text to report for the given step.</returns>
-    protected abstract string GetProgressText(TStep step);
-
-    /// <summary>
-    /// Calculates the aggregated progress for the given step and progress value, and updates the progress info
-    /// object with any additional information to be included in the progress report.
-    /// </summary>
-    /// <param name="task">The step for which to calculate the progress.</param>
-    /// <param name="progress">The progress value for the step.</param>
-    /// <param name="progressInfo">The object to update with additional progress information.</param>
-    /// <returns>The aggregated progress value for all steps.</returns>
-    protected abstract double CalculateAggregatedProgress(TStep task, double progress, out TInfo progressInfo);
 }
