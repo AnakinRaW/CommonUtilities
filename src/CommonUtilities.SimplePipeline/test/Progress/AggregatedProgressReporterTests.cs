@@ -98,7 +98,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
     public void Report_IgnoresUnregisteredStep()
     {
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
-        using var _ = new AggregateTestReporter<T>(_internalReporter, []);
+        _ = new AggregateTestReporter<T>(_internalReporter, []);
         step.Report("step", 0.5, CreateCustomProgressInfo(step, 0.5));
         Assert.Null(_internalReporter.ReportedData);
     }
@@ -107,7 +107,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
     public void Report_DefaultT()
     {
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
-        using var _ = new AggregateTestReporter<T>(_internalReporter, [step]);
+        _ = new AggregateTestReporter<T>(_internalReporter, [step]);
         step.Report("Text", 0.5, default);
 
         Assert.NotNull(_internalReporter.ReportedData);
@@ -121,7 +121,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
     public void Report_DefaultCustomT()
     {
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
-        using var _ = new AggregateTestReporter<T>(_internalReporter, [step]);
+        _ = new AggregateTestReporter<T>(_internalReporter, [step]);
 
         var expected = CreateCustomProgressInfo(step, 0.5);
         step.Report("Text", 0.5, expected);
@@ -139,7 +139,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
         var step1 = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
         var step2 = new TestProgressStep<T>(1, "Step 2", ServiceProvider);
 
-        using var _ = new AggregateTestReporter<T>(_internalReporter, [step1, step2]);
+        _ = new AggregateTestReporter<T>(_internalReporter, [step1, step2]);
 
         step1.Report("step1", 0.5, default);
 
@@ -156,6 +156,16 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
         Assert.Equal("test", _internalReporter.ReportedData.Type.Id);
         Assert.Equal(1, _internalReporter.ReportedData.Progress);
         Assert.Equal(default, _internalReporter.ReportedData.ProgressInfo);
+    }
+
+    [Fact]
+    public void Report_NoReportIfDisposed()
+    {
+        var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
+        var aggregator = new AggregateTestReporter<T>(_internalReporter, [step]);
+        aggregator.Dispose();
+        step.Report("step", 0.5, CreateCustomProgressInfo(step, 0.5));
+        Assert.Null(_internalReporter.ReportedData);
     }
 }
 
