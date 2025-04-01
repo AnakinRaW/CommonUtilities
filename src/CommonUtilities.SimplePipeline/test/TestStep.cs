@@ -1,25 +1,16 @@
-﻿using System;
-using System.Threading;
-using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using System;
+using System.Threading;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class TestStep : PipelineStep, IProgressStep
+public class TestStep : PipelineStep
 {
     private readonly Action<CancellationToken>? _action;
-    public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
 
-    public IStepProgressReporter ProgressReporter { get; } = null!;
-
-    public long Size { get; }
-
-    public string Text { get; }
-
-    public TestStep(long size, string text, IServiceProvider serviceProvider) : base(serviceProvider)
+    protected TestStep(IServiceProvider sp) : base(sp)
     {
-        Size = size;
-        Text = text;
     }
 
     public TestStep(Action<CancellationToken> action, IServiceProvider serviceProvider) : base(serviceProvider)
@@ -31,6 +22,34 @@ public class TestStep : PipelineStep, IProgressStep
     {
         _action?.Invoke(token);
     }
+}
+
+
+public class TestProgressStep<T>(long size, string text, IServiceProvider serviceProvider) 
+    : TestStep(serviceProvider), IProgressStep<T>
+{
+    public event EventHandler<ProgressEventArgs<T>>? Progress;
+    
+    public long Size { get; } = size;
+
+    public string Text { get; } = text;
+
+    public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
+
+    public void Report(string text, double progress, T? value)
+    {
+        Progress?.Invoke(this, new ProgressEventArgs<T>(text, progress, value));
+    }
+}
+
+public struct TestInfoStruct
+{
+    public double Progress;
+}
+
+public class TestInfoClass
+{
+    public double Progress;
 }
 
 public class TestSyncStep(Action<CancellationToken> action, IServiceProvider serviceProvider)
