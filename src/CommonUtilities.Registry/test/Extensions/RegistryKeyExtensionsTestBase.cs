@@ -236,7 +236,7 @@ public abstract class RegistryKeyExtensionsTestBase
         }
         finally
         {
-            subSubKey.Dispose();
+            subSubKey?.Dispose();
             test.Dispose();
         }
     }
@@ -257,7 +257,7 @@ public abstract class RegistryKeyExtensionsTestBase
         }
         finally
         {
-            subSubKey.Dispose();
+            subSubKey?.Dispose();
             test.Dispose();
         }
     }

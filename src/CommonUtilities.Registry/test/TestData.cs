@@ -49,7 +49,7 @@ internal static class TestData
         var counter = 0;
         foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
         {
-            envs.Add(["ExpandedTest_" + counter, entry.Key, entry.Value]);
+            envs.Add(["ExpandedTest_" + counter, entry.Key, entry.Value!]);
             ++counter;
         }
 

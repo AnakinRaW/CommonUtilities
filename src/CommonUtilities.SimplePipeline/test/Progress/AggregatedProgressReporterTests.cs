@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
-using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
@@ -213,7 +211,7 @@ internal class TestProgressReporter<T> : IProgressReporter<T>
 {
     public ReportedData<T>? ReportedData { get; private set; }
 
-    public void Report(string progressText, double progress, ProgressType type, T detailedProgress)
+    public void Report(string progressText, double progress, ProgressType type, T? detailedProgress)
     {
         ReportedData = new ReportedData<T>
         {
@@ -225,22 +223,10 @@ internal class TestProgressReporter<T> : IProgressReporter<T>
     }
 }
 
-internal class OtherTestStep(IServiceProvider serviceProvider)
-    : PipelineStep(serviceProvider), IProgressStep<object?>
-{
-    public event EventHandler<ProgressEventArgs<object?>>? Progress;
-    public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
-    public long Size => 1;
-
-    protected override void RunCore(CancellationToken token)
-    {
-    }
-}
-
 internal class ReportedData<T>
 {
-    public string Text { get; init; }
+    public required string Text { get; init; }
     public double Progress { get; init; }
     public ProgressType Type { get; init; }
-    public T ProgressInfo { get; init; }
+    public T? ProgressInfo { get; init; }
 }

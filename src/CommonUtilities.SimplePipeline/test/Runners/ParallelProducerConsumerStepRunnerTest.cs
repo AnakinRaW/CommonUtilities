@@ -196,22 +196,13 @@ public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase
 
         var b = new ManualResetEvent(false);
 
-        StepRunnerErrorEventArgs? error = null!;
-        runner.Error += (_, e) =>
-        {
-            error = e;
-        };
-
-        var ran1 = false;
         var step1 = new TestStep(_ =>
         {
-            ran1 = true;
             cts.Cancel();
             b.Set();
         }, ServiceProvider);
 
-        var ran2 = false;
-        var step2 = new TestStep(_ => ran2 = true, ServiceProvider);
+        var step2 = new TestStep(_ => {}, ServiceProvider);
 
         runner.AddStep(step1);
         runner.AddStep(step2);

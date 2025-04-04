@@ -30,7 +30,7 @@ public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
         runner.Error += (_, e) =>
         {
             errorCounter++;
-            if (e.Step.Error?.Message == "Test")
+            if (e.Step?.Error?.Message == "Test")
                 e.Cancel = true;
         };
 

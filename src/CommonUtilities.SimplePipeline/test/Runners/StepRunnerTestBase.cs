@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public abstract class StepRunnerTestBase<T> : CommonTestBase where T : IStepRunner
+public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IStepRunner
 {
     public abstract bool PreservesStepExecutionOrder { get; }
 
