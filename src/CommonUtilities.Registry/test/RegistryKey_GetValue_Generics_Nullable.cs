@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
