@@ -28,7 +28,7 @@ public class AggregatedProgressReporterTest_Class: AggregatedProgressReporterTes
     }
 }
 
-public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
+public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase where T : ITestInfo, new()
 {
     private readonly TestProgressReporter<T> _internalReporter = new();
 
@@ -97,7 +97,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
     {
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
         _ = new AggregateTestReporter<T>(_internalReporter, []);
-        step.Report("step", 0.5, CreateCustomProgressInfo(step, 0.5));
+        step.Report( 0.5, "step", CreateCustomProgressInfo(step, 0.5));
         Assert.Null(_internalReporter.ReportedData);
     }
 
@@ -106,13 +106,17 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
     {
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
         _ = new AggregateTestReporter<T>(_internalReporter, [step]);
-        step.Report("Text", 0.5, default);
+        step.Report( 0.5, "Text", default);
 
         Assert.NotNull(_internalReporter.ReportedData);
-        Assert.Equal("Step 1Text", _internalReporter.ReportedData.Text);
+        Assert.Equal("Step 1aggregated", _internalReporter.ReportedData.Text);
         Assert.Equal("test", _internalReporter.ReportedData.Type.Id);
         Assert.Equal(0.5, _internalReporter.ReportedData.Progress);
-        Assert.Equal(default, _internalReporter.ReportedData.ProgressInfo);
+        if (typeof(T).IsValueType) 
+            Assert.Equal(0, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        else
+            Assert.Equal(-1, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        Assert.True(_internalReporter.ReportedData.ProgressInfo!.Aggregated);
     }
 
     [Fact]
@@ -121,11 +125,13 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
         _ = new AggregateTestReporter<T>(_internalReporter, [step]);
 
+        step.Report(0.5, "Text", CreateCustomProgressInfo(step, 0.5));
+
         var expected = CreateCustomProgressInfo(step, 0.5);
-        step.Report("Text", 0.5, expected);
+        expected.Aggregated = true;
 
         Assert.NotNull(_internalReporter.ReportedData);
-        Assert.Equal("Step 1Text", _internalReporter.ReportedData.Text);
+        Assert.Equal("Step 1aggregated", _internalReporter.ReportedData.Text);
         Assert.Equal("test", _internalReporter.ReportedData.Type.Id);
         Assert.Equal(0.5, _internalReporter.ReportedData.Progress);
         Assert.Equal(expected, _internalReporter.ReportedData.ProgressInfo);
@@ -139,21 +145,29 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
 
         _ = new AggregateTestReporter<T>(_internalReporter, [step1, step2]);
 
-        step1.Report("step1", 0.5, default);
+        step1.Report(0.5, "step1", default);
 
         Assert.NotNull(_internalReporter.ReportedData);
 
-        Assert.Equal("Step 1step1", _internalReporter.ReportedData.Text);
+        Assert.Equal("Step 1aggregated", _internalReporter.ReportedData.Text);
         Assert.Equal("test", _internalReporter.ReportedData.Type.Id);
         Assert.Equal(0.5, _internalReporter.ReportedData.Progress);
-        Assert.Equal(default, _internalReporter.ReportedData.ProgressInfo);
+        if (typeof(T).IsValueType)
+            Assert.Equal(0, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        else
+            Assert.Equal(-1, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        Assert.True(_internalReporter.ReportedData.ProgressInfo!.Aggregated);
 
-        step2.Report("step2", 1, default);
+        step2.Report( 1, null, default);
 
-        Assert.Equal("Step 2step2", _internalReporter.ReportedData.Text);
+        Assert.Equal("Step 2aggregated", _internalReporter.ReportedData.Text);
         Assert.Equal("test", _internalReporter.ReportedData.Type.Id);
         Assert.Equal(1, _internalReporter.ReportedData.Progress);
-        Assert.Equal(default, _internalReporter.ReportedData.ProgressInfo);
+        if (typeof(T).IsValueType)
+            Assert.Equal(0, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        else
+            Assert.Equal(-1, _internalReporter.ReportedData.ProgressInfo!.Progress);
+        Assert.True(_internalReporter.ReportedData.ProgressInfo!.Aggregated);
     }
 
     [Fact]
@@ -162,7 +176,7 @@ public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase
         var step = new TestProgressStep<T>(1, "Step 1", ServiceProvider);
         var aggregator = new AggregateTestReporter<T>(_internalReporter, [step]);
         aggregator.Dispose();
-        step.Report("step", 0.5, CreateCustomProgressInfo(step, 0.5));
+        step.Report( 0.5, "step", CreateCustomProgressInfo(step, 0.5));
         Assert.Null(_internalReporter.ReportedData);
     }
 }
@@ -184,7 +198,7 @@ internal class TestStepEqualityComparer<T> : EqualityComparer<TestProgressStep<T
     }
 }
 
-internal class AggregateTestReporter<T> : AggregatedProgressReporter<TestProgressStep<T>, T>
+internal class AggregateTestReporter<T> : AggregatedProgressReporter<TestProgressStep<T>, T> where T : ITestInfo, new()
 {
     public AggregateTestReporter(IProgressReporter<T> progressReporter, IEnumerable<TestProgressStep<T>> steps)
         : base(progressReporter, steps)
@@ -196,14 +210,20 @@ internal class AggregateTestReporter<T> : AggregatedProgressReporter<TestProgres
     {
     }
 
-    protected override string GetProgressText(TestProgressStep<T> step, string progressText)
+    protected override string GetProgressText(TestProgressStep<T> step, string? progressText)
     {
+        Assert.Equal("aggregated", progressText);
         return step.Text + progressText;
     }
 
     protected override ProgressEventArgs<T> CalculateAggregatedProgress(TestProgressStep<T> task, ProgressEventArgs<T> progress)
     {
-        return progress;
+        var newT = new T
+        {
+            Aggregated = true,
+            Progress = progress.ProgressInfo?.Progress ?? -1
+        };
+        return new ProgressEventArgs<T>(progress.Progress, "aggregated", newT);
     }
 }
 
@@ -211,7 +231,7 @@ internal class TestProgressReporter<T> : IProgressReporter<T>
 {
     public ReportedData<T>? ReportedData { get; private set; }
 
-    public void Report(string progressText, double progress, ProgressType type, T? detailedProgress)
+    public void Report(double progress, string? progressText, ProgressType type, T? detailedProgress)
     {
         ReportedData = new ReportedData<T>
         {
@@ -225,7 +245,7 @@ internal class TestProgressReporter<T> : IProgressReporter<T>
 
 internal class ReportedData<T>
 {
-    public required string Text { get; init; }
+    public string? Text { get; init; }
     public double Progress { get; init; }
     public ProgressType Type { get; init; }
     public T? ProgressInfo { get; init; }

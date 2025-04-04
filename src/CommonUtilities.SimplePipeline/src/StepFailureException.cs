@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
@@ -13,16 +14,21 @@ public sealed class StepFailureException : Exception
 
     /// <inheritdoc/>
     public override string Message => Error;
-    
+
+    [field: AllowNull, MaybeNull]
     private string Error
     {
         get
         {
+            if (field is not null)
+                return field;
+
             var stringBuilder = new StringBuilder();
             
             foreach (var step in _failedSteps)
                 stringBuilder.Append($"Step '{step}' failed with error: {step.Error?.Message};");
-            return stringBuilder.ToString().TrimEnd(';');
+            field = stringBuilder.ToString().TrimEnd(';');
+            return field;
         }
     }
 

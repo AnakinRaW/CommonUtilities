@@ -6,32 +6,30 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;
 
 public class ProgressEventArgsTest
 {
-    [Fact]
-    public void Ctor_InvalidArgs_Throws()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("abc")]
+    public void Ctor_WithDefaultInfo(string? text)
     {
-        Assert.Throws<ArgumentNullException>(() => new ProgressEventArgs<TestInfoStruct>(null!, 0.5));
-        Assert.Throws<ArgumentException>(() => new ProgressEventArgs<TestInfoStruct>(string.Empty, 0.5));
-    }
-
-    [Fact]
-    public void Ctor_WithDefaultInfo()
-    {
-        var args = new ProgressEventArgs<TestInfoStruct>("abc", 0.5);
+        var value = new Random().NextDouble();
+        var args = new ProgressEventArgs<TestInfoStruct>(value, text);
 
         Assert.Equal(0, args.ProgressInfo.Progress);
-        Assert.Equal(0.5, args.Progress);
-        Assert.Equal("abc", args.ProgressText);
+        Assert.Equal(value, args.Progress);
+        Assert.Equal(text, args.ProgressText);
     }
 
     [Fact]
     public void Ctor_WithExplicitInfo()
     {
-        var args = new ProgressEventArgs<TestInfoStruct>("abc", 0.5, new TestInfoStruct
+        var value = new Random().NextDouble();
+        var args = new ProgressEventArgs<TestInfoStruct>(0.5, "abc", new TestInfoStruct
         {
-            Progress = 1
+            Progress = value
         });
 
-        Assert.Equal(1, args.ProgressInfo.Progress);
+        Assert.Equal(value, args.ProgressInfo.Progress);
         Assert.Equal(0.5, args.Progress);
         Assert.Equal("abc", args.ProgressText);
     }
