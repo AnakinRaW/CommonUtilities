@@ -3,7 +3,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class DownloadResultTests
+public class DownloadResultTest
 {
     [Fact]
     public void Ctor_NullArgs_Throws()

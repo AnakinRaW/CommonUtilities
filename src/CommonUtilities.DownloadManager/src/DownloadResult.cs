@@ -33,7 +33,7 @@ public sealed class DownloadResult
     public Uri? Uri { get; internal set; }
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="DownloadResult"/> class with the specified download uri
+    /// Initializes a new instance of the <see cref="DownloadResult"/> class with the specified download URI.
     /// </summary>
     /// <param name="uri">The origin uri of the download.</param>
     /// <exception cref="ArgumentNullException"><paramref name="uri"/> is <see langword="null"/>.</exception>

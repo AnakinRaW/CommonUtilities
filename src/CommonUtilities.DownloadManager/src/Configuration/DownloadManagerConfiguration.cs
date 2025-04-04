@@ -26,7 +26,7 @@ public sealed class DownloadManagerConfiguration
     /// Gets or sets the validation policy for a downloaded file.
     /// </summary>
     public ValidationPolicy ValidationPolicy { get; init; }
-    
+
     /// <summary>
     /// Gets or sets the provider to use for downloading files from the Internet.
     /// </summary>

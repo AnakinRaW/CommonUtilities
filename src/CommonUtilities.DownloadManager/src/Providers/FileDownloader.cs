@@ -24,7 +24,11 @@ public sealed class FileDownloader : DownloadProviderBase
     }
 
     /// <inheritdoc />
-    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(
+        Uri uri,
+        Stream outputStream, 
+        DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions,
         CancellationToken cancellationToken)
     {
         if (uri is { IsFile: false, IsUnc: false })

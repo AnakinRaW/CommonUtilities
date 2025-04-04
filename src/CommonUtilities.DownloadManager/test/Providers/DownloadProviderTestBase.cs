@@ -20,35 +20,41 @@ public abstract class DownloadProviderTestBase : CommonTestBase
     public async Task DownloadAsync_SourceNotFound_Throws()
     {
         var source = CreateSource(false);
-        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await Download(source, new MemoryStream()));
+        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await Download(source, new MemoryStream(), null));
     }
 
-    [Fact]
-    public async Task DownloadAsync()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DownloadAsync(bool createDefaultOptions)
     {
         var outStream = new MemoryStream();
         var source = CreateSource(true);
 
-        var result = await Download(source, outStream);
+        var options = createDefaultOptions ? new DownloadOptions() : null;
+        var result = await Download(source, outStream, options);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);
     }
 
-    [Fact]
-    public async Task DownloadAsync_DownloadCancelled_Throws()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DownloadAsync_DownloadCancelled_Throws(bool createDefaultOptions)
     {
         var outStream = new MemoryStream();
         var source = CreateSource(true);
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await Download(source, outStream, new CancellationToken(true)));
+        var options = createDefaultOptions ? new DownloadOptions() : null;
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await Download(source, outStream, options, new CancellationToken(true)));
     }
 
-    protected async Task<DownloadResult> Download(Uri source, Stream outStream, CancellationToken token = default)
+    protected async Task<DownloadResult> Download(Uri source, Stream outStream, DownloadOptions? options, CancellationToken token = default)
     {
         var provider = CreateProvider();
 
         var callBackFired = false;
 
-        var result = await provider.DownloadAsync(source, outStream, Callback, token);
+        var result = await provider.DownloadAsync(source, outStream, Callback, options, token);
 
         Assert.True(callBackFired);
 

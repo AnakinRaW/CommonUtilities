@@ -21,18 +21,24 @@ public sealed class HttpClientDownloader : DownloadProviderBase
     /// Initializes a new instance of the <see cref="HttpClientDownloader"/> class.
     /// </summary>
     /// <param name="services">The service provider.</param>
-    public HttpClientDownloader(IServiceProvider services) : base("HttpClient", DownloadKind.Internet, services)
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    public HttpClientDownloader(IServiceProvider services) 
+        : base("HttpClient", DownloadKind.Internet, services)
     {
         _logger = ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
     /// <inheritdoc />
-    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(
+        Uri uri, 
+        Stream outputStream, 
+        DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions,
         CancellationToken cancellationToken)
     {
         var summary = new DownloadResult(uri);
         var webRequest = CreateRequest(uri);
-        var response = await GetHttpResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
+        var response = await GetHttpResponse(uri, downloadOptions, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
         {
             if (response is not null)
@@ -77,7 +83,11 @@ public sealed class HttpClientDownloader : DownloadProviderBase
         return request;
     }
 
-    private async Task<HttpResponseMessage?> GetHttpResponse(Uri uri, DownloadResult result, HttpRequestMessage request,
+    private async Task<HttpResponseMessage?> GetHttpResponse(
+        Uri uri,
+        DownloadOptions? downloadOptions,
+        DownloadResult result, 
+        HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage? response = null;
@@ -86,12 +96,22 @@ public sealed class HttpClientDownloader : DownloadProviderBase
         {
             var handler = new HttpClientHandler
             {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
             };
             var client = new HttpClient(handler)
             {
-                Timeout = TimeSpan.FromMilliseconds(120000)
+                Timeout = TimeSpan.FromMilliseconds(120000),
             };
+
+            if (downloadOptions is not null)
+            {
+                if (!string.IsNullOrEmpty(downloadOptions.UserAgent))
+                    client.DefaultRequestHeaders.UserAgent.TryParseAdd(downloadOptions.UserAgent);
+
+                if (!string.IsNullOrWhiteSpace(downloadOptions.AuthenticationToken))
+                    client.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", downloadOptions.AuthenticationToken);
+            }
 
             response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);

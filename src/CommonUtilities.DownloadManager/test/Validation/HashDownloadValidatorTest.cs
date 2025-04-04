@@ -27,7 +27,7 @@ public class HashDownloadValidatorTest : CommonTestBase
 
     public static IEnumerable<object[]> ValidContextData()
     {
-        yield return [HashTypeKey.None, null];
+        yield return [HashTypeKey.None, null!];
         yield return [HashTypeKey.None, Array.Empty<byte>()];
         yield return [HashTypeKey.MD5, new byte[16]];
         yield return [HashTypeKey.SHA1, new byte[20]];
@@ -56,11 +56,11 @@ public class HashDownloadValidatorTest : CommonTestBase
         yield return [HashTypeKey.SHA256, Array.Empty<byte>()];
         yield return [HashTypeKey.SHA384, Array.Empty<byte>()];
         yield return [HashTypeKey.SHA512, Array.Empty<byte>()];
-        yield return [HashTypeKey.MD5, null];
-        yield return [HashTypeKey.SHA1, null];
-        yield return [HashTypeKey.SHA256, null];
-        yield return [HashTypeKey.SHA384, null];
-        yield return [HashTypeKey.SHA512, null];
+        yield return [HashTypeKey.MD5, null!];
+        yield return [HashTypeKey.SHA1, null!];
+        yield return [HashTypeKey.SHA256, null!];
+        yield return [HashTypeKey.SHA384, null!];
+        yield return [HashTypeKey.SHA512, null!];
     }
 
     [Theory]
