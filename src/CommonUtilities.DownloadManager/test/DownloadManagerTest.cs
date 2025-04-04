@@ -29,6 +29,44 @@ public class DownloadManagerTest : CommonTestBase
     public void Ctor_NullArgs_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new DownloadManager(null!, ServiceProvider));
+        Assert.Throws<ArgumentNullException>(() => new DownloadManager(null!));
+        Assert.Throws<ArgumentNullException>(() => new DownloadManager(DownloadManagerConfiguration.Default, null!));
+    }
+
+    [Fact]
+    public void AddDownloadProvider_NullArgument_Throws()
+    {
+        var manager = new DownloadManager(ServiceProvider);
+        Assert.Throws<ArgumentNullException>(() => manager.AddDownloadProvider(null!));
+    }
+
+    [Fact]
+    public void AddDownloadProvider_AlreadyExists_Throws()
+    {
+        var manager = new DownloadManager(ServiceProvider);
+        manager.RemoveAllProviders();
+
+        manager.AddDownloadProvider(new FileDownloader(ServiceProvider));
+        Assert.Throws<InvalidOperationException>(() => manager.AddDownloadProvider(new FileDownloader(ServiceProvider)));
+    }
+
+    [Fact]
+    public async Task DownloadAsync_NullArgument_Throws()
+    {
+        var manager = new DownloadManager(ServiceProvider);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await manager.DownloadAsync(null!, new MemoryStream(), null, null, null, CancellationToken.None));
+
+        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await manager.DownloadAsync(new Uri("https://example.com"), null!, null, null, null, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DownloadAsync_NonWritableStream_Throws()
+    {
+        var manager = new DownloadManager(ServiceProvider);
+        await Assert.ThrowsAsync<NotSupportedException>(async () =>
+            await manager.DownloadAsync(new Uri("https://example.com"), new ReadonlyStream(), null, null, null, CancellationToken.None));
     }
 
     [Theory]
@@ -68,7 +106,7 @@ public class DownloadManagerTest : CommonTestBase
         var manager = new DownloadManager(ServiceProvider);
         var output = new MemoryStream();
         await Assert.ThrowsAsync<ArgumentException>(async () =>
-            await manager.DownloadAsync(new Uri(uri, UriKind.RelativeOrAbsolute), output, null, null, CancellationToken.None));
+            await manager.DownloadAsync(new Uri(uri, UriKind.RelativeOrAbsolute), output, null, null, null, CancellationToken.None));
     }
 
     [Theory]
@@ -80,7 +118,7 @@ public class DownloadManagerTest : CommonTestBase
         var manager = new DownloadManager(ServiceProvider);
         var output = new MemoryStream();
         await Assert.ThrowsAsync<ArgumentException>(async () =>
-            await manager.DownloadAsync(new Uri(uri), output, null, null, CancellationToken.None));
+            await manager.DownloadAsync(new Uri(uri), output, null, null, null, CancellationToken.None));
     }
 
     [Fact]
@@ -95,7 +133,7 @@ public class DownloadManagerTest : CommonTestBase
         var progressTriggered = false;
 
         await Assert.ThrowsAsync<DownloadProviderNotFoundException>(
-            async () => await manager.DownloadAsync(new Uri("http://example.com/test.txt"), file, ProgressMethod, null,
+            async () => await manager.DownloadAsync(new Uri("http://example.com/test.txt"), file, ProgressMethod, null, null,
                 CancellationToken.None));
 
         Assert.False(progressTriggered);
@@ -121,7 +159,7 @@ public class DownloadManagerTest : CommonTestBase
         manager.AddDownloadProvider(provider);
 
         await Assert.ThrowsAsync<DownloadProviderNotFoundException>(async () =>
-            await manager.DownloadAsync(uri, new MemoryStream(), null!, null!, CancellationToken.None));
+            await manager.DownloadAsync(uri, new MemoryStream(), null, null, null, CancellationToken.None));
     }
 
     [Fact]
@@ -137,7 +175,7 @@ public class DownloadManagerTest : CommonTestBase
 
         var uri = new Uri(fi.FullName);
         var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(uri, output, null, null, CancellationToken.None));
+            await manager.DownloadAsync(uri, output, null, null, null, CancellationToken.None));
 
         Assert.Equal($"File download failed: Empty file downloaded on '{uri}'.", e.Message);
     }
@@ -154,7 +192,7 @@ public class DownloadManagerTest : CommonTestBase
         var uri = new Uri(fi.FullName);
 
         var output = new MemoryStream();
-        var result = await manager.DownloadAsync(uri, output, null, null, CancellationToken.None);
+        var result = await manager.DownloadAsync(uri, output, null, null, null, CancellationToken.None);
         Assert.Equal(0, result.DownloadedSize);
     }
 
@@ -163,7 +201,22 @@ public class DownloadManagerTest : CommonTestBase
     {
         var uri = new Uri("https://raw.githubusercontent.com/BitDoctor/speed-test-file/master/5mb.txt");
         var provider = new HttpClientDownloader(ServiceProvider);
-        await DownloadAsyncTest(provider, uri, 5 * 1024 * 1024, true);
+        await DownloadAsyncTest(provider, uri, true, null, 5 * 1024 * 1024);
+    }
+
+
+    [Fact]
+    public async Task DownloadAsync_GithubApi()
+    {
+        var uri = new Uri("https://api.github.com/repos/AnakinRaw/CommonUtilities/releases/95551575");
+        var provider = new HttpClientDownloader(ServiceProvider);
+
+        //await Assert.ThrowsAsync<DownloadFailedException>(async () => await DownloadAsyncTest(provider, uri, true, null, null));
+
+        await DownloadAsyncTest(provider, uri, true,
+            new DownloadOptions { UserAgent = "AnakinRaw.DownloadManager.Test" }, null);
+        
+        Assert.Equal(2566, FileSystem.File.ReadAllText(Destination).Length);
     }
 
 #if NETFRAMEWORK
@@ -173,7 +226,7 @@ public class DownloadManagerTest : CommonTestBase
     {
         var uri = new Uri("https://raw.githubusercontent.com/BitDoctor/speed-test-file/master/5mb.txt");
         var provider = new WebClientDownloader(ServiceProvider);
-        await DownloadAsyncTest(provider, uri, 5 * 1024 * 1024, true);
+        await DownloadAsyncTest(provider, uri, true, null, 5 * 1024 * 1024);
     }
 
 #endif
@@ -187,7 +240,7 @@ public class DownloadManagerTest : CommonTestBase
         FileSystem.File.WriteAllBytes("test.txt", bytes);
 
         var uri = new Uri(FileSystem.Path.GetFullPath("test.txt"));
-        await DownloadAsyncTest(provider, uri, bytes.Length, true);
+        await DownloadAsyncTest(provider, uri, true, null, bytes.Length);
 
         Assert.Equal(bytes, FileSystem.File.ReadAllBytes(Destination));
     }
@@ -197,7 +250,7 @@ public class DownloadManagerTest : CommonTestBase
     {
         var uri = new Uri("http://example.com/notFound.txt");
         var provider = new HttpClientDownloader(ServiceProvider);
-        await DownloadAsyncTest(provider, uri, 5 * 1024 * 1024, false);
+        await DownloadAsyncTest(provider, uri, false, null, null);
     }
 
 #if NETFRAMEWORK
@@ -207,7 +260,7 @@ public class DownloadManagerTest : CommonTestBase
     {
         var uri = new Uri("http://example.com/notFound.txt");
         var provider = new WebClientDownloader(ServiceProvider);
-        await DownloadAsyncTest(provider, uri, 5 * 1024 * 1024, false);
+        await DownloadAsyncTest(provider, uri, false, null, null);
     }
 
 #endif
@@ -218,7 +271,7 @@ public class DownloadManagerTest : CommonTestBase
         var uri = new Uri("file:///test.txt");
         var provider = new HttpClientDownloader(ServiceProvider);
 
-        await DownloadAsyncTest(provider, uri, 0, false);
+        await DownloadAsyncTest(provider, uri, false, null, null);
 
         Assert.Equal([], FileSystem.File.ReadAllBytes(Destination));
     }
@@ -244,10 +297,10 @@ public class DownloadManagerTest : CommonTestBase
 
         if (policy == ValidationPolicy.Required)
             await Assert.ThrowsAsync<NotSupportedException>(async () =>
-                await manager.DownloadAsync(uri, output, null, null, CancellationToken.None));
+                await manager.DownloadAsync(uri, output, null, null, null, CancellationToken.None));
         else
         {
-            var r = await manager.DownloadAsync(uri, output, null, null, CancellationToken.None);
+            var r = await manager.DownloadAsync(uri, output, null, null, null, CancellationToken.None);
             Assert.Equal(10, r.DownloadedSize);
         }
 
@@ -273,7 +326,7 @@ public class DownloadManagerTest : CommonTestBase
         var validator = new HashDownloadValidator(hash.ToArray(), HashTypeKey.MD5, ServiceProvider);
 
         await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, validator, CancellationToken.None));
+            await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, null, validator, CancellationToken.None));
     }
 
     [Theory]
@@ -294,7 +347,7 @@ public class DownloadManagerTest : CommonTestBase
         var hash = SHA256.Create().ComputeHash(bytes);
         var validator = new HashDownloadValidator(hash, HashTypeKey.SHA256, ServiceProvider);
 
-        await manager.DownloadAsync(new Uri(FileSystem.Path.GetFullPath("test.txt")), output, null, validator, CancellationToken.None);
+        await manager.DownloadAsync(new Uri(FileSystem.Path.GetFullPath("test.txt")), output, null, null, validator, CancellationToken.None);
     }
 
     [Fact]
@@ -312,7 +365,7 @@ public class DownloadManagerTest : CommonTestBase
 
         var uri = new Uri(FileSystem.Path.GetFullPath("test.txt"));
         var e = await Assert.ThrowsAsync<DownloadFailedException>(async () =>
-            await manager.DownloadAsync(uri, output, null, new ThrowingValidator(),
+            await manager.DownloadAsync(uri, output, null, null, new ThrowingValidator(),
                 CancellationToken.None));
 
         Assert.Equal($"File download failed: Validation of '{uri}' failed with exception: Test", e.Message);
@@ -327,18 +380,49 @@ public class DownloadManagerTest : CommonTestBase
         manager.RemoveAllProviders();
         var counter = new Counter();
 
-        var provider1 = new DummyFileDownloadProvider("A", counter, ServiceProvider);
-        var provider2 = new DummyFileDownloadProvider("B", counter, ServiceProvider);
+        var provider1 = new CountingFileDownloadProvider("A", counter, ServiceProvider);
+        var provider2 = new CountingFileDownloadProvider("B", counter, ServiceProvider);
         manager.AddDownloadProvider(provider1);
         manager.AddDownloadProvider(provider2);
 
-        await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, null, CancellationToken.None);
+        await manager.DownloadAsync(new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"), output, null, null, null, CancellationToken.None);
 
         Assert.Equal(2, counter.Value);
     }
 
+    [Fact]
+    public async Task DownloadAsync_CancellationDoesNotRetry_Throws()
+    {
+        var output = new MemoryStream();
+        var manager = new DownloadManager(new DownloadManagerConfiguration { AllowEmptyFileDownload = true }, ServiceProvider);
 
-    private async Task DownloadAsyncTest(IDownloadProvider provider, Uri uri, long expectedSize, bool sourceExists)
+        manager.RemoveAllProviders();
+
+        var cts = new CancellationTokenSource();
+
+        var counter = 0;
+        var provider1 = new DelegatingFileDownloadProvider("A", () =>
+        {
+            counter++;
+            cts.Cancel();
+        }, ServiceProvider);
+        var provider2 = new DelegatingFileDownloadProvider("B", () =>
+        {
+            counter++;
+            cts.Cancel();
+        }, ServiceProvider);
+        manager.AddDownloadProvider(provider1);
+        manager.AddDownloadProvider(provider2);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await manager.DownloadAsync(
+            new Uri($"file:///{FileSystem.Path.GetFullPath("test.txt")}"),
+            output, null, null, null, cts.Token));
+
+        Assert.Equal(1, counter);
+    }
+
+
+    private async Task DownloadAsyncTest(IDownloadProvider provider, Uri uri, bool sourceExists, DownloadOptions? options, long? expectedSize)
     {
         var manager = new DownloadManager(ServiceProvider);
 
@@ -351,14 +435,17 @@ public class DownloadManagerTest : CommonTestBase
 
         if (sourceExists)
         {
-            var summary = await manager.DownloadAsync(uri, file, ProgressMethod, null, CancellationToken.None);
-            Assert.Equal(expectedSize, summary.DownloadedSize);
-            Assert.Equal(expectedSize, file.Length);
+            var summary = await manager.DownloadAsync(uri, file, ProgressMethod, options, null, CancellationToken.None);
+            if (expectedSize.HasValue)
+            {
+                Assert.Equal(expectedSize, summary.DownloadedSize);
+                Assert.Equal(expectedSize, file.Length);
+            }
         }
         else
         {
             var e = await Assert.ThrowsAsync<DownloadFailedException>(async () => await manager.DownloadAsync(
-                new Uri("http://example.com/notFound.txt"), file, ProgressMethod, null, CancellationToken.None));
+                new Uri("http://example.com/notFound.txt"), file, ProgressMethod, null, null, CancellationToken.None));
             var failInfo = Assert.Single(e.DownloadFailures);
             Assert.Equal(provider.Name, failInfo.Provider);
         }
@@ -383,7 +470,7 @@ public class DownloadManagerTest : CommonTestBase
         }
     }
 
-    private class DummyFileDownloadProvider(string name, Counter countData, IServiceProvider serviceProvider) : IDownloadProvider
+    private class DelegatingFileDownloadProvider(string name, Action onDownload, IServiceProvider serviceProvider) : IDownloadProvider
     {
         public string Name => name;
 
@@ -392,7 +479,26 @@ public class DownloadManagerTest : CommonTestBase
             return kind == DownloadKind.File;
         }
 
-        public Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback progress, CancellationToken cancellationToken)
+        public Task<DownloadResult> DownloadAsync(
+            Uri uri, Stream outputStream, DownloadUpdateCallback? progress, DownloadOptions? options, CancellationToken cancellationToken)
+        {
+            onDownload();
+            cancellationToken.ThrowIfCancellationRequested();
+            throw new Exception();
+        }
+    }
+
+    private class CountingFileDownloadProvider(string name, Counter countData, IServiceProvider serviceProvider) : IDownloadProvider
+    {
+        public string Name => name;
+
+        public bool IsSupported(DownloadKind kind)
+        {
+            return kind == DownloadKind.File;
+        }
+
+        public Task<DownloadResult> DownloadAsync(
+            Uri uri, Stream outputStream, DownloadUpdateCallback? progress, DownloadOptions? options, CancellationToken cancellationToken)
         {
             countData.Increment();
             var fs = serviceProvider.GetRequiredService<IFileSystem>();
@@ -414,5 +520,39 @@ public class DownloadManagerTest : CommonTestBase
         public void Increment() => Interlocked.Increment(ref _count);
 
         public int Value => _count;
+    }
+
+    private sealed class ReadonlyStream : Stream
+    {
+        public override void Flush()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool CanRead { get; }
+        public override bool CanSeek { get; }
+        public override bool CanWrite => false;
+        public override long Length { get; }
+        public override long Position { get; set; }
     }
 }

@@ -27,18 +27,24 @@ public sealed class WebClientDownloader : DownloadProviderBase
     /// Initializes a new instance of the <see cref="WebClientDownloader"/> class.
     /// </summary>
     /// <param name="services">The service provider.</param>
-    public WebClientDownloader(IServiceProvider services) : base("WebClient", DownloadKind.Internet, services)
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    public WebClientDownloader(IServiceProvider services) 
+        : base("WebClient", DownloadKind.Internet, services)
     {
         _logger = ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
     /// <inheritdoc />
-    protected override async Task<DownloadResult> DownloadAsyncCore(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
+    protected override async Task<DownloadResult> DownloadAsyncCore(
+        Uri uri, 
+        Stream outputStream, 
+        DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions,
         CancellationToken cancellationToken)
     {
         var summary = new DownloadResult(uri);
 
-        var webRequest = CreateRequest(uri);
+        var webRequest = CreateRequest(uri, downloadOptions);
 
         var webResponse = await GetWebResponse(uri, summary, webRequest, cancellationToken).ConfigureAwait(false);
         try
@@ -105,7 +111,7 @@ public sealed class WebClientDownloader : DownloadProviderBase
         }
     }
 
-    private static HttpWebRequest CreateRequest(Uri uri)
+    private static HttpWebRequest CreateRequest(Uri uri, DownloadOptions? downloadOptions)
     {
         var webRequest = (HttpWebRequest)WebRequest.Create(uri);
         webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -113,6 +119,15 @@ public sealed class WebClientDownloader : DownloadProviderBase
         webRequest.KeepAlive = true;
         webRequest.Timeout = 120000;
 
+        if (downloadOptions is not null)
+        {
+            if (!string.IsNullOrEmpty(downloadOptions.UserAgent))
+                webRequest.UserAgent = downloadOptions.UserAgent;
+
+            if (!string.IsNullOrWhiteSpace(downloadOptions.AuthenticationToken))
+                webRequest.Headers.Add("Authorization", "Bearer " + downloadOptions.AuthenticationToken);
+        }
+        
         var requestCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
         webRequest.CachePolicy = requestCachePolicy;
         return webRequest;
@@ -144,6 +159,9 @@ public sealed class WebClientDownloader : DownloadProviderBase
                 case HttpStatusCode.OK:
                     success = true;
                     return httpWebResponse;
+                default:
+                    _logger?.LogTrace($"WebResponse error for '{uri.AbsoluteUri}' ({httpWebResponse.StatusCode}).");
+                    break;
             }
         }
         catch (WebException ex)

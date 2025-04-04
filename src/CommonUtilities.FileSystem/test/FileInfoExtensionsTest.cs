@@ -209,7 +209,8 @@ public class FileInfoExtensionsTest
         fs.Write([1, 2, 3], 0, 3);
         fs.Position = 0;
         var output = new byte[3];
-        fs.Read(output, 0, 3);
+        var r = fs.Read(output, 0, 3);
+        Assert.Equal(3, r);
         Assert.Equal([1, 2, 3], output);
         fs.Dispose();
         Assert.False(_fileSystem.File.Exists(fs.Name));
@@ -231,7 +232,8 @@ public class FileInfoExtensionsTest
         fs.Write([1, 2, 3], 0, 3);
         fs.Position = 0;
         var output = new byte[3];
-        fs.Read(output, 0, 3);
+        var r = fs.Read(output, 0, 3);
+        Assert.Equal(3, r);
         Assert.Equal([1, 2, 3], output);
         fs.Dispose();
         Assert.False(_fileSystem.File.Exists(fs.Name));

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace AnakinRaW.CommonUtilities.DownloadManager;
 
 /// <summary>
-/// A Download manager which supports local file system and HTTP downloads by default.
+/// A download manager which supports the local file system and HTTP downloads.
 /// </summary>
 public sealed class DownloadManager : IDownloadManager 
 {
@@ -77,9 +77,12 @@ public sealed class DownloadManager : IDownloadManager
         Uri uri, 
         Stream outputStream, 
         DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions = null,
         IDownloadValidator? validator = null, 
         CancellationToken cancellationToken = default)
     {
+        if (uri == null) 
+            throw new ArgumentNullException(nameof(uri));
         if (outputStream == null)
             throw new ArgumentNullException(nameof(outputStream));
         if (!outputStream.CanWrite)
@@ -104,7 +107,7 @@ public sealed class DownloadManager : IDownloadManager
 
         var providers = GetMatchingProviders(uri);
         return Task.Run(async () =>
-            await DownloadWithRetry(providers, uri, outputStream, progress, validator, cancellationToken)
+            await DownloadWithRetry(providers, uri, outputStream, progress, downloadOptions, validator, cancellationToken)
                 .ConfigureAwait(false), cancellationToken);
     }
 
@@ -113,8 +116,14 @@ public sealed class DownloadManager : IDownloadManager
         _allProviders.Clear();
     }
 
-    private async Task<DownloadResult> DownloadWithRetry(IList<IDownloadProvider> providers, Uri uri, Stream outputStream,
-        DownloadUpdateCallback? progress, IDownloadValidator? validator, CancellationToken cancellationToken)
+    private async Task<DownloadResult> DownloadWithRetry(
+        IList<IDownloadProvider> providers, 
+        Uri uri, 
+        Stream outputStream,
+        DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions,
+        IDownloadValidator? validator,
+        CancellationToken cancellationToken)
     {
         if (_configuration.ValidationPolicy == ValidationPolicy.Required && validator is null)
         {
@@ -138,7 +147,7 @@ public sealed class DownloadManager : IDownloadManager
                             return;
                         status.DownloadProvider = provider.Name;
                         progress.Invoke(status);
-                    }, cancellationToken).ConfigureAwait(false);
+                    }, downloadOptions, cancellationToken).ConfigureAwait(false);
                 
                 if (outputStream.Length == 0 && !_configuration.AllowEmptyFileDownload)
                 {

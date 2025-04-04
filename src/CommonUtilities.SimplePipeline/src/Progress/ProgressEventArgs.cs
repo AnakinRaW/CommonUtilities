@@ -11,7 +11,7 @@ public class ProgressEventArgs<T> : EventArgs
     /// <summary>
     /// Gets the text description of the current progress.
     /// </summary>
-    public string ProgressText { get; }
+    public string? ProgressText { get; }
 
     /// <summary>
     /// Gets the current progress value as a percentage, ranging from 0.0 to 1.0.
@@ -27,12 +27,11 @@ public class ProgressEventArgs<T> : EventArgs
     /// Initializes a new instance of the <see cref="ProgressEventArgs{T}"/> class with the specified progress text,
     /// progress value, progress type, and detailed progress information.
     /// </summary>
-    /// <param name="progressText">The text description of the current progress.</param>
     /// <param name="progress">The current progress value as a percentage, ranging from 0.0 to 1.0.</param>
+    /// <param name="progressText">The text description of the current progress.</param>
     /// <param name="progressInfo">Additional detailed progress information.</param>
-    public ProgressEventArgs(string progressText, double progress, T? progressInfo = default)
+    public ProgressEventArgs(double progress, string? progressText, T? progressInfo = default)
     {
-        ThrowHelper.ThrowIfNullOrEmpty(progressText);
         ProgressText = progressText;
         Progress = progress;
         ProgressInfo = progressInfo;

@@ -14,7 +14,7 @@ public partial class RegistryTestsBase
         Assert.Equal(IsCaseSensitive, Registry.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default).IsCaseSensitive);
         Assert.Equal(IsCaseSensitive, TestRegistryKey.IsCaseSensitive);
         using var rk = TestRegistryKey.CreateSubKey(TestRegistryKeyName);
-        Assert.Equal(IsCaseSensitive, rk.IsCaseSensitive);
+        Assert.Equal(IsCaseSensitive, rk!.IsCaseSensitive);
     }
 
     [Theory]

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using AnakinRaW.CommonUtilities.DownloadManager.Providers;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager;

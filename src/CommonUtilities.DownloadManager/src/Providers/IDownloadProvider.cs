@@ -28,8 +28,12 @@ public interface IDownloadProvider
     /// <param name="uri">The source location of the file.</param>
     /// <param name="outputStream">The output stream of the downloaded file.</param>
     /// <param name="progress">A callback reporting the current status of the download.</param>
+    /// <param name="downloadOptions">Additional, optional download options.</param>
     /// <param name="cancellationToken">A token to cancel the download operation.</param>
     /// <returns>A summary of the download operation.</returns>
-    Task<DownloadResult> DownloadAsync(Uri uri, Stream outputStream, DownloadUpdateCallback? progress,
+    Task<DownloadResult> DownloadAsync(
+        Uri uri, Stream outputStream, 
+        DownloadUpdateCallback? progress,
+        DownloadOptions? downloadOptions,
         CancellationToken cancellationToken);
 }

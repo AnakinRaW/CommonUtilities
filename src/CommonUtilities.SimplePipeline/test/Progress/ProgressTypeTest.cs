@@ -57,7 +57,9 @@ public class ProgressTypeTest
 
         Assert.True(pt.Equals(pt));
         Assert.True(pt.Equals((object)pt));
+        // ReSharper disable once EqualExpressionComparison
         Assert.True(pt == pt);
+        // ReSharper disable once EqualExpressionComparison
         Assert.False(pt != pt);
         Assert.True(pt.Equals(equal));
         Assert.True(pt == equal);
