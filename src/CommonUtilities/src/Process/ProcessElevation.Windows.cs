@@ -1,7 +1,7 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.NativeMethods;
+using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using AnakinRaW.CommonUtilities.NativeMethods;
+using Microsoft.Win32.SafeHandles;
 using AdvApi32 = AnakinRaW.CommonUtilities.NativeMethods.AdvApi32;
 
 namespace AnakinRaW.CommonUtilities;
@@ -10,9 +10,12 @@ internal static class ProcessElevationWindows
 {
     public const uint ErrorInvalidParameter = 0x00000057;
 
-    internal static bool IsProcessElevated()
+    internal static bool IsProcessElevated(int processId)
     {
-        var processToken = OpenProcessToken(Process.GetCurrentProcess().Handle);
+        using var processHandle = 
+            new SafeFileHandle(Kernel32.OpenProcess(Kernel32.ProcessAccessRights.ProcessQueryLimitedInformation, false, (uint)processId), true);
+        
+        var processToken = OpenProcessToken(processHandle.DangerousGetHandle());
         try
         {
             var elevation = AdvApi32.GetTokenElevation(processToken);
