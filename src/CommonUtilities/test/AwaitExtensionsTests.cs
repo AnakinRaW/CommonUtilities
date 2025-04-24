@@ -20,7 +20,7 @@ public class AwaitExtensionsTests
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public async Task WaitForExitAsync_ExitCode_Windows()
     {
-        var p = Process.Start(
+        var p = System.Diagnostics.Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
             {
                 CreateNoWindow = true,
@@ -33,7 +33,7 @@ public class AwaitExtensionsTests
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
     public void WaitForExitAsync_AlreadyExited_Windows()
     {
-        var p = Process.Start(
+        var p = System.Diagnostics.Process.Start(
             new ProcessStartInfo("cmd.exe", "/c exit /b 55")
             {
                 CreateNoWindow = true,
@@ -49,7 +49,7 @@ public class AwaitExtensionsTests
     public async Task WaitForExitAsync_UnstartedProcess()
     {
         var processName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
-        var process = new Process();
+        var process = new System.Diagnostics.Process();
         process.StartInfo.FileName = processName;
         process.StartInfo.CreateNoWindow = true;
         await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsync());
@@ -66,7 +66,7 @@ public class AwaitExtensionsTests
             UseShellExecute = false,
             RedirectStandardInput = true,
         };
-        var p = Process.Start(processStartInfo)!;
+        var p = System.Diagnostics.Process.Start(processStartInfo)!;
         var expectedExitCode =
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
         try
@@ -103,7 +103,7 @@ public class AwaitExtensionsTests
             UseShellExecute = false,
             RedirectStandardInput = true,
         };
-        var p = Process.Start(processStartInfo)!;
+        var p = System.Diagnostics.Process.Start(processStartInfo)!;
         try
         {
             var cts = new CancellationTokenSource();
