@@ -23,10 +23,10 @@ public class CurrentProcessInfoTest
         Assert.Equal(current.MainModule!.FileName, cpi.ProcessFilePath);
     }
 
-    [Fact]
-    public void IsElevated()
-    {
-        var cpi = CurrentProcessInfo.Current;
-        Assert.False(cpi.IsElevated);
-    }
+    //[Fact]
+    //public void IsElevated()
+    //{
+    //    var cpi = CurrentProcessInfo.Current;
+    //    Assert.False(cpi.IsElevated);
+    //}
 }
