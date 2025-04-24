@@ -10,15 +10,17 @@ namespace AnakinRaW.CommonUtilities;
 /// <summary>
 /// Provides information about the current process.
 /// </summary>
-internal sealed class CurrentProcessInfo : ICurrentProcessInfo
+public sealed class CurrentProcessInfo : ICurrentProcessInfo
 {
+    private readonly Lazy<bool> _isElevatedLazy;
+
     /// <summary>
     /// Gets an instance of <see cref="CurrentProcessInfo"/> representing the current process.
     /// </summary>
     public static readonly CurrentProcessInfo Current = new();
 
     /// <inheritdoc/>
-    public bool IsElevated { get; }
+    public bool IsElevated => _isElevatedLazy.Value;
 
     /// <inheritdoc/>
     public string? ProcessFilePath { get; }
@@ -31,20 +33,23 @@ internal sealed class CurrentProcessInfo : ICurrentProcessInfo
     /// </summary>
     private CurrentProcessInfo()
     {
-        var p = Process.GetCurrentProcess();
+        using var p = Process.GetCurrentProcess();
         Id = p.Id;
-#if NET
+#if NET6_0_OR_GREATER
         var processPath = Environment.ProcessPath;
 #else
         var processPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Kernel32.GetModuleFileName(IntPtr.Zero)
-            : Process.GetCurrentProcess().MainModule.FileName;
+            : p.MainModule!.FileName;
 #endif
-
         ProcessFilePath = processPath;
+        _isElevatedLazy = new Lazy<bool>(CheckIsElevated);
+    }
 
-        IsElevated = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? ProcessElevationWindows.IsProcessElevated()
+    private bool CheckIsElevated()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? ProcessElevationWindows.IsProcessElevated(Id)
             : ProcessElevationLinux.IsElevated();
     }
 }
