@@ -358,7 +358,7 @@ public class PathNormalizerTest
             Input = new string('a', 300),
             ExpectedLinux = new string('a', 300) + "/",
             ExpectedWindows = new string('a', 300) + "\\",
-            Options = new PathNormalizeOptions()
+            Options = new PathNormalizeOptions
             {
                 TrailingDirectorySeparatorBehavior = TrailingDirectorySeparatorBehavior.Ensure
             }
@@ -368,7 +368,7 @@ public class PathNormalizerTest
             Input = new string('a', 300) + "/",
             ExpectedLinux = new string('a', 300),
             ExpectedWindows = new string('a', 300),
-            Options = new PathNormalizeOptions()
+            Options = new PathNormalizeOptions
             {
                 TrailingDirectorySeparatorBehavior = TrailingDirectorySeparatorBehavior.Trim
             }
