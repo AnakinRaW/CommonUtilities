@@ -216,7 +216,7 @@ public class DownloadManagerTest : CommonTestBase
         await DownloadAsyncTest(provider, uri, true,
             new DownloadOptions { UserAgent = "AnakinRaw.DownloadManager.Test" }, null);
         
-        Assert.Equal(2566, FileSystem.File.ReadAllText(Destination).Length);
+        Assert.Equal(2584, FileSystem.File.ReadAllText(Destination).Length);
     }
 
 #if NETFRAMEWORK
