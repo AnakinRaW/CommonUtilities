@@ -20,7 +20,7 @@ public abstract class StepRunnerBase : IStepRunner
     /// <summary>
     /// Gets a modifiable bag of all executed steps.
     /// </summary>
-    protected readonly ConcurrentBag<IStep> ExecutedStepsBag = new();
+    protected readonly ConcurrentBag<IStep> ExecutedStepsBag = [];
 
     /// <summary>
     /// Gets the logger instance of this stepRunner.

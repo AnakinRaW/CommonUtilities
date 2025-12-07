@@ -46,7 +46,7 @@ public class ValueStringBuilderTests
     {
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
             sb.Append((char)i);
             vsb.Append((char)i);
@@ -61,9 +61,9 @@ public class ValueStringBuilderTests
     {
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
-            string s = i.ToString();
+            var s = i.ToString();
             sb.Append(s);
             vsb.Append(s);
         }
@@ -81,7 +81,7 @@ public class ValueStringBuilderTests
         var sb = new StringBuilder(initialLength);
         var vsb = new ValueStringBuilder(new char[initialLength]);
 
-        string s = new string('a', stringLength);
+        var s = new string('a', stringLength);
         sb.Append(s);
         vsb.Append(s);
 
@@ -94,7 +94,7 @@ public class ValueStringBuilderTests
     {
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
             sb.Append((char)i, i);
             vsb.Append((char)i, i);
@@ -109,9 +109,9 @@ public class ValueStringBuilderTests
     {
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
-            string s = i.ToString();
+            var s = i.ToString();
             fixed (char* p = s)
             {
                 sb.Append(p, s.Length);
@@ -129,13 +129,13 @@ public class ValueStringBuilderTests
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
 
-        for (int i = 1; i <= 1000; i++)
+        for (var i = 1; i <= 1000; i++)
         {
-            string s = i.ToString();
+            var s = i.ToString();
 
             sb.Append(s);
 
-            Span<char> span = vsb.AppendSpan(s.Length);
+            var span = vsb.AppendSpan(s.Length);
             Assert.Equal(sb.Length, vsb.Length);
 
             s.AsSpan().CopyTo(span);
@@ -152,9 +152,9 @@ public class ValueStringBuilderTests
         var vsb = new ValueStringBuilder();
         var rand = new Random(42);
 
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
-            int index = rand.Next(sb.Length);
+            var index = rand.Next(sb.Length);
             sb.Insert(index, new string((char)i, 1), i);
             vsb.Insert(index, (char)i, i);
         }
@@ -169,9 +169,9 @@ public class ValueStringBuilderTests
         var sb = new StringBuilder();
         var vsb = new ValueStringBuilder();
 
-        for (int i = 1; i <= 100; i++)
+        for (var i = 1; i <= 100; i++)
         {
-            string s = i.ToString();
+            var s = i.ToString();
             sb.Append(s);
             vsb.Append(s);
         }
@@ -187,23 +187,23 @@ public class ValueStringBuilderTests
     [Fact]
     public void ToString_ClearsBuilder_ThenReusable()
     {
-        const string Text1 = "test";
+        const string text1 = "test";
         var vsb = new ValueStringBuilder();
 
-        vsb.Append(Text1);
-        Assert.Equal(Text1.Length, vsb.Length);
+        vsb.Append(text1);
+        Assert.Equal(text1.Length, vsb.Length);
 
-        string s = vsb.ToString();
-        Assert.Equal(Text1, s);
+        var s = vsb.ToString();
+        Assert.Equal(text1, s);
 
         Assert.Equal(0, vsb.Length);
         Assert.Equal(string.Empty, vsb.ToString());
         Assert.True(vsb.TryCopyTo(Span<char>.Empty, out _));
 
-        const string Text2 = "another test";
-        vsb.Append(Text2);
-        Assert.Equal(Text2.Length, vsb.Length);
-        Assert.Equal(Text2, vsb.ToString());
+        const string text2 = "another test";
+        vsb.Append(text2);
+        Assert.Equal(text2.Length, vsb.Length);
+        Assert.Equal(text2, vsb.ToString());
     }
 
     [Fact]
@@ -211,12 +211,12 @@ public class ValueStringBuilderTests
     {
         var vsb = new ValueStringBuilder();
 
-        const string Text = "expected text";
-        vsb.Append(Text);
-        Assert.Equal(Text.Length, vsb.Length);
+        const string text = "expected text";
+        vsb.Append(text);
+        Assert.Equal(text.Length, vsb.Length);
 
-        Span<char> dst = new char[Text.Length - 1];
-        Assert.False(vsb.TryCopyTo(dst, out int charsWritten));
+        Span<char> dst = new char[text.Length - 1];
+        Assert.False(vsb.TryCopyTo(dst, out var charsWritten));
         Assert.Equal(0, charsWritten);
         Assert.Equal(0, vsb.Length);
     }
@@ -224,35 +224,35 @@ public class ValueStringBuilderTests
     [Fact]
     public void TryCopyTo_ClearsBuilder_ThenReusable()
     {
-        const string Text1 = "test";
+        const string text1 = "test";
         var vsb = new ValueStringBuilder();
 
-        vsb.Append(Text1);
-        Assert.Equal(Text1.Length, vsb.Length);
+        vsb.Append(text1);
+        Assert.Equal(text1.Length, vsb.Length);
 
-        Span<char> dst = new char[Text1.Length];
-        Assert.True(vsb.TryCopyTo(dst, out int charsWritten));
-        Assert.Equal(Text1.Length, charsWritten);
-        Assert.Equal(Text1, dst.ToString());
+        Span<char> dst = new char[text1.Length];
+        Assert.True(vsb.TryCopyTo(dst, out var charsWritten));
+        Assert.Equal(text1.Length, charsWritten);
+        Assert.Equal(text1, dst.ToString());
 
         Assert.Equal(0, vsb.Length);
         Assert.Equal(string.Empty, vsb.ToString());
         Assert.True(vsb.TryCopyTo(Span<char>.Empty, out _));
 
-        const string Text2 = "another test";
-        vsb.Append(Text2);
-        Assert.Equal(Text2.Length, vsb.Length);
-        Assert.Equal(Text2, vsb.ToString());
+        const string text2 = "another test";
+        vsb.Append(text2);
+        Assert.Equal(text2.Length, vsb.Length);
+        Assert.Equal(text2, vsb.ToString());
     }
 
     [Fact]
     public void Dispose_ClearsBuilder_ThenReusable()
     {
-        const string Text1 = "test";
+        const string text1 = "test";
         var vsb = new ValueStringBuilder();
 
-        vsb.Append(Text1);
-        Assert.Equal(Text1.Length, vsb.Length);
+        vsb.Append(text1);
+        Assert.Equal(text1.Length, vsb.Length);
 
         vsb.Dispose();
 
@@ -260,19 +260,19 @@ public class ValueStringBuilderTests
         Assert.Equal(string.Empty, vsb.ToString());
         Assert.True(vsb.TryCopyTo(Span<char>.Empty, out _));
 
-        const string Text2 = "another test";
-        vsb.Append(Text2);
-        Assert.Equal(Text2.Length, vsb.Length);
-        Assert.Equal(Text2, vsb.ToString());
+        const string text2 = "another test";
+        vsb.Append(text2);
+        Assert.Equal(text2.Length, vsb.Length);
+        Assert.Equal(text2, vsb.ToString());
     }
 
     [Fact]
-    public unsafe void Indexer()
+    public void Indexer()
     {
-        const string Text1 = "foobar";
+        const string text1 = "foobar";
         var vsb = new ValueStringBuilder();
 
-        vsb.Append(Text1);
+        vsb.Append(text1);
 
         Assert.Equal('b', vsb[3]);
         vsb[3] = 'c';

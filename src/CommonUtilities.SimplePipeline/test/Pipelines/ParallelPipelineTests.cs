@@ -5,6 +5,7 @@ using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
+// ReSharper disable once UnusedMember.Global
 public class ParallelPipelineTests : StepRunnerPipelineTest<ParallelStepRunner>
 {
     protected override Pipeline CreatePipeline(IList<IStep> steps)

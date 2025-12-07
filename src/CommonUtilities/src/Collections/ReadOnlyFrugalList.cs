@@ -65,9 +65,9 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
     // Natively implementing frequent Linq functions avoids boxing. Add more if necessary.
 
     /// <summary>
-    /// Creates a <see cref="List{T}"/> from an this instance.
+    /// Creates a <see cref="List{T}"/> from the <see cref="FrugalList{T}"/>.
     /// </summary>
-    /// <returns>A <see cref="List{T}"/> that contains elements from this list.</returns>
+    /// <returns>A <see cref="List{T}"/> that contains elements from the <see cref="FrugalList{T}"/>.</returns>
     public List<T> ToList()
     {
         return _list.ToList();
@@ -146,11 +146,16 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
     /// Returns an enumerator that iterates through the <see cref="ReadOnlyFrugalList{T}"/>
     /// </summary>
     /// <returns>A <see cref="FrugalList{T}.FrugalEnumerator"/> for the <see cref="ReadOnlyFrugalList{T}"/>.</returns>
-    public FrugalList<T>.FrugalEnumerator GetEnumerator() => _list.GetEnumerator();
+    public FrugalList<T>.FrugalEnumerator GetEnumerator()
+    {
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        return _list.GetEnumerator();
+    }
 
     /// <inheritdoc />
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
         return _list.GetEnumerator();
     }
 

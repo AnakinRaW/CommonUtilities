@@ -12,30 +12,30 @@ public class GetRelativePathExTest
     private readonly IFileSystem _fileSystem = new RealFileSystem();
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
-    [InlineData(@"C:\", @"C:\", @".")]
-    [InlineData(@"C:\a", @"C:\a\", @".")]
-    [InlineData(@"C:\A", @"C:\a\", @".")]
-    [InlineData(@"C:\a\", @"C:\a", @".")]
-    [InlineData(@"C:\", @"C:\b", @"b")]
+    [InlineData(@"C:\", @"C:\", ".")]
+    [InlineData(@"C:\a", @"C:\a\", ".")]
+    [InlineData(@"C:\A", @"C:\a\", ".")]
+    [InlineData(@"C:\a\", @"C:\a", ".")]
+    [InlineData(@"C:\", @"C:\b", "b")]
     [InlineData(@"C:\a", @"C:\b", @"..\b")]
     [InlineData(@"C:\a", @"C:\b\", @"..\b\")]
-    [InlineData(@"C:\a\b", @"C:\a", @"..")]
-    [InlineData(@"C:\a\b", @"C:\a\", @"..")]
-    [InlineData(@"C:\a\b\", @"C:\a", @"..")]
-    [InlineData(@"C:\a\b\", @"C:\a\", @"..")]
-    [InlineData(@"C:\a\b\c", @"C:\a\b", @"..")]
-    [InlineData(@"C:\a\b\c", @"C:\a\b\", @"..")]
+    [InlineData(@"C:\a\b", @"C:\a", "..")]
+    [InlineData(@"C:\a\b", @"C:\a\", "..")]
+    [InlineData(@"C:\a\b\", @"C:\a", "..")]
+    [InlineData(@"C:\a\b\", @"C:\a\", "..")]
+    [InlineData(@"C:\a\b\c", @"C:\a\b", "..")]
+    [InlineData(@"C:\a\b\c", @"C:\a\b\", "..")]
     [InlineData(@"C:\a\b\c", @"C:\a", @"..\..")]
     [InlineData(@"C:\a\b\c", @"C:\a\", @"..\..")]
-    [InlineData(@"C:\a\b\c\", @"C:\a\b", @"..")]
-    [InlineData(@"C:\a\b\c\", @"C:\a\b\", @"..")]
+    [InlineData(@"C:\a\b\c\", @"C:\a\b", "..")]
+    [InlineData(@"C:\a\b\c\", @"C:\a\b\", "..")]
     [InlineData(@"C:\a\b\c\", @"C:\a", @"..\..")]
     [InlineData(@"C:\a\b\c\", @"C:\a\", @"..\..")]
     [InlineData(@"C:\a\", @"C:\b", @"..\b")]
-    [InlineData(@"C:\a", @"C:\a\b", @"b")]
-    [InlineData(@"C:\a", @"C:\A\b", @"b")]
+    [InlineData(@"C:\a", @"C:\a\b", "b")]
+    [InlineData(@"C:\a", @"C:\A\b", "b")]
     [InlineData(@"C:\a", @"C:\b\c", @"..\b\c")]
-    [InlineData(@"C:\a\", @"C:\a\b", @"b")]
+    [InlineData(@"C:\a\", @"C:\a\b", "b")]
     [InlineData(@"C:\", @"D:\", @"D:\")]
     [InlineData(@"C:\", @"D:\b", @"D:\b")]
     [InlineData(@"C:\", @"D:\b\", @"D:\b\")]
@@ -46,7 +46,7 @@ public class GetRelativePathExTest
     [InlineData(@"C:\", @"\\LOCALHOST\Share\b", @"\\LOCALHOST\Share\b")]
     [InlineData(@"\\LOCALHOST\Share\a", @"\\LOCALHOST\Share\b", @"..\b")]
     // Tests which don't exist from .NET runtime
-    [InlineData(@"C:\a", @"C:\a\.\.", @".")]
+    [InlineData(@"C:\a", @"C:\a\.\.", ".")]
     public void GetRelativePathEx_FromAbsolute_Windows(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);
@@ -60,7 +60,7 @@ public class GetRelativePathExTest
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
-    [InlineData(@"C:\a", @"b", @"b")]
+    [InlineData(@"C:\a", "b", "b")]
     [InlineData(@"C:\a", @"a\b", @"a\b")]
     [InlineData(@"C:\a", @"a\..\b", @"a\..\b")]
     public void GetRelativePathEx_FromRelative_Windows(string root, string path, string expected)
@@ -70,11 +70,11 @@ public class GetRelativePathExTest
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
-    [InlineData(@"C:\", @"C:a", @"current\a")]
-    [InlineData(@"C:\a", @"C:a", @"..\current\a")]
+    [InlineData(@"C:\", "C:a", @"current\a")]
+    [InlineData(@"C:\a", "C:a", @"..\current\a")]
     [InlineData(@"C:\a", @"C:a\", @"..\current\a\")]
     [InlineData(@"C:\a\b", @"C:a\b", @"..\..\current\a\b")]
-    [InlineData(@"C:\a", @"X:a", @"X:\a")]
+    [InlineData(@"C:\a", "X:a", @"X:\a")]
     public void GetRelativePathEx_FromDriveRelative_Windows(string root, string path, string expected)
     {
         var fileSystem = new MockFileSystem();
@@ -92,22 +92,22 @@ public class GetRelativePathExTest
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
-    [InlineData("/", @"/", @".")]
-    [InlineData("/a", @"/a/", @".")]
-    [InlineData("/a/", @"/a", @".")]
-    [InlineData("/", @"/b", @"b")]
-    [InlineData("/a", @"/b", @"../b")]
-    [InlineData("/a/", @"/b", @"../b")]
-    [InlineData("/a", @"/a/b", @"b")]
-    [InlineData("/a", @"/b/c", @"../b/c")]
-    [InlineData("/a/", @"/a/b", @"b")]
-    [InlineData("/ab", @"/a", @"../a")]
-    [InlineData("/a", @"/ab", @"../ab")]
-    [InlineData("/a", @"/A/", @"../A/")]
-    [InlineData("/a/", @"/A", @"../A")]
-    [InlineData("/a/", @"/A/b", @"../A/b")]
+    [InlineData("/", "/", ".")]
+    [InlineData("/a", "/a/", ".")]
+    [InlineData("/a/", "/a", ".")]
+    [InlineData("/", "/b", "b")]
+    [InlineData("/a", "/b", "../b")]
+    [InlineData("/a/", "/b", "../b")]
+    [InlineData("/a", "/a/b", "b")]
+    [InlineData("/a", "/b/c", "../b/c")]
+    [InlineData("/a/", "/a/b", "b")]
+    [InlineData("/ab", "/a", "../a")]
+    [InlineData("/a", "/ab", "../ab")]
+    [InlineData("/a", "/A/", "../A/")]
+    [InlineData("/a/", "/A", "../A")]
+    [InlineData("/a/", "/A/b", "../A/b")]
     // Tests which don't exist from .NET runtime
-    [InlineData(@"/a", @"/a/./.", @".")]
+    [InlineData("/a", "/a/./.", ".")]
     public void GetRelativePathEx_FromAbsolute_Linux(string root, string path, string expected)
     {
         var result = _fileSystem.Path.GetRelativePathEx(root, path);

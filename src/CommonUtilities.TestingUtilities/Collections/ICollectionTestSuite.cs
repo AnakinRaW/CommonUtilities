@@ -14,7 +14,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
 {
     protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
 
-    protected virtual IEnumerable<T> InvalidValues => Array.Empty<T>();
+    protected virtual IEnumerable<T> InvalidValues => [];
 
     protected virtual bool DefaultValueAllowed => true;
 

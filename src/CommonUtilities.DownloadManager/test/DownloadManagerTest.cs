@@ -405,12 +405,12 @@ public class DownloadManagerTest : CommonTestBase
         {
             counter++;
             cts.Cancel();
-        }, ServiceProvider);
+        });
         var provider2 = new DelegatingFileDownloadProvider("B", () =>
         {
             counter++;
             cts.Cancel();
-        }, ServiceProvider);
+        });
         manager.AddDownloadProvider(provider1);
         manager.AddDownloadProvider(provider2);
 
@@ -470,7 +470,7 @@ public class DownloadManagerTest : CommonTestBase
         }
     }
 
-    private class DelegatingFileDownloadProvider(string name, Action onDownload, IServiceProvider serviceProvider) : IDownloadProvider
+    private class DelegatingFileDownloadProvider(string name, Action onDownload) : IDownloadProvider
     {
         public string Name => name;
 
@@ -549,10 +549,10 @@ public class DownloadManagerTest : CommonTestBase
             throw new NotImplementedException();
         }
 
-        public override bool CanRead { get; }
-        public override bool CanSeek { get; }
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
         public override bool CanWrite => false;
-        public override long Length { get; }
+        public override long Length => 0;
         public override long Position { get; set; }
     }
 }

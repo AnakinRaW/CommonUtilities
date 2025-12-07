@@ -50,14 +50,14 @@ public abstract partial class RegistryTestsBase : IDisposable
 
     public static readonly object[][] TestRegistrySubKeyNames =
     [
-        [@"Foo", @"Foo"],
+        ["Foo", "Foo"],
         [@"Foo\Bar", @"Foo\Bar"],
 
         // Multiple/trailing slashes should be removed.
-        [@"Foo", @"Foo\"],
-        [@"Foo", @"Foo\\"],
-        [@"Foo", @"Foo\\\"],
-        [@"Foo", @"Foo\\\\"],
+        ["Foo", @"Foo\"],
+        ["Foo", @"Foo\\"],
+        ["Foo", @"Foo\\\"],
+        ["Foo", @"Foo\\\\"],
         [@"Foo\Bar", @"Foo\\Bar"],
         [@"Foo\Bar", @"Foo\\\Bar"],
         [@"Foo\Bar", @"Foo\\\\Bar"],
@@ -74,16 +74,16 @@ public abstract partial class RegistryTestsBase : IDisposable
         // If there are multiple slashes, any extra slash chars will be
         // replaced with a marker char ('\uffff'), and then all '\uffff'
         // chars will be removed, including any pre-existing '\uffff' chars.
-        InsertMarkerChar(@"Foo", @"{0}Foo\\"),
-        InsertMarkerChar(@"Foo", @"Foo{0}\\"),
-        InsertMarkerChar(@"Foo", @"Foo\\{0}"),
-        InsertMarkerChar(@"Foo", @"Fo{0}o\\"),
-        InsertMarkerChar(@"Foo", @"{0}Fo{0}o{0}\\{0}"),
-        InsertMarkerChar(@"Foo", @"{0}Foo\\\"),
-        InsertMarkerChar(@"Foo", @"Foo{0}\\\"),
-        InsertMarkerChar(@"Foo", @"Foo\\\{0}"),
-        InsertMarkerChar(@"Foo", @"Fo{0}o\\\"),
-        InsertMarkerChar(@"Foo", @"{0}Fo{0}o{0}\\\{0}"),
+        InsertMarkerChar("Foo", @"{0}Foo\\"),
+        InsertMarkerChar("Foo", @"Foo{0}\\"),
+        InsertMarkerChar("Foo", @"Foo\\{0}"),
+        InsertMarkerChar("Foo", @"Fo{0}o\\"),
+        InsertMarkerChar("Foo", @"{0}Fo{0}o{0}\\{0}"),
+        InsertMarkerChar("Foo", @"{0}Foo\\\"),
+        InsertMarkerChar("Foo", @"Foo{0}\\\"),
+        InsertMarkerChar("Foo", @"Foo\\\{0}"),
+        InsertMarkerChar("Foo", @"Fo{0}o\\\"),
+        InsertMarkerChar("Foo", @"{0}Fo{0}o{0}\\\{0}"),
         InsertMarkerChar(@"Foo\Bar", @"{0}Foo\\Bar"),
         InsertMarkerChar(@"Foo\Bar", @"Foo{0}\\Bar"),
         InsertMarkerChar(@"Foo\Bar", @"Foo\\{0}Bar"),
@@ -109,10 +109,10 @@ public abstract partial class RegistryTestsBase : IDisposable
         InsertMarkerChar(@"Foo\Bar", @"{0}Fo{0}o{0}\{0}B{0}ar{0}\\{0}"),
 
         // If there aren't multiple slashes, any '\uffff' chars should remain.
-        InsertMarkerChar(@"{0}Foo"),
-        InsertMarkerChar(@"Foo{0}"),
-        InsertMarkerChar(@"Fo{0}o"),
-        InsertMarkerChar(@"{0}Fo{0}o{0}"),
+        InsertMarkerChar("{0}Foo"),
+        InsertMarkerChar("Foo{0}"),
+        InsertMarkerChar("Fo{0}o"),
+        InsertMarkerChar("{0}Fo{0}o{0}"),
         InsertMarkerChar(@"{0}Foo\"),
         InsertMarkerChar(@"Foo{0}\"),
         InsertMarkerChar(@"Fo{0}o\"),
@@ -155,18 +155,18 @@ public abstract partial class RegistryTestsBase : IDisposable
 
         using var key = createSubKey();
         Assert.NotNull(key);
-        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Single(TestRegistryKey.GetSubKeyNames());
         Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
     }
 
     protected void Verify_CreateSubKey_KeyDoesNotExist_CreatesKeyWithFixedUpName(string expected, Func<IRegistryKey> createSubKey)
     {
         Assert.Null(TestRegistryKey.OpenSubKey(expected));
-        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Empty(TestRegistryKey.GetSubKeyNames());
 
         using var key = createSubKey();
         Assert.NotNull(key);
-        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Single(TestRegistryKey.GetSubKeyNames());
         Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
     }
 
@@ -181,7 +181,7 @@ public abstract partial class RegistryTestsBase : IDisposable
     protected void Verify_DeleteSubKey_KeyDoesNotExists_DoesNotThrow(string expected, Action deleteSubKey)
     {
         Assert.Null(TestRegistryKey.OpenSubKey(expected));
-        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Empty(TestRegistryKey.GetSubKeyNames());
 
         deleteSubKey();
     }
@@ -192,14 +192,14 @@ public abstract partial class RegistryTestsBase : IDisposable
 
         using var key = openSubKey();
         Assert.NotNull(key);
-        Assert.Single(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Single(TestRegistryKey.GetSubKeyNames());
         Assert.Equal(TestRegistryKey.Name + @"\" + expected, key.Name);
     }
 
     protected void Verify_OpenSubKey_KeyDoesNotExist_ReturnsNull(string expected, Func<IRegistryKey> openSubKey)
     {
         Assert.Null(TestRegistryKey.OpenSubKey(expected));
-        Assert.Empty(TestRegistryKey.GetSubKeyNames()!);
+        Assert.Empty(TestRegistryKey.GetSubKeyNames());
 
         Assert.Null(openSubKey());
     }

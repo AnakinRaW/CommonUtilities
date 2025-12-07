@@ -197,7 +197,7 @@ public class HashingServiceTest
         var someSource = Array.Empty<byte>();
         var someStream = new MemoryStream(someSource);
 
-        var destination = new byte[] { 0, 0 };
+        var destination = "\0\0"u8.ToArray();
 
         var expectedHashExact = new byte[] { 1 };
         var expectedHashJoint = new byte[] { 1, 0 };
@@ -235,7 +235,7 @@ public class HashingServiceTest
         var someSource = Array.Empty<byte>();
         var someStream = new MemoryStream(someSource);
 
-        var destination = new byte[] { 0, 0 };
+        var destination = "\0\0"u8.ToArray();
 
         var expectedHashExact = new byte[] { 1 };
         var expectedHashJoint = new byte[] { 1, 0 };

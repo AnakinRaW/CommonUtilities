@@ -84,7 +84,7 @@ public partial class RegistryTestsBase
         byte[] expected = [1, 2, 3];
 
         TestRegistryKey.SetValue(valueName, expected);
-        Assert.Equal(expected, TestRegistryKey.GetValueOrSetDefault<byte[]>(valueName, [0, 0], out var defaultUsed));
+        Assert.Equal(expected, TestRegistryKey.GetValueOrSetDefault(valueName, "\0\0"u8.ToArray(), out var defaultUsed));
         Assert.False(defaultUsed);
         TestRegistryKey.DeleteValue(valueName);
     }

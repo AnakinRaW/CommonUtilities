@@ -44,11 +44,11 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <para>
 /// <b>Usage advise:</b>
 /// <para>
-/// a) To ensure that all changes get reflected to other variables (including the first item)
+/// a. To ensure that all changes get reflected to other variables (including the first item)
 /// either box this structure (e.g, to <see cref="IList{T}"/> [this allocates memory though]) or pass this structure as by-<see langword="ref"/>.
 /// </para>
 /// <para>
-/// b) If a copy shall not reflect any changes from its source use <see cref="FrugalList{T}(in FrugalList{T})"/>
+/// b. If a copy shall not reflect any changes from its source use <see cref="FrugalList{T}(in FrugalList{T})"/>
 /// which creates a full shallow-copy of all items in this list.
 /// </para>
 /// </para>
@@ -292,9 +292,9 @@ public struct FrugalList<T> : IList<T>
     // Natively implementing frequent Linq functions avoids boxing. Add more if necessary.
 
     /// <summary>
-    /// Creates a <see cref="List{T}"/> from an this instance.
+    /// Creates a <see cref="List{T}"/> from the <see cref="FrugalList{T}"/>.
     /// </summary>
-    /// <returns>A <see cref="List{T}"/> that contains elements from the this list.</returns>
+    /// <returns>A <see cref="List{T}"/> that contains elements from the <see cref="FrugalList{T}"/>.</returns>
     public readonly List<T> ToList()
     {
         if (_tailList is null)
@@ -319,7 +319,7 @@ public struct FrugalList<T> : IList<T>
     }
 
     /// <summary>
-    /// Returns the first element of of the <see cref="FrugalList{T}"/>.
+    /// Returns the first element of the <see cref="FrugalList{T}"/>.
     /// </summary>
     /// <returns>The first element of the specified <see cref="FrugalList{T}"/></returns>
     /// <exception cref="InvalidOperationException">The <see cref="FrugalList{T}"/> is empty.</exception>

@@ -20,6 +20,7 @@ public class RunPipelineStep(IPipeline pipeline, IServiceProvider serviceProvide
         Logger?.LogTrace($"Running {_pipeline}...");
         try
         {
+            // ReSharper disable once MethodSupportsCancellation
             _pipeline.RunAsync(token).Wait();
             Logger?.LogTrace($"Finished {_pipeline}");
         }

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
+// ReSharper disable once UnusedMember.Global
 public class HttpClientDownloadTest : InternetDownloadTest
 {
     protected override Type ExpectedSourceNotFoundExceptionType => typeof(HttpRequestException);
