@@ -27,6 +27,7 @@ jobs:
               6.0.x
               8.0.x
               9.0.x
+              10.0.x
 
       - name: Build & Test in Release Mode
         run: dotnet test --configuration Release --logger "GitHubActions"
