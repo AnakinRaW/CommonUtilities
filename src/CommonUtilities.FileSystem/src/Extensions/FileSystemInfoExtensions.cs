@@ -9,51 +9,52 @@ namespace AnakinRaW.CommonUtilities.FileSystem;
 /// </summary>
 public static class FileSystemInfoExtensions
 {
-    /// <summary>
-    /// Gets the remaining free bytes on the drive where <paramref name="fsItem"/> is located.
-    /// </summary>
     /// <param name="fsItem">Some file or directory at the targeted drive.</param>
-    /// <returns>free drive space in bytes</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
-    public static long GetDriveFreeSpace(this IFileSystemInfo fsItem)
+    extension(IFileSystemInfo fsItem)
     {
-        if (fsItem == null)
-            throw new ArgumentNullException(nameof(fsItem));
+        /// <summary>
+        /// Gets the remaining free bytes on the drive where <paramref name="fsItem"/> is located.
+        /// </summary>
+        /// <returns>free drive space in bytes</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
+        public long GetDriveFreeSpace()
+        {
+            if (fsItem == null)
+                throw new ArgumentNullException(nameof(fsItem));
 
-        var root = fsItem.FileSystem.Path.GetPathRoot(fsItem.FullName);
-        return fsItem.FileSystem.DriveInfo.New(root!).AvailableFreeSpace;
-    }
+            var root = fsItem.FileSystem.Path.GetPathRoot(fsItem.FullName);
+            return fsItem.FileSystem.DriveInfo.New(root!).AvailableFreeSpace;
+        }
 
-    /// <summary>
-    /// Removes attributes from a given filesystem entry.
-    /// </summary>
-    /// <param name="fsInfo">The target filesystem handle.</param>
-    /// <param name="attributesToRemove">Attributes to remove.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
-    public static void RemoveAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToRemove)
-    {
-        if (fsInfo == null) 
-            throw new ArgumentNullException(nameof(fsInfo));
+        /// <summary>
+        /// Removes attributes from a given filesystem entry.
+        /// </summary>
+        /// <param name="attributesToRemove">Attributes to remove.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
+        public void RemoveAttributes(FileAttributes attributesToRemove)
+        {
+            if (fsItem == null) 
+                throw new ArgumentNullException(nameof(fsItem));
 
-        var currentAttributes = fsInfo.Attributes;
-        var newAttributes = currentAttributes & ~attributesToRemove;
-        fsInfo.Attributes = newAttributes;
-        fsInfo.Refresh();
-    }
+            var currentAttributes = fsItem.Attributes;
+            var newAttributes = currentAttributes & ~attributesToRemove;
+            fsItem.Attributes = newAttributes;
+            fsItem.Refresh();
+        }
 
-    /// <summary>
-    /// Set attributes from a given filesystem entry.
-    /// </summary>
-    /// <param name="fsInfo">The target filesystem handle.</param>
-    /// <param name="attributesToAdd">Attributes to add.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
-    public static void SetAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToAdd)
-    {
-        if (fsInfo == null) 
-            throw new ArgumentNullException(nameof(fsInfo));
+        /// <summary>
+        /// Set attributes from a given filesystem entry.
+        /// </summary>
+        /// <param name="attributesToAdd">Attributes to add.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
+        public void SetAttributes(FileAttributes attributesToAdd)
+        {
+            if (fsItem == null) 
+                throw new ArgumentNullException(nameof(fsItem));
 
-        var currentAttributes = fsInfo.Attributes;
-        fsInfo.Attributes = currentAttributes | attributesToAdd;
-        fsInfo.Refresh();
+            var currentAttributes = fsItem.Attributes;
+            fsItem.Attributes = currentAttributes | attributesToAdd;
+            fsItem.Refresh();
+        }
     }
 }

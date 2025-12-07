@@ -19,64 +19,67 @@ namespace AnakinRaW.CommonUtilities.FileSystem.Windows;
 public static class WindowsPathExtensions
 {
     // Based on: https://stackoverflow.com/questions/1410127/c-sharp-test-if-user-has-write-access-to-a-folder
-    /// <summary>
-    /// Checks whether the current executing user that the requested rights on a given location.
-    /// </summary>
     /// <param name="directoryInfo">The directory to check rights on.</param>
-    /// <param name="accessRights">The requested rights.</param>
-    /// <returns></returns>
-    /// <exception cref="DirectoryNotFoundException">If <paramref name="directoryInfo"/> does not exists.</exception>
-    /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="directoryInfo"/> is <see langword="null"/>.</exception>
-    public static bool UserHasDirectoryAccessRights(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
+    extension(IDirectoryInfo directoryInfo)
     {
-        ThrowHelper.ThrowIfNotWindows();
-        if (directoryInfo == null)
-            throw new ArgumentNullException(nameof(directoryInfo));
-        bool isInRoleWithAccess;
-        try
+        /// <summary>
+        /// Checks whether the current executing user that the requested rights on a given location.
+        /// </summary>
+        /// <param name="accessRights">The requested rights.</param>
+        /// <returns></returns>
+        /// <exception cref="DirectoryNotFoundException">If <paramref name="directoryInfo"/> does not exists.</exception>
+        /// <exception cref="PlatformNotSupportedException">If the current system is not Windows.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="directoryInfo"/> is <see langword="null"/>.</exception>
+        public bool UserHasDirectoryAccessRights(FileSystemRights accessRights)
         {
-            if (!directoryInfo.Exists)
-                throw new DirectoryNotFoundException($"Unable to find {directoryInfo.FullName}");
-            isInRoleWithAccess = TestAccessRightsOnWindows(directoryInfo, accessRights);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
-
-        return isInRoleWithAccess;
-    }
-
-    private static bool TestAccessRightsOnWindows(this IDirectoryInfo directoryInfo, FileSystemRights accessRights)
-    {
-        var acl = directoryInfo.GetAccessControl();
-        var rules = acl.GetAccessRules(true, true,
-            // If Windows 7
-            Environment.OSVersion.VersionString.StartsWith("6.1")
-                ? typeof(SecurityIdentifier)
-                : typeof(NTAccount));
-
-        var currentUser = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(currentUser);
-        foreach (AuthorizationRule rule in rules)
-        {
-            if (rule is not FileSystemAccessRule fsAccessRule)
-                continue;
-
-            if ((fsAccessRule.FileSystemRights & accessRights) > 0)
+            ThrowHelper.ThrowIfNotWindows();
+            if (directoryInfo == null)
+                throw new ArgumentNullException(nameof(directoryInfo));
+            bool isInRoleWithAccess;
+            try
             {
-                var ntAccount = rule.IdentityReference as NTAccount;
-                if (ntAccount == null)
+                if (!directoryInfo.Exists)
+                    throw new DirectoryNotFoundException($"Unable to find {directoryInfo.FullName}");
+                isInRoleWithAccess = TestAccessRightsOnWindows(directoryInfo, accessRights);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+
+            return isInRoleWithAccess;
+        }
+
+        private bool TestAccessRightsOnWindows(FileSystemRights accessRights)
+        {
+            var acl = directoryInfo.GetAccessControl();
+            var rules = acl.GetAccessRules(true, true,
+                // If Windows 7
+                Environment.OSVersion.VersionString.StartsWith("6.1")
+                    ? typeof(SecurityIdentifier)
+                    : typeof(NTAccount));
+
+            var currentUser = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(currentUser);
+            foreach (AuthorizationRule rule in rules)
+            {
+                if (rule is not FileSystemAccessRule fsAccessRule)
                     continue;
 
-                if (principal.IsInRole(ntAccount.Value))
+                if ((fsAccessRule.FileSystemRights & accessRights) > 0)
                 {
-                    return fsAccessRule.AccessControlType != AccessControlType.Deny;
+                    var ntAccount = rule.IdentityReference as NTAccount;
+                    if (ntAccount == null)
+                        continue;
+
+                    if (principal.IsInRole(ntAccount.Value))
+                    {
+                        return fsAccessRule.AccessControlType != AccessControlType.Deny;
+                    }
                 }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 }
