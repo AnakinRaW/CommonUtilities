@@ -17,12 +17,12 @@ public class RunPipelineStep(IPipeline pipeline, IServiceProvider serviceProvide
     /// <inheritdoc />
     protected override void RunSynchronized(CancellationToken token)
     {
-        Logger?.LogTrace($"Running {_pipeline}...");
+        Logger?.LogTrace("Running {Pipeline}...", _pipeline);
         try
         {
             // ReSharper disable once MethodSupportsCancellation
             _pipeline.RunAsync(token).Wait();
-            Logger?.LogTrace($"Finished {_pipeline}");
+            Logger?.LogTrace("Finished {Pipeline}", _pipeline);
         }
         catch (AggregateException e)
         {

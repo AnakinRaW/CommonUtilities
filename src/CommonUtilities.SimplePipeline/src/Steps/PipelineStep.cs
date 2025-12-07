@@ -40,11 +40,11 @@ public abstract class PipelineStep : DisposableObject, IStep
     /// <inheritdoc/>
     public void Run(CancellationToken token)
     {
-        Logger?.LogTrace($"BEGIN: {this}");
+        Logger?.LogTrace("BEGIN: {Step}", this);
         try
         {
             RunCore(token);
-            Logger?.LogTrace($"END: {this}");
+            Logger?.LogTrace("END: {Step}", this);
         }
         catch (OperationCanceledException ex)
         {

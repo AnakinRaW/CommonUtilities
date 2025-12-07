@@ -91,13 +91,12 @@ public sealed class WebClientDownloader : DownloadProviderBase
                         : "DownloadCore failed";
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " +
-                                          message);
+                        _logger?.LogTrace("WebClient error '{Status}' with '{Uri}' - {Message}", ex.Status, uri.AbsoluteUri, message);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
                     else
                     {
-                        _logger?.LogTrace("WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "'.");
+                        _logger?.LogTrace("WebClient error '{Status}' with '{Uri}'.", ex.Status, uri.AbsoluteUri);
                         throw;
                     }
                 }
@@ -160,7 +159,7 @@ public sealed class WebClientDownloader : DownloadProviderBase
                     success = true;
                     return httpWebResponse;
                 default:
-                    _logger?.LogTrace($"WebResponse error for '{uri.AbsoluteUri}' ({httpWebResponse.StatusCode}).");
+                    _logger?.LogTrace("WebResponse error for '{Uri}' ({Status}).", uri.AbsoluteUri, httpWebResponse.StatusCode);
                     break;
             }
         }
@@ -171,12 +170,11 @@ public sealed class WebClientDownloader : DownloadProviderBase
                 : "GetWebResponse failed";
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger?.LogTrace(
-                    "WebClient error '" + ex.Status + "' with '" + uri.AbsoluteUri + "' - " + errorMessage);
+                _logger?.LogTrace("WebClient error '{Status}' with '{Uri}' - {Message}", ex.Status, uri.AbsoluteUri, errorMessage);
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            _logger?.LogTrace("WebClient error '" + ex.Status + "' - '" + uri.AbsoluteUri + "'.");
+            _logger?.LogTrace("WebClient error '{Status}' - '{Uri}'.", ex.Status, uri.AbsoluteUri);
             throw;
         }
         catch (Exception ex)
