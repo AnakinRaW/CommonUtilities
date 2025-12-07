@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/CommonUtilities.DownloadManager/">
+    <Project Path="src/CommonUtilities.DownloadManager/src/CommonUtilities.DownloadManager.csproj" />
+    <Project Path="src/CommonUtilities.DownloadManager/test/CommonUtilities.DownloadManager.Test.csproj" />
+  </Folder>
+  <Folder Name="/CommonUtilities.FileSystem/">
+    <Project Path="src/CommonUtilities.FileSystem/src/Commonutilities.FileSystem.csproj" />
+    <Project Path="src/CommonUtilities.FileSystem/test/CommonUtilities.FileSystem.Test.csproj" />
+  </Folder>
+  <Folder Name="/CommonUtilities.Registry/">
+    <Project Path="src/CommonUtilities.Registry/src/CommonUtilities.Registry.csproj" />
+    <Project Path="src/CommonUtilities.Registry/test/CommonUtilities.Registry.Test.csproj" />
+  </Folder>
+  <Folder Name="/CommonUtilities.SimplePipeline/">
+    <Project Path="src/CommonUtilities.SimplePipeline/src/CommonUtilities.SimplePipeline.csproj" />
+    <Project Path="src/CommonUtilities.SimplePipeline/test/CommonUtilities.SimplePipeline.Test.csproj" />
+  </Folder>
+  <Folder Name="/CommonUtilities/">
+    <Project Path="src/CommonUtilities/src/CommonUtilities.csproj" />
+    <Project Path="src/CommonUtilities/test/CommonUtilities.Test.csproj" />
+  </Folder>
+  <Project Path="src/CommonUtilities.TestingUtilities/CommonUtilities.TestingUtilities.csproj" />
+</Solution>
