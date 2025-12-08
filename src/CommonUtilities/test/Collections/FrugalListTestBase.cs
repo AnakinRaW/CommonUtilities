@@ -7,6 +7,8 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections;
 
+#pragma warning disable xUnit2013
+
 /// <summary>
 /// Contains tests that ensure the correctness of the <see cref=" FrugalList{T}"/> class.
 /// </summary>
@@ -98,7 +100,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void Constructor_IEnumerable_Creates_Copy(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         foreach (var modifyEnumerable in GetModifyEnumerables(ModifyEnumeratorThrows))
         {
@@ -316,7 +320,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void GetEnumerator(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
         var list = new FrugalList<T>(enumerable);

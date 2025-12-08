@@ -40,7 +40,9 @@ public abstract class IReadOnlyListTestSuite<T> : IReadOnlyCollectionTestSuite<T
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void From_IEnumerable(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
         var list = GenericIReadOnlyListFactory(enumerable);
