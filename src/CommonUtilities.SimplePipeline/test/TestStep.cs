@@ -88,7 +88,7 @@ public class TestInfoClass : ITestInfo, IEquatable<ITestInfo>
     }
 }
 
-public class TestSyncStep(Action<CancellationToken> action, IServiceProvider serviceProvider)
+public class TestSyncStep(Action<CancellationToken>? action, IServiceProvider serviceProvider)
     : SynchronizedStep(serviceProvider)
 {
     public ProgressType Type => new() { Id = "test", DisplayName = "Test" };

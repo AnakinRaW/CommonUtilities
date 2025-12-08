@@ -8,6 +8,8 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections;
 
+#pragma warning disable xUnit2013
+
 /// <summary>
 /// Contains tests that ensure the correctness of the <see cref="ReadOnlyFrugalList{T}"/> class.
 /// </summary>
@@ -37,7 +39,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     [Fact]
     public void Empty_Idempotent()
     {
+ #pragma warning disable xUnit2002
         Assert.NotNull(ReadOnlyFrugalList<T>.Empty);
+ #pragma warning restore xUnit2002
         Assert.Equal(0, ReadOnlyFrugalList<T>.Empty.Count);
         Assert.Equal(ReadOnlyFrugalList<T>.Empty, ReadOnlyFrugalList<T>.Empty);
     }
@@ -63,7 +67,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void Ctor_ModificationsGetNotReflectedWhenOriginalListChanges(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
 
@@ -228,7 +234,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void GetEnumerator(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
         var list = new FrugalList<T>(enumerable);

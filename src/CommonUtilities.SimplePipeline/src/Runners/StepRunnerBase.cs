@@ -20,7 +20,7 @@ public abstract class StepRunnerBase : IStepRunner
     /// <summary>
     /// Gets a modifiable bag of all executed steps.
     /// </summary>
-    protected readonly ConcurrentBag<IStep> ExecutedStepsBag = new();
+    protected readonly ConcurrentBag<IStep> ExecutedStepsBag = [];
 
     /// <summary>
     /// Gets the logger instance of this stepRunner.
@@ -87,9 +87,9 @@ public abstract class StepRunnerBase : IStepRunner
                     if (!alreadyCancelled)
                     {
                         if (e.IsExceptionType<OperationCanceledException>())
-                            Logger?.LogTrace($"Step {step} cancelled");
+                            Logger?.LogTrace("Step {Step} cancelled", step);
                         else
-                            Logger?.LogTrace(e, $"Step {step} threw an exception: {e.GetType()}: {e.Message}");
+                            Logger?.LogTrace(e, "Step {Step} threw an exception: {Exception}: {EMessage}", step, e.GetType(), e.Message);
                     }
 
                     var error = new StepRunnerErrorEventArgs(e, step)

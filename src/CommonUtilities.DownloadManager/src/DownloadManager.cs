@@ -90,7 +90,7 @@ public sealed class DownloadManager : IDownloadManager
         if (!uri.IsAbsoluteUri)
             throw new ArgumentException("Uri must be absolute.", nameof(uri));
 
-        _logger?.LogTrace($"Download requested: {uri.AbsoluteUri}");
+        _logger?.LogTrace("Download requested: {Uri}", uri.AbsoluteUri);
 
         if (uri is { IsFile: false, IsUnc: false })
         {
@@ -139,7 +139,7 @@ public sealed class DownloadManager : IDownloadManager
             var length = outputStream.Length;
             try
             {
-                _logger?.LogTrace($"Attempting download '{uri.AbsoluteUri}' using provider '{provider.Name}'");
+                _logger?.LogTrace("Attempting download '{Uri}' using provider '{ProviderName}'", uri.AbsoluteUri, provider.Name);
                 var summary = await provider.DownloadAsync(uri, outputStream,
                     status =>
                     {
@@ -193,7 +193,7 @@ public sealed class DownloadManager : IDownloadManager
                     }
                 }
 
-                _logger?.LogInformation($"Download of '{uri.AbsoluteUri}' succeeded using provider '{provider.Name}'");
+                _logger?.LogInformation("Download of '{Uri}' succeeded using provider '{ProviderName}'", uri.AbsoluteUri, provider.Name);
                 _leastRecentlyUsedDownloadProviders.LastSuccessfulProvider = provider.Name;
 
                 summary.DownloadProvider = provider.Name;
@@ -207,7 +207,7 @@ public sealed class DownloadManager : IDownloadManager
             catch (Exception ex)
             {
                 failureList.Add(new DownloadFailureInformation(ex, provider.Name));
-                _logger?.LogTrace($"Download failed using {provider.Name} provider. {ex}");
+                _logger?.LogTrace("Download failed using {Provider} provider. {Exception}", provider.Name, ex);
 
                 if (provider.Equals(providers.LastOrDefault()))
                     throw new DownloadFailedException(failureList);
@@ -222,7 +222,7 @@ public sealed class DownloadManager : IDownloadManager
                 if (millisecondsTimeout <= 0)
                     continue;
 
-                _logger?.LogTrace($"Sleeping {millisecondsTimeout} before retrying download.");
+                _logger?.LogTrace("Sleeping {WaitTime} before retrying download.", millisecondsTimeout);
 
                 await Task.Delay(TimeSpan.FromMilliseconds(millisecondsTimeout), cancellationToken);
             }

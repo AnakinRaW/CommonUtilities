@@ -81,9 +81,9 @@ public static partial class EncodingExtensions
     /// <summary>
     /// Encodes into a span of characters a set of characters from the specified read-only span.
     /// </summary>
-    /// <param name="encoding">The encoding to use.</param>
     /// <param name="source">The span of characters to encode.</param>
     /// <param name="destination">The character span to hold the encoded characters.</param>
+    /// <param name="encoding">The encoding to use.</param>
     /// <returns>The actual number of characters written at the span indicated by the <paramref name="destination"/> parameter.</returns>
     public static int EncodeString(this Encoding encoding, ReadOnlySpan<char> source, Span<char> destination)
     {
@@ -96,10 +96,10 @@ public static partial class EncodingExtensions
     /// <summary>
     /// Encodes into a span of characters a set of characters from the specified read-only span.
     /// </summary>
-    /// <param name="encoding">The encoding to use.</param>
     /// <param name="source">The span of characters to encode.</param>
     /// <param name="destination">The character span to hold the encoded characters.</param>
     /// <param name="maxByteCount">Maximum bytes *not characters!* required for encoding.</param>
+    /// <param name="encoding">The encoding to use.</param>
     /// <returns>The actual number of characters written at the span indicated by the <paramref name="destination"/> parameter.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="encoding"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="maxByteCount"/> is less than actually required.</exception>
@@ -123,9 +123,9 @@ public static partial class EncodingExtensions
     /// The returned read-only span is sliced from <paramref name="inputBuffer"/>.
     /// This means, modifying <paramref name="inputBuffer"/> might also modify the returned read-only span. 
     /// </remarks>
-    /// <param name="encoding">The encoding to use.</param>
     /// <param name="value">The span of characters to encode.</param>
     /// <param name="inputBuffer">The byte span to hold the encoded bytes.</param>
+    /// <param name="encoding">The encoding to use.</param>
     /// <returns>The read-only byte span that holds the encoded bytes.</returns>
     public static ReadOnlySpan<byte> GetBytesReadOnly(this Encoding encoding, ReadOnlySpan<char> value, Span<byte> inputBuffer)
     {

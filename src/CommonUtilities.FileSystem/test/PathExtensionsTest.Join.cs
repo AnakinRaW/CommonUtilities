@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using Testably.Abstractions;
 using Xunit;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 

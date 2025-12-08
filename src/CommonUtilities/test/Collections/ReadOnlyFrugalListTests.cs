@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AnakinRaW.CommonUtilities.Collections;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.Test.Collections;
 

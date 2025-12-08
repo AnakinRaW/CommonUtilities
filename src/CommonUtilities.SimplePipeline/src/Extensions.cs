@@ -5,14 +5,17 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 internal static class Extensions
 {
-    public static bool IsExceptionType<T>(this Exception error) where T : Exception
+    extension(Exception error)
     {
-        return error switch
+        public bool IsExceptionType<T>() where T : Exception
         {
-            T _ => true,
-            AggregateException aggregateException => aggregateException.InnerExceptions.Any(p =>
-                p.IsExceptionType<T>()),
-            _ => false
-        };
+            return error switch
+            {
+                T _ => true,
+                AggregateException aggregateException => aggregateException.InnerExceptions.Any(p =>
+                    p.IsExceptionType<T>()),
+                _ => false
+            };
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.DownloadManager.Validation;
@@ -8,6 +7,9 @@ using AnakinRaW.CommonUtilities.Hashing;
 using AnakinRaW.CommonUtilities.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+#if !NET
+using System.Globalization;
+#endif
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
 
@@ -188,10 +190,10 @@ public class HashDownloadValidatorTest : CommonTestBase
             throw new NotImplementedException();
         }
 
-        public override bool CanRead { get; }
-        public override bool CanSeek { get; }
-        public override bool CanWrite { get; }
-        public override long Length { get; }
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => 0;
         public override long Position { get; set; }
     }
 }

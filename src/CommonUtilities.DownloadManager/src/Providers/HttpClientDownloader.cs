@@ -143,15 +143,15 @@ public sealed class HttpClientDownloader : DownloadProviderBase
             if (cancellationToken.IsCancellationRequested)
             {
                 _logger?.LogTrace(
-                    "HttpClient error with '" + uri.AbsoluteUri + "' - " + errorMessage);
+                    "HttpClient error with '{Uri}' - {Message}", uri.AbsoluteUri, errorMessage);
                 cancellationToken.ThrowIfCancellationRequested();
             }
-            _logger?.LogTrace("WebClient error - '" + uri.AbsoluteUri + "'.");
+            _logger?.LogTrace("WebClient error - '{Uri}'.", uri.AbsoluteUri);
             throw;
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "General exception error in HttpClient");
+            _logger?.LogError(ex, "General exception error in HttpClient: {Message}", ex.Message);
             throw;
         }
         finally

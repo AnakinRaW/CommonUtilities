@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;
 
+// ReSharper disable once UnusedMember.Global
 public class AggregatedProgressReporterTest_Struct : AggregatedProgressReporterTestBase<TestInfoStruct>
 {
     protected override TestInfoStruct CreateCustomProgressInfo(TestProgressStep<TestInfoStruct> step, double progress)
@@ -17,6 +19,7 @@ public class AggregatedProgressReporterTest_Struct : AggregatedProgressReporterT
     }
 }
 
+// ReSharper disable once UnusedMember.Global
 public class AggregatedProgressReporterTest_Class: AggregatedProgressReporterTestBase<TestInfoClass>
 {
     protected override TestInfoClass CreateCustomProgressInfo(TestProgressStep<TestInfoClass> step, double progress)

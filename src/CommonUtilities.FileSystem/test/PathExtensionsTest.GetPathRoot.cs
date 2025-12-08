@@ -4,6 +4,7 @@ using System.IO.Abstractions;
 using AnakinRaW.CommonUtilities.Testing;
 using Testably.Abstractions;
 using Xunit;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
@@ -28,44 +29,44 @@ public class GetPathRootTest
 
         Assert.True(_fileSystem.Path.IsPathRooted(cwd));
 
-        Assert.Equal(string.Empty, _fileSystem.Path.GetPathRoot(@"file.exe"));
-        Assert.True(_fileSystem.Path.GetPathRoot(@"file.exe".AsSpan()).IsEmpty);
+        Assert.Equal(string.Empty, _fileSystem.Path.GetPathRoot("file.exe"));
+        Assert.True(_fileSystem.Path.GetPathRoot("file.exe".AsSpan()).IsEmpty);
 
         Assert.False(_fileSystem.Path.IsPathRooted("file.exe"));
     }
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]
-    [InlineData(@"/../../.././tmp/..")]
-    [InlineData(@"/../../../")]
-    [InlineData(@"/../../../tmp/bar/..")]
-    [InlineData(@"/../.././././bar/../../../")]
-    [InlineData(@"/../../././tmp/..")]
-    [InlineData(@"/../../tmp/../../")]
-    [InlineData(@"/../../tmp/bar/..")]
-    [InlineData(@"/../tmp/../..")]
-    [InlineData(@"/././../../../../")]
-    [InlineData(@"/././../../../")]
-    [InlineData(@"/./././bar/../../../")]
-    [InlineData(@"/")]
-    [InlineData(@"/bar")]
-    [InlineData(@"/bar/././././../../..")]
-    [InlineData(@"/bar/tmp")]
-    [InlineData(@"/tmp/..")]
-    [InlineData(@"/tmp/../../../../../bar")]
-    [InlineData(@"/tmp/../../../bar")]
-    [InlineData(@"/tmp/../bar/../..")]
-    [InlineData(@"/tmp/bar")]
-    [InlineData(@"/tmp/bar/..")]
+    [InlineData("/../../.././tmp/..")]
+    [InlineData("/../../../")]
+    [InlineData("/../../../tmp/bar/..")]
+    [InlineData("/../.././././bar/../../../")]
+    [InlineData("/../../././tmp/..")]
+    [InlineData("/../../tmp/../../")]
+    [InlineData("/../../tmp/bar/..")]
+    [InlineData("/../tmp/../..")]
+    [InlineData("/././../../../../")]
+    [InlineData("/././../../../")]
+    [InlineData("/./././bar/../../../")]
+    [InlineData("/")]
+    [InlineData("/bar")]
+    [InlineData("/bar/././././../../..")]
+    [InlineData("/bar/tmp")]
+    [InlineData("/tmp/..")]
+    [InlineData("/tmp/../../../../../bar")]
+    [InlineData("/tmp/../../../bar")]
+    [InlineData("/tmp/../bar/../..")]
+    [InlineData("/tmp/bar")]
+    [InlineData("/tmp/bar/..")]
     public void GePathRoot_Unix(string path)
     {
-        var expected = @"/";
+        var expected = "/";
         Assert.Equal(expected, _fileSystem.Path.GetPathRoot(path));
         PathAssert.Equal(expected.AsSpan(), _fileSystem.Path.GetPathRoot(path.AsSpan()));
     }
 
     public static TheoryData<string, string> TestData_GetPathRoot_Windows => new()
     {
-        { @"C:", @"C:" },
+        { "C:", "C:" },
         { @"C:\", @"C:\" },
         { @"C:\\", @"C:\" },
         { @"C:\foo1", @"C:\" },

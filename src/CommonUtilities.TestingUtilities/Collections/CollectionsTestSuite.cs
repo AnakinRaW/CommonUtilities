@@ -96,8 +96,8 @@ public abstract class CollectionsTestSuite<T> : CollectionsTestSuite
     }
 
     /// <summary>
-    /// Helper function to create an List fulfilling the given specific parameters. The function will
-    /// create an List and then add values
+    /// Helper function to create a List fulfilling the given specific parameters. The function will
+    /// create a List and then add values
     /// to it until it is full. It will begin by adding the desired number of matching,
     /// followed by random (deterministic) elements until the desired count is reached.
     /// </summary>

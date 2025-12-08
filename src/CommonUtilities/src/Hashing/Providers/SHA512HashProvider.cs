@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.Hashing.Providers;
 
+// ReSharper disable once InconsistentNaming
 internal class SHA512HashProvider : HashAlgorithmProviderBase
 {
     public override HashTypeKey SupportedHashType => HashTypeKey.SHA512;

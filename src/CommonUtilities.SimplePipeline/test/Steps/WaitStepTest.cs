@@ -29,7 +29,7 @@ public class WaitStepTest : CommonTestBase
 
         var step = new WaitStep(runner, ServiceProvider);
 
-        var runnerTask = runner.RunAsync(CancellationToken.None);
+        _ = runner.RunAsync(CancellationToken.None);
         step.Run(CancellationToken.None);
 
         // We cannot assert on the runnerTask task,

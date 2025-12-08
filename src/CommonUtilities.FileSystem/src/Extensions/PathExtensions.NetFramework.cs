@@ -3,6 +3,7 @@
 using System.IO.Abstractions;
 using System;
 using System.IO;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.FileSystem;
 
@@ -22,7 +23,7 @@ public static partial class PathExtensions
     /// <param name="_"></param>
     /// <param name="path">The path to search for an extension.</param>
     /// <returns><see langword="true"/> if the characters that follow the last directory separator character or volume separator
-    /// in the path include a period (".") followed by one or more characters; otherwise, <see langword="false"/>.</returns>
+    /// in the path include a period ('.') followed by one or more characters; otherwise, <see langword="false"/>.</returns>
     public static bool HasExtension(this IPath _, ReadOnlySpan<char> path)
     {
         for (var i = path.Length - 1; i >= 0; i--)
@@ -347,7 +348,7 @@ public static partial class PathExtensions
     private static bool IsExtended(ReadOnlySpan<char> path)
     {
         // While paths like "//?/C:/" will work, they're treated the same as "\\.\" paths.
-        // Skipping of normalization will *only* occur if back slashes ('\') are used.
+        // Skipping of normalization will *only* occur if backslashes ('\') are used.
         return path.Length >= DevicePrefixLength
                && path[0] == '\\'
                && (path[1] == '\\' || path[1] == '?')

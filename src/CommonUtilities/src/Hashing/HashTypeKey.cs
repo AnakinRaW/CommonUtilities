@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.Hashing;
 

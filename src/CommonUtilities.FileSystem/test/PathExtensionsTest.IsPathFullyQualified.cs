@@ -46,10 +46,10 @@ public class IsPathFullyQualifiedTest
     [InlineData(@"C:\foo1")]
     [InlineData(@"C:\\")]
     [InlineData(@"C:\\foo2")]
-    [InlineData(@"C:/")]
-    [InlineData(@"C:/foo1")]
-    [InlineData(@"C://")]
-    [InlineData(@"C://foo2")]
+    [InlineData("C:/")]
+    [InlineData("C:/foo1")]
+    [InlineData("C://")]
+    [InlineData("C://foo2")]
     public void IsPathFullyQualified_Windows_Valid(string path)
     {
         Assert.True(_fileSystem.Path.IsPathFullyQualified(path));
@@ -63,9 +63,9 @@ public class IsPathFullyQualifiedTest
     [InlineData("./foo.txt")]
     [InlineData("..")]
     [InlineData("../foo.txt")]
-    [InlineData(@"C:")]
-    [InlineData(@"C:/")]
-    [InlineData(@"C://")]
+    [InlineData("C:")]
+    [InlineData("C:/")]
+    [InlineData("C://")]
     public void IsPathFullyQualified_Unix_Invalid(string path)
     {
         Assert.False(_fileSystem.Path.IsPathFullyQualified(path));

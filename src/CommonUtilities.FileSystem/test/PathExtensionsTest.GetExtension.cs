@@ -2,6 +2,7 @@
 using System.IO.Abstractions;
 using Testably.Abstractions;
 using Xunit;
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
@@ -11,12 +12,12 @@ public class GetExtensionTest
 
     public static TheoryData<string, string> TestData_GetExtension => new()
     {
-        { @"file.exe", ".exe" },
-        { @"file", "" },
-        { @"file.", "" },
-        { @"file.s", ".s" },
-        { @"test/file", "" },
-        { @"test/file.extension", ".extension" },
+        { "file.exe", ".exe" },
+        { "file", "" },
+        { "file.", "" },
+        { "file.s", ".s" },
+        { "test/file", "" },
+        { "test/file.extension", ".extension" },
         { @"test\file", "" },
         { @"test\file.extension", ".extension" },
         { "file.e xe", ".e xe"},

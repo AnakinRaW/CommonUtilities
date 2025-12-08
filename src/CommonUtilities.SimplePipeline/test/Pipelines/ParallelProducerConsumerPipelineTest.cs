@@ -77,7 +77,9 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
 
         return;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         async IAsyncEnumerable<IStep> ValueFunction()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             yield return s1;
             yield return s2;
@@ -97,7 +99,9 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
         
         return;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         async IAsyncEnumerable<IStep> ValueFunction()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             yield return s1;
             yield return s2;

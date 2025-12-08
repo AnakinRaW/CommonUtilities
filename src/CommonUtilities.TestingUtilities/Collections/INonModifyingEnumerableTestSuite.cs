@@ -368,8 +368,10 @@ public abstract class INonModifyingEnumerableTestSuite<T> : CollectionsTestSuite
         // Ensures that the elements returned from enumeration are exactly the same collection of
         // elements returned from a previous enumeration
         var enumerable = GenericIEnumerableFactory(count);
+#pragma warning disable CS8714
         var firstValues = new Dictionary<T, int>(count);
         var secondValues = new Dictionary<T, int>(count);
+#pragma warning restore CS8714
         foreach (var item in enumerable)
             firstValues[item] = firstValues.ContainsKey(item) ? firstValues[item]++ : 1;
         foreach (var item in enumerable)

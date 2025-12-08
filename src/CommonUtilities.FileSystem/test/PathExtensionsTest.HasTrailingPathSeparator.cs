@@ -6,6 +6,7 @@ using Xunit;
 #if NET
 using System.IO;
 #endif
+// ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Test;
 
@@ -31,19 +32,19 @@ public class HasTrailingPathSeparatorTest
     public static TheoryData<string, bool> TestData_EndsInDirectorySeparator_Windows => new()
     {
         { @"\", true },
-        { @"/", true },
+        { "/", true },
         { @"C:\folder\", true },
-        { @"C:/folder/", true },
+        { "C:/folder/", true },
         { @"C:\", true },
-        { @"C:/", true },
+        { "C:/", true },
         { @"\\", true },
-        { @"//", true },
+        { "//", true },
         { @"\\server\share\", true },
         { @"\\?\UNC\a\", true },
         { @"\\?\C:\", true },
         { @"\\?\UNC\", true },
         { @"folder\", true },
-        { @"folder", false },
+        { "folder", false },
     };
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Windows)]
@@ -59,11 +60,11 @@ public class HasTrailingPathSeparatorTest
 
     public static TheoryData<string, bool> TestData_EndsInDirectorySeparator_Linux => new()
     {
-        { @"/", true },
-        { @"/folder/", true },
-        { @"//", true },
-        { @"folder", false },
-        { @"folder/", true }
+        { "/", true },
+        { "/folder/", true },
+        { "//", true },
+        { "folder", false },
+        { "folder/", true }
     };
 
     [PlatformSpecificTheory(TestPlatformIdentifier.Linux)]

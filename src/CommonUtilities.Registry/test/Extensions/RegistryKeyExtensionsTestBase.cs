@@ -382,7 +382,7 @@ public abstract class RegistryKeyExtensionsTestBase
             thread.Join();
 
             // Verify that the watching task is still watching.
-            var completedTask = await Task.WhenAny(watchingTask!, Task.Delay(AsyncDelay));
+            var completedTask = await Task.WhenAny(watchingTask, Task.Delay(AsyncDelay));
             Assert.NotSame(watchingTask, completedTask);
 
             test.CreateSubKey().Dispose();

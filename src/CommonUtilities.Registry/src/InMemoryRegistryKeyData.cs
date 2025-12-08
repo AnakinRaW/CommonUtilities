@@ -242,7 +242,7 @@ internal sealed class InMemoryRegistryKeyData : RegistryKeyBase
         var subKeyNames = subPath.Split(Separator);
         foreach (var subKeyName in subKeyNames)
         {
-            if (currentKey._subKeys.TryGetValue(subKeyName, out var key) == false)
+            if (!currentKey._subKeys.TryGetValue(subKeyName, out var key))
                 return null;
             currentKey = key;
         }

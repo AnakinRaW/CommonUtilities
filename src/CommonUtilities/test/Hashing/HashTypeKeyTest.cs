@@ -18,9 +18,9 @@ public class HashTypeKeyTest
     public void None()
     {
         var key = HashTypeKey.None;
-        Assert.Null(key.Name);
         Assert.Equal(0, key.GetHashCode());
         Assert.Equal(0, key.HashSize);
+        Assert.Null(key.Name);
     }
 
     [Fact]

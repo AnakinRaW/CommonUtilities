@@ -27,33 +27,33 @@ public static class FileSystemInfoExtensions
     /// <summary>
     /// Removes attributes from a given filesystem entry.
     /// </summary>
-    /// <param name="fsInfo">The target filesystem handle.</param>
     /// <param name="attributesToRemove">Attributes to remove.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
-    public static void RemoveAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToRemove)
+    /// <param name="fsItem">Some file or directory at the targeted drive.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
+    public static void RemoveAttributes(this IFileSystemInfo fsItem, FileAttributes attributesToRemove)
     {
-        if (fsInfo == null) 
-            throw new ArgumentNullException(nameof(fsInfo));
+        if (fsItem == null) 
+            throw new ArgumentNullException(nameof(fsItem));
 
-        var currentAttributes = fsInfo.Attributes;
+        var currentAttributes = fsItem.Attributes;
         var newAttributes = currentAttributes & ~attributesToRemove;
-        fsInfo.Attributes = newAttributes;
-        fsInfo.Refresh();
+        fsItem.Attributes = newAttributes;
+        fsItem.Refresh();
     }
 
     /// <summary>
     /// Set attributes from a given filesystem entry.
     /// </summary>
-    /// <param name="fsInfo">The target filesystem handle.</param>
     /// <param name="attributesToAdd">Attributes to add.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="fsInfo"/> is <see langword="null"/>.</exception>
-    public static void SetAttributes(this IFileSystemInfo fsInfo, FileAttributes attributesToAdd)
+    /// <param name="fsItem">Some file or directory at the targeted drive.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fsItem"/> is <see langword="null"/>.</exception>
+    public static void SetAttributes(this IFileSystemInfo fsItem, FileAttributes attributesToAdd)
     {
-        if (fsInfo == null) 
-            throw new ArgumentNullException(nameof(fsInfo));
+        if (fsItem == null) 
+            throw new ArgumentNullException(nameof(fsItem));
 
-        var currentAttributes = fsInfo.Attributes;
-        fsInfo.Attributes = currentAttributes | attributesToAdd;
-        fsInfo.Refresh();
+        var currentAttributes = fsItem.Attributes;
+        fsItem.Attributes = currentAttributes | attributesToAdd;
+        fsItem.Refresh();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using AnakinRaW.CommonUtilities.Extensions;
@@ -133,13 +134,14 @@ public class EncodingExtensionsTest
     #region EncodeString
 
     [Fact]
+    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
     public void EncodeString_NullArgs_Throws()
     {
         Encoding encoding = null!;
         Assert.Throws<ArgumentNullException>(() => encoding.EncodeString(""));
         Assert.Throws<ArgumentNullException>(() => encoding.EncodeString("", 0));
-        Assert.Throws<ArgumentNullException>(() => encoding!.EncodeString("".AsSpan(), Span<char>.Empty));
-        Assert.Throws<ArgumentNullException>(() => encoding!.EncodeString("".AsSpan(), Span<char>.Empty, 0));
+        Assert.Throws<ArgumentNullException>(() => encoding.EncodeString("".AsSpan(), Span<char>.Empty));
+        Assert.Throws<ArgumentNullException>(() => encoding.EncodeString("".AsSpan(), Span<char>.Empty, 0));
 
         ForEachEncoding(e =>
         {

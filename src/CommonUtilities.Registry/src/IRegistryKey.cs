@@ -4,8 +4,7 @@ using System.IO;
 namespace AnakinRaW.CommonUtilities.Registry;
 
 /// <summary>
-/// High-Level abstraction layer for the a Registry Key implementation.
-/// Read and write operations are supported.
+/// Represents a key node in of an <see cref="IRegistry"/>.
 /// </summary>
 public interface IRegistryKey : IDisposable
 {
