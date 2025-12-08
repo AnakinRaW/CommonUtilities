@@ -84,7 +84,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+ #pragma warning disable xUnit1026
     public void Constructor_IEnumerable(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+ #pragma warning restore xUnit1026
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
         var list = new FrugalList<T>(enumerable);
