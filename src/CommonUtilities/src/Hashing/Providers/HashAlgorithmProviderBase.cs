@@ -75,7 +75,7 @@ internal abstract class HashAlgorithmProviderBase : IHashAlgorithmProvider
                 algorithm.TransformBlock(buffer, 0, bytesRead, buffer, 0);
             algorithm.TransformFinalBlock(buffer, 0, bytesRead);
 
-            var hashValue = algorithm.Hash;
+            var hashValue = algorithm.Hash!;
             algorithm.Hash.CopyTo(destination);
             return hashValue.Length;
         }
