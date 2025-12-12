@@ -135,8 +135,6 @@ public static partial class PathExtensions
                 driveLetter = path[0];
                 return true;
             }
-
-            return false;
         }
         return false;
     }

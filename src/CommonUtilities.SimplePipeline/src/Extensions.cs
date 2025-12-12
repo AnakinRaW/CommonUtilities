@@ -11,7 +11,7 @@ internal static class Extensions
         {
             return error switch
             {
-                T _ => true,
+                T => true,
                 AggregateException aggregateException => aggregateException.InnerExceptions.Any(p =>
                     p.IsExceptionType<T>()),
                 _ => false

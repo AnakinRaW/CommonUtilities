@@ -30,8 +30,9 @@ public class StreamUtilitiesTest
         Assert.Equal(3, bytesRead);
         output.Seek(0, SeekOrigin.Begin);
         var outputData = new byte[3];
-        output.Read(outputData, 0, 3);
+        var n = output.Read(outputData, 0, 3);
         Assert.Equal(inputData, outputData);
+        Assert.Equal(3, n);
     }
 
     [Fact]

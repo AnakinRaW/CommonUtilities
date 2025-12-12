@@ -46,7 +46,7 @@ internal class LeastRecentlyUsedDownloadProviders
                 if (!providerList.Contains(provider))
                     providerList.Add(provider);
             }
-            return providerList!;
+            return providerList;
         }
     }
 }

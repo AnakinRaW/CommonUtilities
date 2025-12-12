@@ -43,8 +43,8 @@ public sealed class HttpClientDownloader : DownloadProviderBase
         {
             if (response is not null)
             {
-#if NET
-                await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#if NET || NETSTANDARD2_1_OR_GREATER
+                await using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #else
                 using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
