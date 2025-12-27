@@ -62,8 +62,8 @@ public static class RegistryKeyExtensions
 
         try
         {
-            InMemoryRegistryKeyData.RegistryChanged += OnRegistryChanged;
-            inMemoryRegistryKey.Disposing += OnKeyDisposing;
+            InMemoryRegistryKeyData.RegistryChanged += OnRegistryChanged!;
+            inMemoryRegistryKey.Disposing += OnKeyDisposing!;
 
             // Handle potential race when registering the disposed event
             if (inMemoryRegistryKey.IsDisposed)
@@ -73,8 +73,8 @@ public static class RegistryKeyExtensions
         }
         finally
         {
-            InMemoryRegistryKeyData.RegistryChanged -= OnRegistryChanged;
-            inMemoryRegistryKey.Disposing -= OnKeyDisposing;
+            InMemoryRegistryKeyData.RegistryChanged -= OnRegistryChanged!;
+            inMemoryRegistryKey.Disposing -= OnKeyDisposing!;
         }
 
         return;
