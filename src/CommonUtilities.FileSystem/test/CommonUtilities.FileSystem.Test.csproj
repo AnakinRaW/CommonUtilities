@@ -40,7 +40,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\CommonUtilities.TestingUtilities\CommonUtilities.TestingUtilities.csproj" />
+		<ProjectReference Include="..\..\CommonUtilities.TestingUtilities\CommonUtilities.Testing.csproj" />
 		<ProjectReference Include="..\src\Commonutilities.FileSystem.csproj" />
 	</ItemGroup>
 
