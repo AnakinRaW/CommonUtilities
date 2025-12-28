@@ -17,13 +17,14 @@ public partial class RegistryTestsBase
 
             // Should throw because only String[] (REG_MULTI_SZ) and byte[] (REG_BINARY) are supported.
             // RegistryKey.SetValue does not support arrays of type UInt32[].
-            AssertExtensions.Throws<ArgumentException>(null, () => TestRegistryKey.SetValue("IntArray", value: new[] { 1, 2, 3 }));
+            AssertExtensions.Throws<ArgumentException>(null, () => TestRegistryKey.SetValue("IntArray", value: (int[])[1, 2, 3
+            ]));
         }
         else
         {
             TestRegistryKey.SetValue("StringArr", value: new string[1]);
-            Assert.Equal([null!], TestRegistryKey.GetValue<string[]>("StringArr")!);
-            TestRegistryKey.SetValue("IntArray", value: new[] { 1, 2, 3 });
+            Assert.Equal((string[])[null!], TestRegistryKey.GetValue<string[]>("StringArr")!);
+            TestRegistryKey.SetValue("IntArray", value: (int[])[1, 2, 3]);
             Assert.Equal([1, 2, 3], TestRegistryKey.GetValue<int[]>("IntArray")!);
         }
     }
