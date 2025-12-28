@@ -135,7 +135,7 @@ public abstract class CollectionsTestSuite<T> : CollectionsTestSuite
                 list.Add(toAdd);
         }
 
-        // Validate that the Enumerable fits the guidelines as expected
+        // ValidateAsync that the Enumerable fits the guidelines as expected
         Debug.Assert(list.Count == count);
         if (match != null)
         {

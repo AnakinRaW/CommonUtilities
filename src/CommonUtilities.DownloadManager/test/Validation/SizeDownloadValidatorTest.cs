@@ -10,7 +10,7 @@ public class SizeDownloadValidatorTest
     public async Task Validate_IsValid()
     {
         var validator = new SizeDownloadValidator(123);
-        var result = await validator.Validate(null!, 123);
+        var result = await validator.ValidateAsync(null!, 123, TestContext.Current.CancellationToken);
         Assert.True(result);
     }
 
@@ -20,7 +20,7 @@ public class SizeDownloadValidatorTest
     public async Task Validate_IsInvalid(int actualValue)
     {
         var validator = new SizeDownloadValidator(123);
-        var result = await validator.Validate(null!, actualValue);
+        var result = await validator.ValidateAsync(null!, actualValue);
         Assert.False(result);
     }
 }

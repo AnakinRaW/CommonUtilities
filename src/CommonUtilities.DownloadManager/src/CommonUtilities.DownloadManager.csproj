@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>CommonUtilities.DownloadManager</Title>
 		<PackageId>AnakinRaW.CommonUtilities.DownloadManager</PackageId>
-		<Description>Simple Download Manager supporting the local file system and HTTP downlaods.</Description>
+		<Description>Simple DownloadAsync Manager supporting the local file system and HTTP downlaods.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>

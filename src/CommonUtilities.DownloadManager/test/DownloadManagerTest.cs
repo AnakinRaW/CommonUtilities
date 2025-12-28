@@ -464,7 +464,7 @@ public class DownloadManagerTest : TestBaseWithFileSystem
 
     private class ThrowingValidator : IDownloadValidator
     {
-        public Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
+        public Task<bool> ValidateAsync(Stream stream, long downloadedBytes, CancellationToken token = default)
         {
             throw new Exception("Test");
         }

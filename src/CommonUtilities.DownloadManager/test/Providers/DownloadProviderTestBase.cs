@@ -20,7 +20,7 @@ public abstract class DownloadProviderTestBase : TestBaseWithFileSystem
     public async Task DownloadAsync_SourceNotFound_Throws()
     {
         var source = CreateSource(false);
-        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await Download(source, new MemoryStream(), null));
+        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await TestDownloadAsync(source, new MemoryStream(), null, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -32,7 +32,7 @@ public abstract class DownloadProviderTestBase : TestBaseWithFileSystem
         var source = CreateSource(true);
 
         var options = createDefaultOptions ? new DownloadOptions() : null;
-        var result = await Download(source, outStream, options);
+        var result = await TestDownloadAsync(source, outStream, options, TestContext.Current.CancellationToken);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);
     }
@@ -45,10 +45,10 @@ public abstract class DownloadProviderTestBase : TestBaseWithFileSystem
         var outStream = new MemoryStream();
         var source = CreateSource(true);
         var options = createDefaultOptions ? new DownloadOptions() : null;
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await Download(source, outStream, options, new CancellationToken(true)));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await TestDownloadAsync(source, outStream, options, new CancellationToken(true)));
     }
 
-    protected async Task<DownloadResult> Download(Uri source, Stream outStream, DownloadOptions? options, CancellationToken token = default)
+    protected async Task<DownloadResult> TestDownloadAsync(Uri source, Stream outStream, DownloadOptions? options, CancellationToken token = default)
     {
         var provider = CreateProvider();
 

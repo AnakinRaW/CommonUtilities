@@ -68,7 +68,7 @@ public abstract class DownloadProviderBase : DisposableObject, IDownloadProvider
     /// <summary>
     /// Concrete implementation for downloading a file.
     /// </summary>
-    /// <remarks>Download time and bit rate is automatically set after this method returns.</remarks>
+    /// <remarks>DownloadAsync time and bit rate is automatically set after this method returns.</remarks>
     /// <param name="uri">The location of the source file.</param>
     /// <param name="outputStream">The output stream.</param>
     /// <param name="progress">Progress with already updated performance data.</param>

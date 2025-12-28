@@ -90,7 +90,7 @@ public sealed class DownloadManager : IDownloadManager
         if (!uri.IsAbsoluteUri)
             throw new ArgumentException("Uri must be absolute.", nameof(uri));
 
-        _logger?.LogTrace("Download requested: {Uri}", uri.AbsoluteUri);
+        _logger?.LogTrace("DownloadAsync requested: {Uri}", uri.AbsoluteUri);
 
         if (uri is { IsFile: false, IsUnc: false })
         {
@@ -172,7 +172,7 @@ public sealed class DownloadManager : IDownloadManager
                         bool validationSuccess;
                         try
                         {
-                            validationSuccess = await validator.Validate(outputStream, summary.DownloadedSize, cancellationToken)
+                            validationSuccess = await validator.ValidateAsync(outputStream, summary.DownloadedSize, cancellationToken)
                                 .ConfigureAwait(false);
                         }
                         catch (Exception e)
@@ -193,7 +193,7 @@ public sealed class DownloadManager : IDownloadManager
                     }
                 }
 
-                _logger?.LogInformation("Download of '{Uri}' succeeded using provider '{ProviderName}'", uri.AbsoluteUri, provider.Name);
+                _logger?.LogInformation("DownloadAsync of '{Uri}' succeeded using provider '{ProviderName}'", uri.AbsoluteUri, provider.Name);
                 _leastRecentlyUsedDownloadProviders.LastSuccessfulProvider = provider.Name;
 
                 summary.DownloadProvider = provider.Name;
@@ -207,7 +207,7 @@ public sealed class DownloadManager : IDownloadManager
             catch (Exception ex)
             {
                 failureList.Add(new DownloadFailureInformation(ex, provider.Name));
-                _logger?.LogTrace("Download failed using {Provider} provider. {Exception}", provider.Name, ex);
+                _logger?.LogTrace("DownloadAsync failed using {Provider} provider. {Exception}", provider.Name, ex);
 
                 if (provider.Equals(providers.LastOrDefault()))
                     throw new DownloadFailedException(failureList);

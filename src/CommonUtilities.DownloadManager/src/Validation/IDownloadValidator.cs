@@ -19,5 +19,5 @@ public interface IDownloadValidator
     /// <param name="downloadedBytes">The number of bytes downloaded.</param>
     /// <param name="token">The cancellation token.</param>
     /// <returns><see langowrd="true"/> if the download is valid; otherwise, <see langowrd="false"/>.</returns>
-    Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default);
+    Task<bool> ValidateAsync(Stream stream, long downloadedBytes, CancellationToken token = default);
 }

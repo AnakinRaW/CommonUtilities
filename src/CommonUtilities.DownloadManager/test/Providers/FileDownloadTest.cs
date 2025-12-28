@@ -41,7 +41,7 @@ public class FileDownloadTest : DownloadProviderTestBase
         var source = CreateSource(true);
         var outStream = new MemoryStream();
         
-        var result = await Download(source, outStream, null, CancellationToken.None);
+        var result = await TestDownloadAsync(source, outStream, null, CancellationToken.None);
 
         Assert.Equal(Data.Length, result.DownloadedSize);
         var copyData = Encoding.Default.GetString(outStream.ToArray());
@@ -53,7 +53,7 @@ public class FileDownloadTest : DownloadProviderTestBase
     {
         var source = new Uri("file://server/test.file");
         Assert.True(source.IsUnc);
-        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await Download(source, new MemoryStream(), null));
+        await Assert.ThrowsAsync(ExpectedSourceNotFoundExceptionType, async () => await TestDownloadAsync(source, new MemoryStream(), null));
     }
 
     [Theory]
@@ -65,6 +65,6 @@ public class FileDownloadTest : DownloadProviderTestBase
     {
         var source = new Uri(uri);
         var outStream = new MemoryStream();
-        await Assert.ThrowsAsync<ArgumentException>(async () => await Download(source, outStream, null, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await TestDownloadAsync(source, outStream, null, CancellationToken.None));
     }
 }
