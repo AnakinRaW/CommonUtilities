@@ -20,12 +20,12 @@ public abstract class Pipeline : DisposableObject, IPipeline
     protected CancellationTokenSource? LinkedCancellationTokenSource;
 
     /// <summary>
-    /// Returns the service provider of the <see cref="StepRunnerPipeline{TRunner}"/>.
+    /// Returns the service provider of the <see cref="Pipeline"/>.
     /// </summary>
     protected readonly IServiceProvider ServiceProvider;
 
     /// <summary>
-    /// Returns the logger of the <see cref="StepRunnerPipeline{TRunner}"/>.
+    /// Returns the logger of the <see cref="Pipeline"/>.
     /// </summary>
     protected readonly ILogger? Logger;
 

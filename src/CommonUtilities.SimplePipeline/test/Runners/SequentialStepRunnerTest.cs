@@ -36,7 +36,11 @@ public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
 
         var step1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
         var ran2 = false;
-        var step2 = new TestStep(_ => { ran2 = true; }, ServiceProvider);
+        var step2 = new TestStep(_ =>
+        {
+            ran2 = true;
+            return Task.CompletedTask;
+        }, ServiceProvider);
 
         runner.AddStep(step1);
         runner.AddStep(step2);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
@@ -10,7 +11,7 @@ public class StepErrorEventArgsTest : TestBaseWithServiceProvider
     public void Cancel()
     {
         var e = new Exception("Tet");
-        var step = new TestStep(_ => { }, ServiceProvider);
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
         var args = new StepRunnerErrorEventArgs(e, step);
 
         Assert.Same(step, args.Step);

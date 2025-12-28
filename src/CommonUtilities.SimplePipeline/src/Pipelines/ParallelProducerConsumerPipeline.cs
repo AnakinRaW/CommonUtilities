@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </remarks>
 public abstract class ParallelProducerConsumerPipeline : Pipeline
 { 
-    private readonly ParallelProducerConsumerStepRunner _stepRunner;
+    private readonly ProducerConsumerStepRunner _stepRunner;
 
     private Exception? _preparationException;
 
@@ -30,7 +30,7 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     protected ParallelProducerConsumerPipeline(int workerCount, bool failFast, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         FailFast = failFast;
-        _stepRunner = new ParallelProducerConsumerStepRunner(workerCount, serviceProvider);
+        _stepRunner = new ProducerConsumerStepRunner(workerCount, serviceProvider);
     }
 
     /// <inheritdoc/>

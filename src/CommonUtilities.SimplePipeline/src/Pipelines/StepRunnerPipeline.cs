@@ -9,16 +9,15 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// Base class for a pipeline implementation utilizing an <see cref="IStepRunner"/> as its primary execution engine.
 /// </summary>
-/// <typeparam name="TRunner">The type of the step stepRunner.</typeparam>
-public abstract class StepRunnerPipeline<TRunner> : Pipeline where TRunner : IStepRunner
+public abstract class StepRunnerPipeline : Pipeline
 { 
     private IStepRunner _buildStepRunner = null!;
 
     /// <inheritdoc />
     protected override bool FailFast { get; }
-
+    
     /// <summary>
-    /// Initializes a new instance of the <see cref="StepRunnerPipeline{TRunner}"/> class.
+    /// Initializes a new instance of the <see cref="StepRunnerPipeline"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider the pipeline.</param>
     /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
@@ -42,13 +41,13 @@ public abstract class StepRunnerPipeline<TRunner> : Pipeline where TRunner : ISt
     /// Creates the step stepRunner for the pipeline.
     /// </summary>
     /// <returns>The step stepRunner instance.</returns>
-    protected abstract TRunner CreateRunner();
+    protected abstract IStepRunner CreateRunner();
 
     /// <summary>
     /// Builds the steps that should be executed within the pipeline.
     /// </summary>
     /// <remarks>
-    /// The order of the steps might be relevant, depending on the type of <typeparamref name="TRunner"/>.
+    /// The order of the steps might be relevant, depending on the type of created <see cref="IStepRunner"/>.
     /// </remarks>
     /// <returns>A task that returns a list of steps.</returns>
     protected abstract Task<IList<IStep>> BuildSteps();

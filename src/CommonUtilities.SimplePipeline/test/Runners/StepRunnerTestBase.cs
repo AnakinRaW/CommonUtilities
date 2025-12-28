@@ -43,7 +43,11 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         cts.Cancel();
 
         var ran = false;
-        var step = new TestStep(_ => ran = true, ServiceProvider);
+        var step = new TestStep(_ =>
+        {
+            ran = true;
+            return Task.CompletedTask;
+        }, ServiceProvider);
 
         runner.AddStep(step);
 
@@ -77,6 +81,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         var step2 = new TestStep(_ =>
         {
             ran2 = true;
+            return Task.CompletedTask;
         }, ServiceProvider);
 
         runner.AddStep(step1);
@@ -108,20 +113,30 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         var ranList = new List<string>();
         var tsc = new ManualResetEventSlim(false);
-        var step1 = new TestStep(_ =>
+        var step1 = new TestStep(async _ =>
         {
+            await Task.Yield();
             ranList.Add("Step1");
             tsc.Wait(TestContext.Current.CancellationToken);
         }, ServiceProvider);
-        var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
-        
+        var step2 = new TestStep(_ =>
+        {
+            ranList.Add("Step2");
+            return Task.CompletedTask;
+
+        }, ServiceProvider);
+
         runner.AddStep(step1);
         runner.AddStep(step2);
 
         var runnerTask = runner.RunAsync(CancellationToken.None);
 
         // Step that was added later, also gets executed
-        var step3 = new TestStep(_ => ranList.Add("Step3"), ServiceProvider);
+        var step3 = new TestStep(async _ =>
+        {
+            ranList.Add("Step3");
+            await Task.Yield();
+        }, ServiceProvider);
         runner.AddStep(step3);
         tsc.Set();
 
@@ -135,7 +150,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
             Assert.Equal(["Step1", "Step2", "Step3"], ranList);
         else
             Assert.Equivalent(new HashSet<string>(["Step1", "Step2", "Step3"]), ranList, true);
-        
+
         Assert.Equivalent(new ReadOnlyCollection<IStep>([step1, step2, step3]), runner.ExecutedSteps, true);
     }
 
@@ -146,14 +161,17 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         var ranList = new List<string>();
         var cts = new CancellationTokenSource();
-        var step1 = new TestStep(_ =>
+        var step1 = new TestStep(async _ =>
         {
-            Task.Delay(1000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
+            await Task.Delay(1000, TestContext.Current.CancellationToken);
             ranList.Add("Step1");
             cts.Cancel();
-
         }, ServiceProvider);
-        var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
+        var step2 = new TestStep(_ =>
+        {
+            ranList.Add("Step2");
+            return Task.CompletedTask;
+        }, ServiceProvider);
 
         runner.AddStep(step1);
         runner.AddStep(step2);
@@ -182,14 +200,18 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         var ranList = new List<string>();
         var cts = new CancellationTokenSource();
-        var step1 = new TestStep(_ =>
+        var step1 = new TestStep(async _ =>
         {
-            Task.Delay(1000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
+            await Task.Delay(1000, TestContext.Current.CancellationToken);
             ranList.Add("Step1");
             cts.Cancel();
 
         }, ServiceProvider);
-        var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
+        var step2 = new TestStep(_ =>
+        {
+            ranList.Add("Step2");
+            return Task.CompletedTask;
+        }, ServiceProvider);
 
         runner.AddStep(step1);
         runner.AddStep(step2);

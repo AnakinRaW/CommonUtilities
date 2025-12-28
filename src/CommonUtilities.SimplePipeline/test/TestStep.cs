@@ -2,25 +2,26 @@
 using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
 public class TestStep : PipelineStep
 {
-    private readonly Action<CancellationToken>? _action;
+    private readonly Func<CancellationToken, Task>? _action;
 
     protected TestStep(IServiceProvider sp) : base(sp)
     {
     }
 
-    public TestStep(Action<CancellationToken> action, IServiceProvider serviceProvider) : base(serviceProvider)
+    public TestStep(Func<CancellationToken, Task>? action, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _action = action;
     }
 
-    protected override void RunCore(CancellationToken token)
+    protected override Task RunCoreAsync(CancellationToken token)
     {
-        _action?.Invoke(token);
+        return _action?.Invoke(token) ?? Task.CompletedTask;
     }
 }
 
@@ -82,16 +83,5 @@ public class TestInfoClass : ITestInfo, IEquatable<ITestInfo>
     public override int GetHashCode()
     {
         return HashCode.Combine(Progress, Aggregated);
-    }
-}
-
-public class TestSyncStep(Action<CancellationToken>? action, IServiceProvider serviceProvider)
-    : SynchronizedStep(serviceProvider)
-{
-    public ProgressType Type => new() { Id = "test", DisplayName = "Test" };
-
-    protected override void RunSynchronized(CancellationToken token)
-    {
-        action?.Invoke(token);
     }
 }

@@ -71,28 +71,55 @@ internal class ProducerConsumerStepRunner(int workerCount, IServiceProvider serv
     }
 }
 
-internal class AsyncStepRunner : IStepRunner
+/// <summary>
+/// A <see cref="IStepRunner"/> that executes steps sequentially using a single worker.
+/// </summary>
+public class SequentialStepRunner(IServiceProvider serviceProvider) : AsyncStepRunner(1, serviceProvider);
+
+/// <summary>
+/// 
+/// </summary>
+public class AsyncStepRunner : IStepRunner
 {
+    /// <inheritdoc />
     public event EventHandler<StepRunnerErrorEventArgs>? Error;
 
     private readonly ConcurrentQueue<IStep> _pendingSteps = new();
     private readonly ConcurrentBag<IStep> _executedSteps = [];
     private readonly ConcurrentBag<Exception> _exceptions = [];
-    
-    private Task? _runningTask;
 
+    private TaskCompletionSource<Task> _completionSource = new();
+
+    /// <inheritdoc />
     public AggregateException? Exception => _exceptions.IsEmpty ? null : new AggregateException(_exceptions);
     
+    /// <summary>
+    /// 
+    /// </summary>
     public bool IsRunning { get; private set; }
 
+    /// <inheritdoc />
     public int WorkerCount { get; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public IReadOnlyCollection<IStep> ExecutedSteps => _executedSteps.ToArray();
 
     internal bool IsCancelled { get; private set; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     protected ILogger? Logger { get; }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="workerCount"></param>
+    /// <param name="serviceProvider"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     public AsyncStepRunner(int workerCount, IServiceProvider serviceProvider)
     {
         if (workerCount is < 1 or > 64)
@@ -103,6 +130,7 @@ internal class AsyncStepRunner : IStepRunner
         WorkerCount = workerCount;
     }
 
+    /// <inheritdoc />
     public virtual void AddStep(IStep step)
     {
         if (step == null)
@@ -110,17 +138,21 @@ internal class AsyncStepRunner : IStepRunner
         _pendingSteps.Enqueue(step);
     }
 
+    /// <inheritdoc />
     public Task RunAsync(CancellationToken token)
     {
         if (IsRunning)
             throw new InvalidOperationException("The step runner is already running.");
         
         var task = CreateRunnerTask(token);
-        Volatile.Write(ref _runningTask, task);
-
+        _completionSource.TrySetResult(task);
         return task;
     }
 
+    /// <summary>
+    /// Resets the state of the <see cref="AsyncStepRunner"/> to its initial state, clearing all executed steps and exceptions.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the method is called while the step runner is running.</exception>
     public void Reset()
     {
         if (IsRunning)
@@ -129,24 +161,38 @@ internal class AsyncStepRunner : IStepRunner
         while (_exceptions.TryTake(out _)) ;
         while (_executedSteps.TryTake(out _)) ;
         IsCancelled = false;
+        _completionSource = new TaskCompletionSource<Task>();
     }
 
+    /// <inheritdoc/>
     public TaskAwaiter GetAwaiter()
     {
-        var task = Volatile.Read(ref _runningTask);
-        return task?.GetAwaiter() ?? throw new InvalidOperationException("The step runner has not been started.");
+        var task = _completionSource.Task;
+        return task.IsCompleted 
+            ? task.Result.GetAwaiter()
+            : GetAwaitableTask().GetAwaiter();
     }
 
+    private async Task GetAwaitableTask()
+    {
+        var task = await _completionSource.Task.ConfigureAwait(false);
+        await task.ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
     public void Wait()
     {
         Wait(Timeout.InfiniteTimeSpan);
     }
 
+    /// <inheritdoc/>
     public void Wait(TimeSpan timeout)
     {
-        var task = Volatile.Read(ref _runningTask);
-        if (task is null)
-            throw new InvalidOperationException("The step runner has not been started.");
+        var tcsTask = _completionSource.Task;
+        if (!tcsTask.Wait(timeout))
+            throw new TimeoutException();
+
+        var task = tcsTask.Result;
 
         var completed = true;
         try
@@ -166,6 +212,12 @@ internal class AsyncStepRunner : IStepRunner
             throw exception;
     }
 
+    /// <summary>
+    /// Attempts to retrieve the next step to be executed from the queue.
+    /// </summary>
+    /// <param name="step">When this method returns, contains the next <see cref="IStep"/> to be executed if one is available; otherwise, <see langword="null"/>.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a step to become available.</param>
+    /// <returns><see langword="true"/> if a step was successfully retrieved; otherwise, <see langword="false"/>.</returns>
     protected virtual bool TakeNextStep([NotNullWhen(true)] out IStep? step, CancellationToken cancellationToken)
     {
         return _pendingSteps.TryDequeue(out step);
@@ -205,7 +257,7 @@ internal class AsyncStepRunner : IStepRunner
     {
         try
         {
-            if (WorkerCount == 1) 
+            if (WorkerCount == 1)
                 await RunWorkerAsync(token).ConfigureAwait(false);
             else
             {
