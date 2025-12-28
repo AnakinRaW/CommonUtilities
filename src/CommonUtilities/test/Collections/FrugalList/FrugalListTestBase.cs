@@ -41,7 +41,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     public void Struct_Default()
     {
         var list = default(FrugalList<T>);
+#pragma warning disable xUnit2013
         Assert.Equal(0, list.Count);
+#pragma warning restore xUnit2013
         Assert.False(list.IsReadOnly);
     }
 
@@ -50,7 +52,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     {
         // ReSharper disable once CollectionNeverUpdated.Local
         var list = new FrugalList<T>();
+#pragma warning disable xUnit2013
         Assert.Equal(0, list.Count);
+#pragma warning restore xUnit2013
         Assert.False(list.IsReadOnly);
     }
 
@@ -60,7 +64,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
         var t = CreateT(0);
         // ReSharper disable once CollectionNeverUpdated.Local
         var list = new FrugalList<T>(t);
+#pragma warning disable xUnit2013
         Assert.Equal(1, list.Count);
+#pragma warning restore xUnit2013
         Assert.Equal(t, list[0]);
         Assert.False(list.IsReadOnly);
     }
@@ -264,9 +270,9 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     [MemberData(nameof(ValidCollectionSizes))]
     public void ToList(int count)
     {
-        var enumerable = CreateEnumerable(null, count, 0, 0);
+        var enumerable = CreateEnumerable(null, count, 0, 0).ToList();
         var list = new FrugalList<T>(enumerable);
-        Assert.Equal(enumerable.ToList(), list.ToList());
+        Assert.Equal(enumerable, list.ToList());
     }
 
 
@@ -327,7 +333,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     public void GetEnumerator(int _, int enumerableLength, int __, int numberOfDuplicateElements)
  #pragma warning restore xUnit1026
     {
-        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
         var list = new FrugalList<T>(enumerable);
 
         var actualList = new List<T>();
@@ -336,7 +342,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
         while (enumerator.MoveNext())
             actualList.Add(enumerator.Current);
 
-        Assert.Equal(enumerable.ToList(), actualList);
+        Assert.Equal(enumerable, actualList);
     }
 
     #endregion

@@ -40,7 +40,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
  #pragma warning disable xUnit2002
         Assert.NotNull(ReadOnlyFrugalList<T>.Empty);
  #pragma warning restore xUnit2002
+#pragma warning disable xUnit2013
         Assert.Equal(0, ReadOnlyFrugalList<T>.Empty.Count);
+#pragma warning restore xUnit2013
         Assert.Equal(ReadOnlyFrugalList<T>.Empty, ReadOnlyFrugalList<T>.Empty);
     }
 
@@ -59,7 +61,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     {
         var t = CreateT(0);
         var list = new ReadOnlyFrugalList<T>(t);
+#pragma warning disable xUnit2013
         Assert.Equal(1, list.Count);
+#pragma warning restore xUnit2013
         Assert.Equal(t, list[0]);
     }
 
