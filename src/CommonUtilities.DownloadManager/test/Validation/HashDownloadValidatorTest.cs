@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
 
-public class HashDownloadValidatorTest : CommonTestBase
+public class HashDownloadValidatorTest : TestBaseWithFileSystem
 {
     protected override void SetupServices(IServiceCollection serviceCollection)
     {
@@ -76,14 +76,14 @@ public class HashDownloadValidatorTest : CommonTestBase
     public async Task Validate_NullStream_Throws()
     {
         var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await validator.Validate(null!, 0));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await validator.ValidateAsync(null!, 0, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Validate_NoneHashType()
     {
         var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
-        var result = await validator.Validate(new MemoryStream(new byte[3]), 0);
+        var result = await validator.ValidateAsync(new MemoryStream(new byte[3]), 0, TestContext.Current.CancellationToken);
         Assert.True(result);
     }
 
@@ -92,7 +92,7 @@ public class HashDownloadValidatorTest : CommonTestBase
     {
         var validator = new HashDownloadValidator(null, HashTypeKey.None, ServiceProvider);
         await Assert.ThrowsAsync<NotSupportedException>(async () =>
-            await validator.Validate(new NonSeekableStream(), 0));
+            await validator.ValidateAsync(new NonSeekableStream(), 0, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -110,7 +110,7 @@ public class HashDownloadValidatorTest : CommonTestBase
 
         // notExpectedHash is always empty
         var validator = new HashDownloadValidator(notExpectedHash, hashType, ServiceProvider);
-        var result = await validator.Validate(dlStream, actualDownloadedBytes);
+        var result = await validator.ValidateAsync(dlStream, actualDownloadedBytes, TestContext.Current.CancellationToken);
         Assert.False(result);
     }
 
@@ -138,7 +138,7 @@ public class HashDownloadValidatorTest : CommonTestBase
         var expectedHash = ConvertHexStringToByteArray(expectedHashString);
 
         var validator = new HashDownloadValidator(expectedHash, hashType, ServiceProvider);
-        var result = await validator.Validate(dlStream, actualDownloadedBytes);
+        var result = await validator.ValidateAsync(dlStream, actualDownloadedBytes, TestContext.Current.CancellationToken);
         Assert.True(result);
 
         if (hashType != HashTypeKey.None) 
@@ -163,37 +163,22 @@ public class HashDownloadValidatorTest : CommonTestBase
     }
 
 
-    class NonSeekableStream : Stream
+    private class NonSeekableStream : Stream
     {
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-
         public override bool CanRead => false;
         public override bool CanSeek => false;
         public override bool CanWrite => false;
         public override long Length => 0;
         public override long Position { get; set; }
+
+        public override void Flush() => throw new NotImplementedException();
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotImplementedException();
+
+        public override void SetLength(long value) => throw new NotImplementedException();
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotImplementedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
     }
 }

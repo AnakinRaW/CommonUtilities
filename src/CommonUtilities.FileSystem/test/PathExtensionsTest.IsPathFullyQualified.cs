@@ -1,6 +1,6 @@
-﻿using AnakinRaW.CommonUtilities.Testing;
-using System;
+﻿using System;
 using System.IO.Abstractions;
+using AnakinRaW.CommonUtilities.Testing.Attributes;
 using Testably.Abstractions;
 using Xunit;
 
@@ -13,6 +13,7 @@ public class IsPathFullyQualifiedTest
     [Fact]
     public void IsPathFullyQualified_NullArgument()
     {
+        // ReSharper disable once RedundantCast
         Assert.Throws<ArgumentNullException>(() => _fileSystem.Path.IsPathFullyQualified(((string?)null)!));
     }
 

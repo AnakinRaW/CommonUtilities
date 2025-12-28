@@ -29,7 +29,11 @@ public abstract class DisposableObject : IDisposable
     /// </summary>
     public bool IsDisposed { get; private set; }
 
-    /// <inheritdoc cref="Finalize"/>
+    /// <summary>
+    /// Finalizer for the <see cref="DisposableObject"/> class.
+    /// Ensures that unmanaged resources are released when the object is garbage collected,
+    /// if they have not already been released by calling <see cref="Dispose()"/>.
+    /// </summary>
     ~DisposableObject()
     {
         Dispose(false);

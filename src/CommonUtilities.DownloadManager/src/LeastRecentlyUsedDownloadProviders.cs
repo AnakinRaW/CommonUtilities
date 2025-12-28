@@ -27,6 +27,7 @@ internal class LeastRecentlyUsedDownloadProviders
             if (value == null)
                 return;
             field = value;
+            // ReSharper disable once InconsistentlySynchronizedField
             _preferredProviders.AddOrUpdate(value, 1, (_, existingVal) => ++existingVal);
         }
     }

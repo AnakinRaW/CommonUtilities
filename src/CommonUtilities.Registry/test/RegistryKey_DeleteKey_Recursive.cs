@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Extensions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;

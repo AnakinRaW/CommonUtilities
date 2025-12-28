@@ -110,7 +110,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_DefaultKey_DefaultValue(int count)
+    public void Add_DefaultKey_DefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.Count;
@@ -132,7 +132,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_DefaultKey_NonDefaultValue(int count)
+    public void Add_DefaultKey_NonDefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.Count;
@@ -154,7 +154,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_NonDefaultKey_DefaultValue(int count)
+    public void Add_NonDefaultKey_DefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.Count;
@@ -169,7 +169,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_NonDefaultKey_NonDefaultValue(int count)
+    public void Add_NonDefaultKey_NonDefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.Count;
@@ -184,7 +184,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_DuplicateValue(int count)
+    public void Add_DuplicateValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var seed = 321;
@@ -198,7 +198,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_DuplicateKey_AddsToList(int count)
+    public void Add_DuplicateKey_AddsToList(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var duplicateKey = GetNewKey(dictionary);
@@ -215,9 +215,9 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Add_DistinctValuesWithHashCollisions(int count)
+    public void Add_DistinctValuesWithHashCollisions(int count)
     {
-        var dictionary = IValueListDictionaryFactory(new EqualityComparerConstantHashCode<TKey>(EqualityComparer<TKey>.Default));
+        var dictionary = IValueListDictionaryFactory(new ConstantHashCodeEqualityComparer<TKey>(EqualityComparer<TKey>.Default));
         AddToCollection(dictionary, count);
         Assert.Equal(count, dictionary.KeyCount);
     }
@@ -228,7 +228,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Remove_EveryKey(int count)
+    public void Remove_EveryKey(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         Assert.All(dictionary.Keys.ToList(), key =>
@@ -240,7 +240,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Remove_ValidKeyNotContainedInDictionary(int count)
+    public void Remove_ValidKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -250,7 +250,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Remove_ValidKeyContainedInDictionary(int count)
+    public void Remove_ValidKeyContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -261,7 +261,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Remove_DefaultKeyNotContainedInDictionary(int count)
+    public void Remove_DefaultKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         if (DefaultValueAllowed)
@@ -279,7 +279,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_Remove_DefaultKeyContainedInDictionary(int count)
+    public void Remove_DefaultKeyContainedInDictionary(int count)
     {
         if (DefaultValueAllowed)
         {
@@ -296,7 +296,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_Everything(int count)
+    public void RemoveKeyValue_Everything(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         Assert.All(dictionary.Keys.ToList(), key =>
@@ -309,7 +309,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_ValidKeyNotContainedInDictionary(int count)
+    public void RemoveKeyValue_ValidKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -319,7 +319,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_ValidKeyContainedInDictionary(int count)
+    public void RemoveKeyValue_ValidKeyContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -331,7 +331,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_ValidKeyContainedInDictionary_ValueNotContained(int count)
+    public void RemoveKeyValue_ValidKeyContainedInDictionary_ValueNotContained(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -349,7 +349,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_ValidKeyContainedInDictionary_DuplicateValues(int count)
+    public void RemoveKeyValue_ValidKeyContainedInDictionary_DuplicateValues(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -366,7 +366,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_DefaultKeyNotContainedInDictionary(int count)
+    public void RemoveKeyValue_DefaultKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         if (DefaultValueAllowed)
@@ -384,7 +384,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_RemoveKeyValue_DefaultKeyContainedInDictionary(int count)
+    public void RemoveKeyValue_DefaultKeyContainedInDictionary(int count)
     {
         if (DefaultValueAllowed)
         {

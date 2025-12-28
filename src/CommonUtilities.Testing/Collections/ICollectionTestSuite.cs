@@ -1,5 +1,11 @@
+using AnakinRaW.CommonUtilities.Testing.Extensions;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Collections;
 
@@ -12,20 +18,80 @@ namespace AnakinRaW.CommonUtilities.Testing.Collections;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
 {
+    /// <summary>
+    /// Gets the <see cref="Type"/> of the exception that is expected to be thrown
+    /// when attempting to copy elements of the collection to an array with a starting index
+    /// larger than the array's length.
+    /// </summary>
+    /// <remarks>
+    /// By default, this property returns <see cref="ArgumentException"/>.
+    /// Override this property in derived classes to specify a different exception type
+    /// if the behavior differs.
+    /// </remarks>
     protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
 
+    /// <summary>
+    /// Gets a collection of values that are considered invalid for the test suite.
+    /// </summary>
+    /// <remarks>
+    /// These values are used in various test cases to validate the behavior of the collection
+    /// when handling invalid inputs. The specific definition of "invalid" depends on the context
+    /// of the test suite and the type parameter <typeparamref name="T"/>.
+    /// </remarks>
     protected virtual IEnumerable<T> InvalidValues => [];
 
+    /// <summary>
+    /// Gets a value indicating whether the default value of the type <typeparamref name="T"/> is allowed
+    /// to be added to the collection.
+    /// </summary>
+    /// <remarks>
+    /// This property determines whether operations involving the default value of <typeparamref name="T"/>
+    /// (e.g., adding or checking for the default value) are valid within the collection.
+    /// </remarks>
+    /// <value>
+    /// <see langword="true"/> if the default value of <typeparamref name="T"/> is allowed in the collection; otherwise, <see langword="false"/>.
+    /// </value>
     protected virtual bool DefaultValueAllowed => true;
 
+    /// <summary>
+    /// Gets a value indicating whether the <c>Add</c>, <c>Remove</c>, and <c>Clear</c> operations 
+    /// are expected to throw a <see cref="NotSupportedException"/> in the collection.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the <c>Add</c>, <c>Remove</c>, and <c>Clear</c> operations 
+    /// are not supported and should throw a <see cref="NotSupportedException"/>; otherwise, <see langword="false"/>.
+    /// </value>
     protected virtual bool AddRemoveClear_ThrowsNotSupported => false;
 
+    /// <summary>
+    /// Indicates whether the collection supports storing duplicate values.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the collection allows multiple instances of the same value; otherwise, <see langword="false"/>.
+    /// </value>
     protected virtual bool DuplicateValuesAllowed => true;
 
+    /// <summary>
+    /// Gets a value indicating whether the collection is read-only.
+    /// </summary>
+    /// <remarks>
+    /// A read-only collection does not allow the addition, removal, or modification of elements
+    /// after the collection is created. This property can be overridden to specify whether the
+    /// collection is read-only in derived classes.
+    /// </remarks>
+    /// <value>
+    /// <see langword="true"/> if the collection is read-only; otherwise, <see langword="false"/>.
+    /// </value>
     protected virtual bool IsReadOnly => false;
 
-    protected virtual bool IsReadOnly_ValidityValue => IsReadOnly;
-
+    /// <summary>
+    /// Gets a value indicating whether an exception is thrown when attempting to use the default value
+    /// in a collection where default values are not allowed.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if an exception is thrown when the default value is used in such a collection; 
+    /// otherwise, <see langword="false"/>.
+    /// </value>
     protected virtual bool DefaultValueWhenNotAllowed_Throws => true;
 
     /// <summary>
@@ -76,6 +142,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         }
     }
 
+    /// <inheritdoc />
     protected override IEnumerable<T> GenericIEnumerableFactory(int count)
     {
         return GenericICollectionFactory(count);
@@ -93,6 +160,11 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         return collection;
     }
 
+    /// <summary>
+    /// Adds a specified number of items to the given collection.
+    /// </summary>
+    /// <param name="collection">The collection to which items will be added.</param>
+    /// <param name="numberOfItemsToAdd">The number of items to add to the collection.</param>
     protected virtual void AddToCollection(ICollection<T> collection, int numberOfItemsToAdd)
     {
         var seed = 9600;
@@ -106,17 +178,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         }
     }
 
-    #region IsReadOnly
-
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void ICollection_Generic_IsReadOnly_Validity(int count)
-    {
-        var collection = GenericICollectionFactory(count);
-        Assert.Equal(IsReadOnly_ValidityValue, collection.IsReadOnly);
-    }
-
-    #endregion
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     #region Count
 
@@ -241,7 +303,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
 
             collection.Add(toAdd);
             items.Add(toAdd);
-            CollectionAsserts.EqualUnordered(items, collection);
+            Assert.EqualUnordered(items, collection);
         }
     }
 
@@ -604,7 +666,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         {
             var seed = count * 251;
             var collection = GenericICollectionFactory(count);
-            var value = CreateT(seed++);
+            var value = CreateT(++seed);
             if (!collection.Contains(value))
             {
                 collection.Add(value);
@@ -623,7 +685,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         {
             var seed = count * 90;
             var collection = GenericICollectionFactory(count);
-            var value = CreateT(seed++);
+            var value = CreateT(++seed);
             collection.Add(value);
             collection.Add(value);
             count += 2;
@@ -671,4 +733,6 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
     }
 
     #endregion
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

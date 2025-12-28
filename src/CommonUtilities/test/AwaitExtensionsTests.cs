@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Attributes;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
@@ -14,7 +14,7 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task WaitForExitAsync_NullArgument()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => AwaitExtensions.WaitForExitAsync(null!, TestContext.Current.CancellationToken));
     }
 
     [PlatformSpecificFact(TestPlatformIdentifier.Windows)]
@@ -26,7 +26,7 @@ public class AwaitExtensionsTests
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
-        await AwaitExtensions.WaitForExitAsync(p);
+        await p.WaitForExitAsync();
         Assert.Equal(55, p.ExitCode);
     }
 
@@ -40,7 +40,7 @@ public class AwaitExtensionsTests
                 WindowStyle = ProcessWindowStyle.Hidden,
             })!;
         p.WaitForExit();
-        var t = AwaitExtensions.WaitForExitAsync(p);
+        var t = p.WaitForExitAsync();
         Assert.True(t.IsCompleted);
         Assert.Equal(55, p.ExitCode);
     }
@@ -52,7 +52,7 @@ public class AwaitExtensionsTests
         var process = new System.Diagnostics.Process();
         process.StartInfo.FileName = processName;
         process.StartInfo.CreateNoWindow = true;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => process.WaitForExitAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class AwaitExtensionsTests
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
         try
         {
-            var t = AwaitExtensions.WaitForExitAsync(p);
+            var t = p.WaitForExitAsync(TestContext.Current.CancellationToken);
             Assert.False(t.IsCompleted);
             p.Kill();
             await t;
@@ -107,7 +107,7 @@ public class AwaitExtensionsTests
         try
         {
             var cts = new CancellationTokenSource();
-            var t = AwaitExtensions.WaitForExitAsync(p, cts.Token);
+            var t = p.WaitForExitAsync(cts.Token);
             Assert.False(t.IsCompleted);
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(() => t);

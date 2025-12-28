@@ -89,7 +89,7 @@ public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase
             runner.AddStep(s3);
             Task.Delay(1000);
             runner.Finish();
-        });
+        }, TestContext.Current.CancellationToken);
 
         runner.Wait();
 
@@ -120,7 +120,7 @@ public class ParallelProducerConsumerStepRunnerTest : ParallelStepRunnerTestBase
             runner.AddStep(s3);
             runner.Finish();
 
-        }).Forget();
+        }, TestContext.Current.CancellationToken).Forget();
 
         await runTask;
         // Should not block

@@ -31,7 +31,7 @@ public class AggregatedProgressReporterTest_Class: AggregatedProgressReporterTes
     }
 }
 
-public abstract class AggregatedProgressReporterTestBase<T> : CommonTestBase where T : ITestInfo, new()
+public abstract class AggregatedProgressReporterTestBase<T> : TestBaseWithServiceProvider where T : ITestInfo, new()
 {
     private readonly TestProgressReporter<T> _internalReporter = new();
 

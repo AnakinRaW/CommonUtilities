@@ -274,7 +274,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_ContainsKey_ValidKeyNotContainedInDictionary(int count)
+    public void ContainsKey_ValidKeyNotContainedInDictionary(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -283,7 +283,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_ContainsKey_ValidKeyContainedInDictionary(int count)
+    public void ContainsKey_ValidKeyContainedInDictionary(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         if (count > 0)
@@ -302,7 +302,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_ContainsKey_DefaultKeyNotContainedInDictionary(int count)
+    public void ContainsKey_DefaultKeyNotContainedInDictionary(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         if (DefaultValueAllowed)
@@ -325,7 +325,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void IDictionary_Generic_ContainsKey_DefaultKeyContainedInDictionary(int count)
+    public void ContainsKey_DefaultKeyContainedInDictionary(int count)
     {
         if (DefaultValueAllowed && !IsReadOnly)
         {

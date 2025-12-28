@@ -4,7 +4,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
-public class StepErrorEventArgsTest : CommonTestBase
+public class StepErrorEventArgsTest : TestBaseWithServiceProvider
 {
     [Fact]
     public void Cancel()

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class WaitStepTest : CommonTestBase
+public class WaitStepTest : TestBaseWithServiceProvider
 {
     [Fact]
     public void Wait()

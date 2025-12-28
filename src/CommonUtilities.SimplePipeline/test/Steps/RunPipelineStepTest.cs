@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class RunPipelineStepTest : CommonTestBase
+public class RunPipelineStepTest : TestBaseWithServiceProvider
 {
     private class DelegatePipeline(Func<CancellationToken, Task> action, IServiceProvider serviceProvider) : Pipeline(serviceProvider)
     {

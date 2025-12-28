@@ -36,7 +36,7 @@ public class ParallelStepRunnerTest : ParallelStepRunnerTestBase<ParallelStepRun
 
         var b = new ManualResetEvent(false);
 
-        StepRunnerErrorEventArgs? error = null!;
+        StepRunnerErrorEventArgs? error = null;
         runner.Error += (_, e) =>
         {
             error = e;

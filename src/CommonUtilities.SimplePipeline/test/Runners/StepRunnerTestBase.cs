@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IStepRunner
+public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where T : class, IStepRunner
 {
     public abstract bool PreservesStepExecutionOrder { get; }
 
@@ -111,7 +111,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IS
         var step1 = new TestStep(_ =>
         {
             ranList.Add("Step1");
-            tsc.Wait();
+            tsc.Wait(TestContext.Current.CancellationToken);
         }, ServiceProvider);
         var step2 = new TestStep(_ => ranList.Add("Step2"), ServiceProvider);
         
@@ -148,7 +148,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IS
         var cts = new CancellationTokenSource();
         var step1 = new TestStep(_ =>
         {
-            Task.Delay(1000).Wait();
+            Task.Delay(1000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
             ranList.Add("Step1");
             cts.Cancel();
 
@@ -174,7 +174,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IS
     {
         var runner = CreateStepRunner(true);
 
-        StepRunnerErrorEventArgs? args = null!;
+        StepRunnerErrorEventArgs? args = null;
         runner.Error += (_, e) =>
         {
             args = e;
@@ -184,7 +184,7 @@ public abstract class StepRunnerTestBase<T> : CommonTestBase where T : class, IS
         var cts = new CancellationTokenSource();
         var step1 = new TestStep(_ =>
         {
-            Task.Delay(1000).Wait();
+            Task.Delay(1000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
             ranList.Add("Step1");
             cts.Cancel();
 

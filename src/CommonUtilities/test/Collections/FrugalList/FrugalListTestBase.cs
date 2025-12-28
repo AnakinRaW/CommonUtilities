@@ -46,6 +46,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     [Fact]
     public void Constructor_Empty()
     {
+        // ReSharper disable once CollectionNeverUpdated.Local
         var list = new FrugalList<T>();
         Assert.Equal(0, list.Count);
         Assert.False(list.IsReadOnly);
@@ -55,6 +56,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     public void Constructor_Single()
     {
         var t = CreateT(0);
+        // ReSharper disable once CollectionNeverUpdated.Local
         var list = new FrugalList<T>(t);
         Assert.Equal(1, list.Count);
         Assert.Equal(t, list[0]);
@@ -84,14 +86,13 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     public void Constructor_IEnumerable(int _, int enumerableLength, int __, int numberOfDuplicateElements)
  #pragma warning restore xUnit1026
     {
-        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
         var list = new FrugalList<T>(enumerable);
-        var expected = enumerable.ToList();
 
         Assert.Equal(enumerableLength, list.Count); //"Number of items in list do not match the number of items given."
 
         for (var i = 0; i < enumerableLength; i++)
-            Assert.Equal(expected[i], list[i]); //"Expected object in item array to be the same as in the list"
+            Assert.Equal(enumerable[i], list[i]); //"Expected object in item array to be the same as in the list"
 
         Assert.False(list.IsReadOnly); //"List should not be readonly"
     }
@@ -104,7 +105,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     {
         foreach (var modifyEnumerable in GetModifyEnumerables(ModifyEnumeratorThrows))
         {
-            var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+            var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
             var list = new FrugalList<T>(enumerable);
 
             if (modifyEnumerable(enumerable))
@@ -126,6 +127,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
     [MemberData(nameof(ValidCollectionSizes))]
     public void Boxing_ReflectsAllChanges(int count)
     {
+        // ReSharper disable PossibleMultipleEnumeration
         foreach (var modifyEnumerable in GetModifyEnumerables(ModifyEnumeratorThrows))
         {
             var source = GenericIEnumerableFactory(count);
@@ -134,6 +136,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
             if (modifyEnumerable(source))
                 Assert.Equal(source.ToList(), copy.ToList());
         }
+        // ReSharper restore PossibleMultipleEnumeration
     }
 
     [Theory]

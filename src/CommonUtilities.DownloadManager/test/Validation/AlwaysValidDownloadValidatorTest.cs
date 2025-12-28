@@ -11,7 +11,7 @@ public class AlwaysValidDownloadValidatorTest
     public async Task Validate_IsValid_NullStream_CancelledToken_NegativeBytes()
     {
         var validator = AlwaysValidDownloadValidator.Instance;
-        var result = await validator.Validate(null!, -1, new CancellationToken(true));
+        var result = await validator.ValidateAsync(null!, -1, new CancellationToken(true));
         Assert.True(result);
     }
 }

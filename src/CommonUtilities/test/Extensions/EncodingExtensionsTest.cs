@@ -145,8 +145,10 @@ public class EncodingExtensionsTest
 
         ForEachEncoding(e =>
         {
+            // ReSharper disable RedundantCast
             Assert.Throws<ArgumentNullException>(() => e.EncodeString((string)null!));
             Assert.Throws<ArgumentNullException>(() => e.EncodeString((string)null!, 0));
+            // ReSharper restore RedundantCast
         });
     }
 

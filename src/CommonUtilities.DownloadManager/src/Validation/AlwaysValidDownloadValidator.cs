@@ -19,7 +19,7 @@ public sealed class AlwaysValidDownloadValidator : IDownloadValidator
     }
 
     /// <inheritdoc />
-    public Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
+    public Task<bool> ValidateAsync(Stream stream, long downloadedBytes, CancellationToken token = default)
     {
         return Task.FromResult(true);
     }

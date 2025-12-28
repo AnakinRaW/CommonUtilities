@@ -188,12 +188,12 @@ public class DebugViewTests
 
         private static string FormatDebuggerDisplayNamedArgument(string argumentName, CustomAttributeData debuggerDisplayAttributeData, object obj)
         {
-            var namedAttribute = debuggerDisplayAttributeData.NamedArguments.FirstOrDefault(na => na.MemberName == argumentName);
+            var namedAttribute = debuggerDisplayAttributeData.NamedArguments!.FirstOrDefault(na => na.MemberName == argumentName);
             if (namedAttribute != default)
             {
                 var value = (string?)namedAttribute.TypedValue.Value;
                 if (!string.IsNullOrEmpty(value))
-                    return EvaluateDisplayString(value, obj);
+                    return EvaluateDisplayString(value!, obj);
             }
             return "";
         }

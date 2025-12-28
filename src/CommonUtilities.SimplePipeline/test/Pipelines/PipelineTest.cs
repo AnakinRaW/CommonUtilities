@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class PipelineTest : CommonTestBase
+public abstract class PipelineTest : TestBaseWithServiceProvider
 {
     protected abstract Pipeline CreatePipeline(IList<IStep> steps);
 
@@ -30,7 +30,7 @@ public abstract class PipelineTest : CommonTestBase
 
         Assert.True(pipeline.IsDisposed);
         await Assert.ThrowsAsync<ObjectDisposedException>(pipeline.PrepareAsync);
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -40,8 +40,8 @@ public abstract class PipelineTest : CommonTestBase
         var s = new TestStep(_ => { counter++; }, ServiceProvider);
         var pipeline = CreatePipeline([s]);
 
-        await pipeline.RunAsync();
-        await pipeline.RunAsync();
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
         
         Assert.Equal(1, counter);
     }
@@ -54,7 +54,7 @@ public abstract class PipelineTest : CommonTestBase
         var pipeline = CreatePipeline([s]);
 
         await pipeline.PrepareAsync();
-        await pipeline.RunAsync();
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, counter);
     }
 
@@ -82,7 +82,7 @@ public abstract class PipelineTest : CommonTestBase
         pipeline.Dispose();
 
         await Assert.ThrowsAsync<ObjectDisposedException>(pipeline.PrepareAsync);
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
 
         Assert.Equal(0, counter);
         Assert.False(pipeline.PipelineFailed);
@@ -98,7 +98,7 @@ public abstract class PipelineTest : CommonTestBase
         await pipeline.PrepareAsync();
         pipeline.Dispose();
 
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
         Assert.Equal(0, counter);
         Assert.False(pipeline.PipelineFailed);
     }

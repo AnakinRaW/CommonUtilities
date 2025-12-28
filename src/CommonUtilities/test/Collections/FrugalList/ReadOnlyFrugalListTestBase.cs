@@ -257,7 +257,7 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     [MemberData(nameof(ValidCollectionSizes))]
     public void ToList(int count)
     {
-        var enumerable = CreateEnumerable(null, count, 0, 0);
+        var enumerable = CreateEnumerable(null, count, 0, 0).ToList();
         var list = new FrugalList<T>(enumerable);
         Assert.Equal(enumerable.ToList(), list.ToList());
     }
@@ -320,7 +320,7 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     public void GetEnumerator(int _, int enumerableLength, int __, int numberOfDuplicateElements)
  #pragma warning restore xUnit1026
     {
-        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
         var list = new FrugalList<T>(enumerable);
 
         var actualList = new List<T>();

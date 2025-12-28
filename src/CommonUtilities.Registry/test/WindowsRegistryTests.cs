@@ -3,8 +3,8 @@
 using AnakinRaW.CommonUtilities.Registry.Windows;
 using Microsoft.Win32;
 using Xunit;
-using AnakinRaW.CommonUtilities.Testing;
 using System;
+using AnakinRaW.CommonUtilities.Testing.Attributes;
 
 
 #if NET

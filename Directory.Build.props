@@ -1,15 +1,19 @@
 <Project>
 	<PropertyGroup>
 		<RepoRootPath>$(MSBuildThisFileDirectory)</RepoRootPath>
-		<LangVersion>preview</LangVersion>
-		<ImplicitUsings>disable</ImplicitUsings>
 		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
 		<EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
 		<GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
 		<PackageOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\</PackageOutputPath>
 	</PropertyGroup>
 	<PropertyGroup>
-		<Product>.NET Common Utilities</Product>
+		<LangVersion>preview</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	</PropertyGroup>
+	<PropertyGroup>
+		<Product>AnakinRaW Common Utilities</Product>
 		<Copyright>Copyright © AnakinRaW 2025</Copyright>
 		<Authors>AnakinRaW</Authors>
 		<Owners>AnakinRaW</Owners>

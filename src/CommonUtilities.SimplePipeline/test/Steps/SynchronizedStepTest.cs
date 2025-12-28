@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class SynchronizedStepTest : CommonTestBase
+public class SynchronizedStepTest : TestBaseWithServiceProvider
 {
     [Fact]
     public void Wait_ThrowsTimeoutException()
@@ -60,7 +60,7 @@ public class SynchronizedStepTest : CommonTestBase
             flag = true;
         }, ServiceProvider);
 
-        Task.Run(() => step.Run(CancellationToken.None)).Forget();
+        Task.Run(() => step.Run(CancellationToken.None), TestContext.Current.CancellationToken).Forget();
        
         step.Wait();
 

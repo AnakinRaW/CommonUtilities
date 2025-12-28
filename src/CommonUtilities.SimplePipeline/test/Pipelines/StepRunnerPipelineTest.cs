@@ -15,7 +15,7 @@ public abstract class StepRunnerPipelineTest<T> : PipelineTest where T : IStepRu
     {
         var pipeline = CreatePipeline([], true);
 
-        await pipeline.RunAsync();
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
         Assert.False(pipeline.PipelineFailed);
     }
 
@@ -37,7 +37,7 @@ public abstract class StepRunnerPipelineTest<T> : PipelineTest where T : IStepRu
             await pipeline.PrepareAsync(); // Double prepare should have no effect
         }
 
-        await pipeline.RunAsync();
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, runCounter);
         Assert.False(pipeline.PipelineFailed);
     }
@@ -49,7 +49,7 @@ public abstract class StepRunnerPipelineTest<T> : PipelineTest where T : IStepRu
 
         var pipeline = CreatePipeline([s1], true);
 
-        var e = await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
+        var e = await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
         Assert.Equal("Step 'TestStep' failed with error: Test", e.Message);
         Assert.True(pipeline.PipelineFailed);
     }
@@ -63,7 +63,7 @@ public abstract class StepRunnerPipelineTest<T> : PipelineTest where T : IStepRu
 
         var pipeline = CreatePipeline([s1, s2], false);
 
-        var e = await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync());
+        var e = await Assert.ThrowsAsync<StepFailureException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
         Assert.Equal("Step 'TestStep' failed with error: Test", e.Message);
         Assert.True(pipeline.PipelineFailed);
         Assert.True(ran);

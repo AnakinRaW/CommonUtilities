@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Collections;
 
@@ -12,6 +16,15 @@ namespace AnakinRaW.CommonUtilities.Testing.Collections;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public abstract class IReadOnlyListTestSuite<T> : IReadOnlyCollectionTestSuite<T>
 {
+    /// <summary>
+    /// Gets the <see cref="Type"/> of the exception that is expected to be thrown
+    /// when accessing or modifying an <see cref="IList{T}"/> with an invalid index.
+    /// </summary>
+    /// <remarks>
+    /// By default, this property returns <see cref="ArgumentOutOfRangeException"/>.
+    /// Derived classes can override this property to specify a different exception type
+    /// if the behavior of the <see cref="IList{T}"/> implementation differs.
+    /// </remarks>
     protected virtual Type IList_Generic_Item_InvalidIndex_ThrowType => typeof(ArgumentOutOfRangeException);
 
     /// <summary>
@@ -31,20 +44,21 @@ public abstract class IReadOnlyListTestSuite<T> : IReadOnlyCollectionTestSuite<T
         return GenericIReadOnlyListFactory(baseCollection);
     }
 
+    /// <inheritdoc />
     protected override IReadOnlyCollection<T> GenericIReadOnlyCollectionFactory(IEnumerable<T> baseCollection)
     {
         return GenericIReadOnlyListFactory(baseCollection);
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
     #region FromEnumerable
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
- #pragma warning disable xUnit1026
     public void From_IEnumerable(int _, int enumerableLength, int __, int numberOfDuplicateElements)
- #pragma warning restore xUnit1026
     {
-        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
         var list = GenericIReadOnlyListFactory(enumerable);
 
         var expected = enumerable.ToList();
@@ -88,8 +102,10 @@ public abstract class IReadOnlyListTestSuite<T> : IReadOnlyCollectionTestSuite<T
         return;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void Sink(T _) { }
+        static void Sink(T _) { }
     }
 
     #endregion
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

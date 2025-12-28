@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Collections;
 
@@ -9,17 +13,45 @@ namespace AnakinRaW.CommonUtilities.Testing.Collections;
 /// </summary>
 public abstract class CollectionsTestSuite
 {
+    /// <summary>
+    /// Represents a set of operations that can modify a collection during testing.
+    /// </summary>
     [Flags]
     public enum ModifyOperation
     {
+        /// <summary>
+        /// Represents the absence of any modification operation on a collection.
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// Represents an operation that adds an element from a collection. 
+        /// </summary>
         Add = 1,
+        /// <summary>
+        /// Represents an operation that inserts an element from a collection. 
+        /// </summary>
         Insert = 2,
+        /// <summary>
+        /// Represents an operation that overwrites an existing element in a collection.
+        /// </summary>
         Overwrite = 4,
+        /// <summary>
+        /// Represents an operation that removes an element from a collection.
+        /// </summary>
         Remove = 8,
+        /// <summary>
+        /// Represents an operation that clears all elements from a collection.
+        /// </summary>
         Clear = 16
     }
 
+    /// <summary>
+    /// Provides a collection of valid sizes for testing collections.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of object arrays, where each array contains 
+    /// a single integer representing a valid collection size.
+    /// </returns>
     public static IEnumerable<object[]> ValidCollectionSizes()
     {
         yield return [0];
@@ -27,6 +59,20 @@ public abstract class CollectionsTestSuite
         yield return [75];
     }
     
+    /// <summary>
+    /// Provides test data for enumerable-related test cases.
+    /// </summary>
+    /// <remarks>
+    /// This method generates a variety of enumerable configurations to test different scenarios, 
+    /// including empty enumerables, enumerables of varying sizes, and enumerables with duplicate or matching elements.
+    /// </remarks>
+    /// <returns>
+    /// A collection of test data, where each element is an array of objects containing the following:
+    /// - The size of the original collection.
+    /// - The size of the enumerable to be tested.
+    /// - The number of matching elements between the original collection and the enumerable.
+    /// - The number of duplicate elements in the enumerable.
+    /// </returns>
     public static IEnumerable<object[]> GetEnumerableTestData()
     {
         foreach (var collectionSizeArray in ValidCollectionSizes())
@@ -131,7 +177,7 @@ public abstract class CollectionsTestSuite<T> : CollectionsTestSuite
                 list.Add(toAdd);
         }
 
-        // Validate that the Enumerable fits the guidelines as expected
+        // ValidateAsync that the Enumerable fits the guidelines as expected
         Debug.Assert(list.Count == count);
         if (match != null)
         {

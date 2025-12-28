@@ -1,15 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<Title>CommonUtilities.SimplePipeline</Title>
+		<PackageId>AnakinRaW.CommonUtilities.SimplePipeline</PackageId>
 		<Description>Implements pipeline runners to run steps synchronized or in parallel.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
-		<Nullable>enable</Nullable>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<IsPackable>true</IsPackable>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>			
 		<RootNamespace>AnakinRaW.CommonUtilities.SimplePipeline</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline</AssemblyName>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 	
 	<PropertyGroup>

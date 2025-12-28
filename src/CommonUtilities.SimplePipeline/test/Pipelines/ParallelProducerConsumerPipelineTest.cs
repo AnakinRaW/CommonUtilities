@@ -16,7 +16,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
         
         var s1 = new TestStep(_ =>
         {
-            Task.Delay(3000).Wait();
+            Task.Delay(3000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
             tcs.SetResult(0);
         }, ServiceProvider);
 
@@ -28,7 +28,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
 
         var pipeline = CreateConsumerPipeline(ValueFunction());
 
-        await pipeline.RunAsync();
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.True(s2Run);
 
@@ -61,7 +61,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
 
         var pipeline = CreateConsumerPipeline(ValueFunction(), failFast);
 
-        var task = Assert.ThrowsAsync<ApplicationException>(async () => await pipeline.RunAsync());
+        var task = Assert.ThrowsAsync<ApplicationException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
 
         if (failFast) 
             await task;
@@ -118,7 +118,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
 
         var s1 = new TestStep(_ =>
         {
-            Task.Delay(3000).Wait();
+            Task.Delay(3000, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
             tcs.SetResult(0);
         }, ServiceProvider);
 
@@ -141,7 +141,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTest
             yield return s1;
             await tcs.Task;
             cts.Cancel();
-            await Task.Delay(1000);
+            await Task.Delay(1000, TestContext.Current.CancellationToken);
             yield return s2;
         }
     }

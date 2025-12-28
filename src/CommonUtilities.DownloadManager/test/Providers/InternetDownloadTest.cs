@@ -28,7 +28,7 @@ public abstract class InternetDownloadTest : DownloadProviderTestBase
             UserAgent = "AnakinRaw.DownloadManager.Test"
         };
 
-        var result = await Download(source, outStream, options);
+        var result = await TestDownloadAsync(source, outStream, options, TestContext.Current.CancellationToken);
         Assert.True(result.DownloadedSize > 0);
         Assert.Equal(result.DownloadedSize, outStream.Length);
     }
@@ -39,7 +39,7 @@ public abstract class InternetDownloadTest : DownloadProviderTestBase
         var outStream = new MemoryStream();
         var source = new Uri("https://api.github.com/repos/AnakinRaW/CommonUtilities/releases/latest");
 
-        var exception = await Assert.ThrowsAnyAsync<Exception>(async () => await Download(source, outStream, null));
+        var exception = await Assert.ThrowsAnyAsync<Exception>(async () => await TestDownloadAsync(source, outStream, null, TestContext.Current.CancellationToken));
         AssertRequiredUserAgentMissingException(exception);
     }
 }

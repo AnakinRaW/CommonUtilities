@@ -81,10 +81,10 @@ public class HashingServiceTest
         var someDestination = new byte[1];
         var someStream = new MemoryStream(someSource);
 
-        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider));
-        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider));
-        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(someStream, notExistingProvider));
-        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider));
+        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(someStream, notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<HashProviderNotFoundException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider, TestContext.Current.CancellationToken));
     }
 
 
@@ -115,8 +115,8 @@ public class HashingServiceTest
         var someDestination = Array.Empty<byte>();
         var someStream = new MemoryStream(someSource);
 
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), provider));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), provider));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), provider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), provider, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -181,10 +181,10 @@ public class HashingServiceTest
         var someDestination = new byte[2];
         var someStream = new MemoryStream(someSource);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, notExistingProvider));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), someDestination.AsMemory(), notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, someDestination.AsMemory(), notExistingProvider, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await _hashingService.GetHashAsync(someStream, notExistingProvider, TestContext.Current.CancellationToken));
     }
 
 
@@ -240,14 +240,14 @@ public class HashingServiceTest
         var expectedHashExact = new byte[] { 1 };
         var expectedHashJoint = new byte[] { 1, 0 };
 
-        Assert.Equal(expectedHashExact, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), provider));
+        Assert.Equal(expectedHashExact, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), provider, TestContext.Current.CancellationToken));
 
-        Assert.Equal(1, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), destination.AsMemory(), provider));
+        Assert.Equal(1, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), destination.AsMemory(), provider, TestContext.Current.CancellationToken));
         Assert.Equal(expectedHashJoint, destination);
 
-        Assert.Equal(expectedHashExact, await _hashingService.GetHashAsync(someStream, provider));
+        Assert.Equal(expectedHashExact, await _hashingService.GetHashAsync(someStream, provider, TestContext.Current.CancellationToken));
 
-        Assert.Equal(1, await _hashingService.GetHashAsync(someStream, destination.AsMemory(), provider));
+        Assert.Equal(1, await _hashingService.GetHashAsync(someStream, destination.AsMemory(), provider, TestContext.Current.CancellationToken));
         Assert.Equal(expectedHashJoint, destination);
     }
 
@@ -324,16 +324,16 @@ public class HashingServiceTest
         var someStream = new MemoryStream(someSource);
         var destination = new byte[expectedSize];
 
-        Assert.Equal(expectedHash, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), hashType));
+        Assert.Equal(expectedHash, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), hashType, TestContext.Current.CancellationToken));
 
-        Assert.Equal(expectedSize, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), destination.AsMemory(), hashType));
+        Assert.Equal(expectedSize, await _hashingService.GetHashAsync(_fileSystem.FileInfo.New("test.txt"), destination.AsMemory(), hashType, TestContext.Current.CancellationToken));
         Assert.Equal(expectedHash, destination);
 
-        Assert.Equal(expectedHash, await _hashingService.GetHashAsync(someStream, hashType));
+        Assert.Equal(expectedHash, await _hashingService.GetHashAsync(someStream, hashType, TestContext.Current.CancellationToken));
 
         someStream.Seek(0, SeekOrigin.Begin);
 
-        Assert.Equal(expectedSize, await _hashingService.GetHashAsync(someStream, destination.AsMemory(), hashType));
+        Assert.Equal(expectedSize, await _hashingService.GetHashAsync(someStream, destination.AsMemory(), hashType, TestContext.Current.CancellationToken));
         Assert.Equal(expectedHash, destination);
     }
 
