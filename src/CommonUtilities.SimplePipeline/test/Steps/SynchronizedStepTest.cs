@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class SynchronizedStepTest : CommonTestBase
+public class SynchronizedStepTest : TestBaseWithServiceProvider
 {
     [Fact]
     public void Wait_ThrowsTimeoutException()

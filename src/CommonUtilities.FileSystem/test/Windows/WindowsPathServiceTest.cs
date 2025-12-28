@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Security.AccessControl;
 using AnakinRaW.CommonUtilities.FileSystem.Windows;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Attributes;
 using Testably.Abstractions;
 using Xunit;
 #if NET

@@ -15,7 +15,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class DownloadManagerTest : CommonTestBase
+public class DownloadManagerTest : TestBaseWithFileSystem
 {
     private const string Destination = "file.txt";
 

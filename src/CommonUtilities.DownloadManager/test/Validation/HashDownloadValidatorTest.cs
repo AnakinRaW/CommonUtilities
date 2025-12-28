@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Validation;
 
-public class HashDownloadValidatorTest : CommonTestBase
+public class HashDownloadValidatorTest : TestBaseWithFileSystem
 {
     protected override void SetupServices(IServiceCollection serviceCollection)
     {

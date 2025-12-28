@@ -217,7 +217,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     [MemberData(nameof(ValidCollectionSizes))]
     public void IDictionary_Generic_Add_DistinctValuesWithHashCollisions(int count)
     {
-        var dictionary = IValueListDictionaryFactory(new EqualityComparerConstantHashCode<TKey>(EqualityComparer<TKey>.Default));
+        var dictionary = IValueListDictionaryFactory(new ConstantHashCodeEqualityComparer<TKey>(EqualityComparer<TKey>.Default));
         AddToCollection(dictionary, count);
         Assert.Equal(count, dictionary.KeyCount);
     }

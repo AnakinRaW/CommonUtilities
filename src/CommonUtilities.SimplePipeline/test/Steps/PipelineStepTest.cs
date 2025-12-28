@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class PipelineStepTest : CommonTestBase
+public class PipelineStepTest : TestBaseWithServiceProvider
 {
     [Fact]
     public void Ctor_NullArgs_Throws()

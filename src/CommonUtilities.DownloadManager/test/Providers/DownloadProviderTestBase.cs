@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test.Providers;
 
-public abstract class DownloadProviderTestBase : CommonTestBase
+public abstract class DownloadProviderTestBase : TestBaseWithFileSystem
 {
     protected abstract Type ExpectedSourceNotFoundExceptionType { get; }
 

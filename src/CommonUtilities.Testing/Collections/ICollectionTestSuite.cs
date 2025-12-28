@@ -1,3 +1,4 @@
+using AnakinRaW.CommonUtilities.Testing.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -246,7 +247,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
 
             collection.Add(toAdd);
             items.Add(toAdd);
-            CollectionAsserts.EqualUnordered(items, collection);
+            Assert.EqualUnordered(items, collection);
         }
     }
 

@@ -1,5 +1,5 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Extensions;
 using System;
 using System.Collections.Generic;
 using Xunit;

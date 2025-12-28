@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Extensions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
