@@ -1,15 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<Title>CommonUtilities.Registry</Title>
+		<PackageId>AnakinRaW.CommonUtilities.Registry</PackageId>
 		<Description>Platform independent abstraction layer for the Windows Registry.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.Registry</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.Registry</AssemblyName>
-		<Nullable>enable</Nullable>
-		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<PropertyGroup>

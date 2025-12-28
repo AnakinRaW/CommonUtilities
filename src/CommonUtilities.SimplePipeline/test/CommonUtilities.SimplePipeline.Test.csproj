@@ -12,10 +12,6 @@
 		<AssemblyName>AnakinRaW.CommonUtilities.SimplePipeline.Test</AssemblyName>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1">
 		  <PrivateAssets>all</PrivateAssets>

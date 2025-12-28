@@ -1,4 +1,6 @@
-﻿namespace AnakinRaW.CommonUtilities.Testing;
+﻿using System.Collections.Generic;
+
+namespace AnakinRaW.CommonUtilities.Testing;
 
 public sealed class EqualityComparerConstantHashCode<T>(IEqualityComparer<T> comparer) : IEqualityComparer<T>
 {

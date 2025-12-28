@@ -1,4 +1,8 @@
-﻿namespace AnakinRaW.CommonUtilities.Testing;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+namespace AnakinRaW.CommonUtilities.Testing;
 
 internal class CollectionAsserts
 {
@@ -6,9 +10,7 @@ internal class CollectionAsserts
     {
         Assert.Equal(expected == null, actual == null);
         if (expected == null)
-        {
             return;
-        }
 
         // Lookups are an aggregated collections (enumerable contents), but ordered.
         var e = expected.Cast<object>().ToLookup(key => key);

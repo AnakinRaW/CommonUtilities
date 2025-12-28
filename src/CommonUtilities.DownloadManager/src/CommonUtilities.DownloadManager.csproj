@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<Title>CommonUtilities.DownloadManager</Title>
+		<PackageId>AnakinRaW.CommonUtilities.DownloadManager</PackageId>
 		<Description>Simple Download Manager supporting the local file system and HTTP downlaods.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net10.0</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.DownloadManager</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.DownloadManager</AssemblyName>
-		<Nullable>enable</Nullable>
-		<EnableNETAnalyzers>True</EnableNETAnalyzers>
-		<IsPackable>true</IsPackable>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<PropertyGroup>

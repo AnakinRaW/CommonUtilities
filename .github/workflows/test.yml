@@ -29,4 +29,4 @@ jobs:
               10.0.x
 
       - name: Build & Test in Release Mode
-        run: dotnet test --configuration Release --logger "GitHubActions"
+        run: dotnet test --configuration Release --report-github
