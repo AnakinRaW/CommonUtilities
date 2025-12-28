@@ -13,6 +13,7 @@ public class IsPathFullyQualifiedTest
     [Fact]
     public void IsPathFullyQualified_NullArgument()
     {
+        // ReSharper disable once RedundantCast
         Assert.Throws<ArgumentNullException>(() => _fileSystem.Path.IsPathFullyQualified(((string?)null)!));
     }
 

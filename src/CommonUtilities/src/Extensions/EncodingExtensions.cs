@@ -90,7 +90,7 @@ public static partial class EncodingExtensions
         if (encoding == null)
             throw new ArgumentNullException(nameof(encoding));
         var numMaxBytes = encoding.GetMaxByteCount(source.Length);
-        return EncodeString(encoding, source, destination, numMaxBytes);
+        return encoding.EncodeString(source, destination, numMaxBytes);
     }
 
     /// <summary>

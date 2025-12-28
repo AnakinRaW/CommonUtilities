@@ -20,7 +20,7 @@ public abstract class RegistryKeyExtensionsTestBase
     public async Task AwaitRegKeyChange()
     {
         using var test = CreateTestKey();
-        var changeWatcherTask = test.Key.WaitForChangeAsync();
+        var changeWatcherTask = test.Key.WaitForChangeAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(changeWatcherTask.IsCompleted);
         test.Key.SetValue("a", "b");
         await changeWatcherTask;
@@ -32,13 +32,13 @@ public abstract class RegistryKeyExtensionsTestBase
     public async Task AwaitRegKeyChange_CreateOtherUnrelatedKey_DoesNotNotify()
     {
         using var test = CreateTestKey();
-        var changeWatcherTask = test.Key.WaitForChangeAsync();
+        var changeWatcherTask = test.Key.WaitForChangeAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(changeWatcherTask.IsCompleted);
 
         using var other = CreateTestKey();
         other.Key.CreateSubKey("otherSub");
         
-        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
         Assert.NotSame(changeWatcherTask, completedTask);
     }
 
@@ -46,12 +46,12 @@ public abstract class RegistryKeyExtensionsTestBase
     public async Task AwaitRegKeyChange_SubkeyFilterDoesNotNotifyOnValueChanges()
     {
         using var test = CreateTestKey();
-        var changeWatcherTask = test.Key.WaitForChangeAsync(change: RegistryChangeNotificationFilters.Subkey);
+        var changeWatcherTask = test.Key.WaitForChangeAsync(change: RegistryChangeNotificationFilters.Subkey, cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(changeWatcherTask.IsCompleted);
         test.Key.SetValue("a", "b");
 
 
-        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
         Assert.NotSame(changeWatcherTask, completedTask);
     }
 
@@ -63,8 +63,8 @@ public abstract class RegistryKeyExtensionsTestBase
 
         try
         {
-            var changeWatcherTask1 = test.Key.WaitForChangeAsync();
-            var changeWatcherTask2 = test.Key.WaitForChangeAsync();
+            var changeWatcherTask1 = test.Key.WaitForChangeAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var changeWatcherTask2 = test.Key.WaitForChangeAsync(cancellationToken: TestContext.Current.CancellationToken);
             Assert.False(changeWatcherTask1.IsCompleted);
             Assert.False(changeWatcherTask2.IsCompleted);
 
@@ -89,7 +89,7 @@ public abstract class RegistryKeyExtensionsTestBase
         Assert.False(changeWatcherTask.IsCompleted);
 
         // Give a bit of time to confirm the task will not complete.
-        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+        var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
         Assert.NotSame(changeWatcherTask, completedTask);
     }
 
@@ -145,7 +145,7 @@ public abstract class RegistryKeyExtensionsTestBase
 
         try
         {
-            var changeWatcherTask = subKey.WaitForChangeAsync(watchSubtree: false ,change: filter);
+            var changeWatcherTask = subKey.WaitForChangeAsync(watchSubtree: false ,change: filter, TestContext.Current.CancellationToken);
             test.Key.DeleteKey(GetRegistryKeySubName(subKey.Name), false);
             await changeWatcherTask;
         }
@@ -212,7 +212,7 @@ public abstract class RegistryKeyExtensionsTestBase
             var changeWatcherTask = test.Key.WaitForChangeAsync(watchSubtree: watchSubtree, RegistryChangeNotificationFilters.Value, cancellationToken: test.FinishedToken);
             test.Key.DeleteKey(GetRegistryKeySubName(subKey.Name), false);
 
-            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
             Assert.NotSame(changeWatcherTask, completedTask);
         }
         finally
@@ -252,7 +252,7 @@ public abstract class RegistryKeyExtensionsTestBase
             var changeWatcherTask = test.Key.WaitForChangeAsync(watchSubtree: false, cancellationToken: test.FinishedToken);
             test.Key.DeleteKey("sub\\subsub", false);
 
-            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
             Assert.NotSame(changeWatcherTask, completedTask);
         }
         finally
@@ -271,7 +271,8 @@ public abstract class RegistryKeyExtensionsTestBase
         try
         {
             // Only watch for value changes, not tree changes, so we don't notify
-            var changeWatcherTask = subKey.WaitForChangeAsync(watchSubtree: false, RegistryChangeNotificationFilters.Value);
+            var changeWatcherTask = subKey.WaitForChangeAsync(watchSubtree: false,
+                RegistryChangeNotificationFilters.Value, cancellationToken: TestContext.Current.CancellationToken);
             // Delete the parent key
             test.Key.DeleteKey(string.Empty, true);
 
@@ -300,7 +301,7 @@ public abstract class RegistryKeyExtensionsTestBase
 
             // We do not expect changes to sub-keys to complete the task, so give a bit of time to confirm
             // the task doesn't complete.
-            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay));
+            var completedTask = await Task.WhenAny(changeWatcherTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
             Assert.NotSame(changeWatcherTask, completedTask);
         }
         finally
@@ -335,7 +336,7 @@ public abstract class RegistryKeyExtensionsTestBase
         Task watchingTask;
         using (var test = CreateTestKey())
         {
-            watchingTask = test.Key.WaitForChangeAsync();
+            watchingTask = test.Key.WaitForChangeAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
         // We expect the task to quietly complete (without throwing any exception).
@@ -382,7 +383,7 @@ public abstract class RegistryKeyExtensionsTestBase
             thread.Join();
 
             // Verify that the watching task is still watching.
-            var completedTask = await Task.WhenAny(watchingTask, Task.Delay(AsyncDelay));
+            var completedTask = await Task.WhenAny(watchingTask, Task.Delay(AsyncDelay, TestContext.Current.CancellationToken));
             Assert.NotSame(watchingTask, completedTask);
 
             test.CreateSubKey().Dispose();

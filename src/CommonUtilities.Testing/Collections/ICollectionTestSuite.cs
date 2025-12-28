@@ -610,7 +610,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         {
             var seed = count * 251;
             var collection = GenericICollectionFactory(count);
-            var value = CreateT(seed++);
+            var value = CreateT(++seed);
             if (!collection.Contains(value))
             {
                 collection.Add(value);
@@ -629,7 +629,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
         {
             var seed = count * 90;
             var collection = GenericICollectionFactory(count);
-            var value = CreateT(seed++);
+            var value = CreateT(++seed);
             collection.Add(value);
             collection.Add(value);
             count += 2;

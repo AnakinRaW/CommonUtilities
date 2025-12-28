@@ -70,7 +70,7 @@ public static class FileExtensions
         if (destination == null) 
             throw new ArgumentNullException(nameof(destination));
         
-        return MoveEx(source.FileSystem.File, source.FullName, destination, overwrite);
+        return source.FileSystem.File.MoveEx(source.FullName, destination, overwrite);
     }
 
     /// <summary>

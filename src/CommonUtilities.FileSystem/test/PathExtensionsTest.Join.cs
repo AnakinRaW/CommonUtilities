@@ -190,6 +190,8 @@ public class PathJoinTest
             { "a", null, null, "b", $"a{Sep}b" }
         };
 
+    // ReSharper disable RedundantExplicitParamsArrayCreation
+
     [Theory, MemberData(nameof(TestData_JoinFourPaths))]
     public void JoinFourPaths(string? path1, string? path2, string? path3, string? path4, string expected)
     {
@@ -247,4 +249,6 @@ public class PathJoinTest
         Assert.Equal(_fileSystem.Path.Join(fourJoined, fourJoined),
             _fileSystem.Path.Join((ReadOnlySpan<string?>)new[] { path1, path2, path3, path4, path1, path2, path3, path4 }));
     }
+
+    // ReSharper restore RedundantExplicitParamsArrayCreation
 }

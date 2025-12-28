@@ -65,7 +65,7 @@ public abstract class DownloadProviderTestBase : TestBaseWithFileSystem
 
         void Callback(DownloadUpdate status)
         {
-            Task.Delay(100).Wait();
+            Task.Delay(100, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
             callBackFired = true;
         }
     }

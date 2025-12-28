@@ -13,6 +13,7 @@ public class PathNormalizerTest
     {
         Assert.Throws<ArgumentNullException>(() =>
         {
+            // ReSharper disable once RedundantCast
             PathNormalizer.Normalize((string)null!, new PathNormalizeOptions());
         });
         Assert.Throws<ArgumentNullException>(() =>
