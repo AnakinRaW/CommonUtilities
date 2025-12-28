@@ -42,8 +42,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\CommonUtilities.TestingUtilities\CommonUtilities.Testing.csproj" />
 		<ProjectReference Include="..\src\CommonUtilities.Registry.csproj" />
+		<ProjectReference Include="..\..\CommonUtilities.Testing\CommonUtilities.Testing.csproj" />
 	</ItemGroup>
 
 </Project>
