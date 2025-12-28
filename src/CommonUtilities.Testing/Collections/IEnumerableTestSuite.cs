@@ -23,7 +23,13 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
     /// </summary>
     protected enum EnumerableOrder
     {
+        /// <summary>
+        /// Specifies that the enumerable returns in an unspecified order.
+        /// </summary>
         Unspecified,
+        /// <summary>
+        /// Specifies that the enumerable returns sequential.
+        /// </summary>
         Sequential
     }
 
@@ -121,8 +127,27 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
     /// </summary>
     protected virtual bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException;
 
+    /// <summary>
+    /// Gets the set of <see cref="CollectionsTestSuite.ModifyOperation"/> values that represent modifications to a collection
+    /// which are expected to throw an <see cref="InvalidOperationException"/> when performed during enumeration.
+    /// </summary>
+    /// <remarks>
+    /// This property defines the operations that are not allowed to be performed on a collection
+    /// while it is being enumerated. By default, it includes <see cref="CollectionsTestSuite.ModifyOperation.Add"/>, 
+    /// <see cref="CollectionsTestSuite.ModifyOperation.Insert"/>, <see cref="CollectionsTestSuite.ModifyOperation.Overwrite"/>, 
+    /// <see cref="CollectionsTestSuite.ModifyOperation.Remove"/>, and <see cref="CollectionsTestSuite.ModifyOperation.Clear"/>.
+    /// </remarks>
     protected virtual ModifyOperation ModifyEnumeratorThrows => ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
 
+    /// <summary>
+    /// Gets a value indicating the types of modification operations that are allowed on an enumerator
+    /// during enumeration without causing exceptions.
+    /// </summary>
+    /// <remarks>
+    /// This property specifies the set of <see cref="CollectionsTestSuite.ModifyOperation"/> flags that represent
+    /// the operations permitted on the enumerator while it is being enumerated. By default, no
+    /// modifications are allowed, as indicated by <see cref="CollectionsTestSuite.ModifyOperation.None"/>.
+    /// </remarks>
     protected virtual ModifyOperation ModifyEnumeratorAllowed => ModifyOperation.None;
 
     /// <summary>
@@ -276,6 +301,7 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
         }
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     #region GetEnumerator()
 
@@ -1157,4 +1183,6 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
     }
 
     #endregion
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

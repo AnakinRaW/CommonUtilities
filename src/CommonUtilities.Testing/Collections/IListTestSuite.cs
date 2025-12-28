@@ -17,6 +17,15 @@ namespace AnakinRaW.CommonUtilities.Testing.Collections;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public abstract class IListTestSuite<T> : ICollectionTestSuite<T> 
 {
+    /// <summary>
+    /// Gets the <see cref="Type"/> of the exception that is expected to be thrown
+    /// when accessing or modifying an <see cref="IList{T}"/> with an invalid index.
+    /// </summary>
+    /// <remarks>
+    /// By default, this property returns <see cref="ArgumentOutOfRangeException"/>.
+    /// Derived classes can override this property to specify a different exception type
+    /// if the behavior of the <see cref="IList{T}"/> implementation differs.
+    /// </remarks>
     protected virtual Type IList_Generic_Item_InvalidIndex_ThrowType => typeof(ArgumentOutOfRangeException);
 
     /// <summary>
@@ -94,15 +103,19 @@ public abstract class IListTestSuite<T> : ICollectionTestSuite<T>
         }
     }
 
+    /// <inheritdoc />
     protected override ICollection<T> GenericICollectionFactory()
     {
         return GenericIListFactory();
     }
 
+    /// <inheritdoc />
     protected override ICollection<T> GenericICollectionFactory(int count)
     {
         return GenericIListFactory(count);
     }
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     #region Item Getter
 
@@ -135,7 +148,7 @@ public abstract class IListTestSuite<T> : ICollectionTestSuite<T>
         return;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void Sink(T _) { }
+        static void Sink(T _) { }
     }
 
     #endregion
@@ -660,20 +673,6 @@ public abstract class IListTestSuite<T> : ICollectionTestSuite<T>
     }
 
     #endregion
-}
 
-/// <summary>
-/// Helper class to provide means to modify an enumerable, which is not the to be tested type.
-/// </summary>
-internal class ModifyEnumerableList<T>(Func<int, T> createT) : IListTestSuite<T>
-{
-    protected override T CreateT(int seed)
-    {
-        return createT(seed);
-    }
-
-    protected override IList<T> GenericIListFactory()
-    {
-        throw new NotImplementedException();
-    }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

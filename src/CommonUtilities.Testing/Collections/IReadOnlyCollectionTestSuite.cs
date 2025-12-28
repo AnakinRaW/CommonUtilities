@@ -19,6 +19,7 @@ public abstract class IReadOnlyCollectionTestSuite<T> : IEnumerableTestSuite<T>
     /// <returns>An instance of an <see cref="IReadOnlyCollection{T}"/> that can be used for testing.</returns>
     protected abstract IReadOnlyCollection<T> GenericIReadOnlyCollectionFactory(IEnumerable<T> baseCollection);
 
+    /// <inheritdoc />
     protected override IEnumerable<T> GenericIEnumerableFactory(int count)
     {
         return GenericIReadOnlyCollectionFactory(count);
@@ -35,10 +36,13 @@ public abstract class IReadOnlyCollectionTestSuite<T> : IEnumerableTestSuite<T>
         return GenericIReadOnlyCollectionFactory(collection);
     }
 
+    /// <inheritdoc />
     protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
     {
         yield break;
     }
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     #region Count
 
@@ -51,4 +55,6 @@ public abstract class IReadOnlyCollectionTestSuite<T> : IEnumerableTestSuite<T>
     }
 
     #endregion
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

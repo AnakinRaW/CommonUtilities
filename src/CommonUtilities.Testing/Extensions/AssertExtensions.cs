@@ -7,6 +7,9 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Extensions;
 
+/// <summary>
+/// Provides extension methods for the <see cref="Assert"/> class.
+/// </summary>
 public static class AssertExtensions
 {
     private static bool IsNetFramework => RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
@@ -41,6 +44,13 @@ public static class AssertExtensions
             Assert.DoesNotThrowException(() => action);
         }
 
+        /// <summary>
+        /// Verifies that the specified action throws an exception of the specified <see cref="ArgumentException"/> and that the exception's parameter name matches the expected value.
+        /// </summary>
+        /// <typeparam name="T">The type of the exception expected to be thrown.</typeparam>
+        /// <param name="expectedParamName">The expected name of the parameter that caused the exception.</param>
+        /// <param name="action">A delegate to the code expected to throw the exception.</param>
+        /// <returns>The exception that was thrown.</returns>
         public static T Throws<T>(string? expectedParamName, Action action) where T : ArgumentException
         {
             var exception = Assert.Throws<T>(action);
@@ -48,6 +58,14 @@ public static class AssertExtensions
             return exception;
         }
 
+        /// <summary>
+        /// Verifies that the specified action throws an exception of the specified <see cref="ArgumentException"/> and that the exception's parameter name matches the expected value.
+        /// </summary>
+        /// <typeparam name="T">The type of the exception expected to be thrown.</typeparam>
+        /// <param name="netCoreParamName">The expected name of the parameter that caused the exception when executing the test on .NET Core.</param>
+        /// <param name="netFxParamName">The expected name of the parameter that caused the exception when executing the test on .NET Framework.</param>
+        /// <param name="action">A delegate to the code expected to throw the exception.</param>
+        /// <returns>The exception that was thrown.</returns>
         public static T Throws<T>(string netCoreParamName, string? netFxParamName, Action action)
             where T : ArgumentException
         {
@@ -67,6 +85,11 @@ public static class AssertExtensions
 
         // From https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/System/Collections/CollectionAsserts.cs
 
+        /// <summary>
+        /// Verifies that two collections contain the same elements, regardless of order.
+        /// </summary>
+        /// <param name="expected">The expected collection.</param>
+        /// <param name="actual">The actual collection.</param>
         public static void EqualUnordered(ICollection expected, ICollection actual)
         {
             Assert.Equal(expected == null, actual == null);
@@ -86,6 +109,11 @@ public static class AssertExtensions
             Assert.Equal(e[null!].Count(), a[null!].Count());
         }
 
+        /// <summary>
+        /// Verifies that two collections contain the same elements, regardless of order.
+        /// </summary>
+        /// <param name="expected">The expected collection.</param>
+        /// <param name="actual">The actual collection.</param>
         public static void EqualUnordered<T>(ICollection<T> expected, ICollection<T> actual)
         {
             Assert.Equal(expected == null, actual == null);
