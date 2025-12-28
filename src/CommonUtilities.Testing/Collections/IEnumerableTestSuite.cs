@@ -700,6 +700,7 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
     [MemberData(nameof(ValidCollectionSizes))]
     public void IEnumerable_NonGeneric_Enumerator_Current_ReturnsSameObjectsOnDifferentEnumerators(int count)
     {
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
         // Ensures that the elements returned from enumeration are exactly the same collection of
         // elements returned from a previous enumeration
         var enumerable = NonGenericIEnumerableFactory(count);
@@ -713,6 +714,7 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
         Assert.Equal(firstValues.Count, secondValues.Count);
         foreach (var key in firstValues.Keys)
             Assert.Equal(firstValues[key], secondValues[key]);
+#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
     }
 
     [Theory]

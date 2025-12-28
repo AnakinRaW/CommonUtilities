@@ -60,7 +60,7 @@ public class SynchronizedStepTest : TestBaseWithServiceProvider
             flag = true;
         }, ServiceProvider);
 
-        Task.Run(() => step.Run(CancellationToken.None)).Forget();
+        Task.Run(() => step.Run(CancellationToken.None), TestContext.Current.CancellationToken).Forget();
        
         step.Wait();
 

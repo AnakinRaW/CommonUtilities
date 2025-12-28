@@ -75,7 +75,7 @@ public static class AssertExtensions
 
             // Lookups are an aggregated collections (enumerable contents), but ordered.
             var e = expected.Cast<object>().ToLookup(key => key);
-            var a = actual.Cast<object>().ToLookup(key => key);
+            var a = actual!.Cast<object>().ToLookup(key => key);
 
             // Dictionaries can't handle null keys, which is a possibility
             Assert.Equal(
