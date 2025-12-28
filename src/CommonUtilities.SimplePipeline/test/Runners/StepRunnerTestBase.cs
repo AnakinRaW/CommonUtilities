@@ -163,7 +163,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         var cts = new CancellationTokenSource();
         var step1 = new TestStep(async _ =>
         {
-            await Task.Delay(1000, TestContext.Current.CancellationToken);
+            await Task.Yield();
             ranList.Add("Step1");
             cts.Cancel();
         }, ServiceProvider);
@@ -202,10 +202,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         var cts = new CancellationTokenSource();
         var step1 = new TestStep(async _ =>
         {
-            await Task.Delay(1000, TestContext.Current.CancellationToken);
+            await Task.Yield();
             ranList.Add("Step1");
             cts.Cancel();
-
         }, ServiceProvider);
         var step2 = new TestStep(_ =>
         {
