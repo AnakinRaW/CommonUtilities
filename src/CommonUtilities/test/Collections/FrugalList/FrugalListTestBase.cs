@@ -7,7 +7,9 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
-#pragma warning disable xUnit2013
+/// <summary>
+/// Contains tests that ensure the correctness of the <see cref=" FrugalList{T}"/> class.
+/// </summary>
 public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 {
     protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;

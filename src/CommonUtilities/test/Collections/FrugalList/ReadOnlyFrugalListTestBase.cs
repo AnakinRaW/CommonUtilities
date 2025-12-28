@@ -8,8 +8,9 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
-#pragma warning disable xUnit2013
-
+/// <summary>
+/// Contains tests that ensure the correctness of the <see cref="ReadOnlyFrugalList{T}"/> class.
+/// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 {
