@@ -68,12 +68,12 @@ public abstract class StepRunnerPipeline<TRunner> : Pipeline where TRunner : ISt
     {
         try
         {
-            _buildStepRunner.Error += OnError;
+            _buildStepRunner.Error += OnError!;
             await _buildStepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            _buildStepRunner.Error -= OnError;
+            _buildStepRunner.Error -= OnError!;
         }
 
         if (!PipelineFailed)
