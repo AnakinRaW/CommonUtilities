@@ -48,7 +48,7 @@ public abstract class IReadOnlyListTestSuite<T> : IReadOnlyCollectionTestSuite<T
     public void From_IEnumerable(int _, int enumerableLength, int __, int numberOfDuplicateElements)
  #pragma warning restore xUnit1026
     {
-        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements).ToList();
         var list = GenericIReadOnlyListFactory(enumerable);
 
         var expected = enumerable.ToList();

@@ -174,7 +174,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     {
         var runner = CreateStepRunner(true);
 
-        StepRunnerErrorEventArgs? args = null!;
+        StepRunnerErrorEventArgs? args = null;
         runner.Error += (_, e) =>
         {
             args = e;

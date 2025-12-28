@@ -81,10 +81,7 @@ public class TestInfoClass : ITestInfo, IEquatable<ITestInfo>
 
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (Progress.GetHashCode() * 397) ^ Aggregated.GetHashCode();
-        }
+        return HashCode.Combine(Progress, Aggregated);
     }
 }
 
