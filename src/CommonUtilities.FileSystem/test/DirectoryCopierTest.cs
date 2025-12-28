@@ -207,7 +207,7 @@ public class DirectoryCopierTest
         });
 
         
-        var delSuc = await copier.MoveDirectoryAsync("test", "other", progress);
+        var delSuc = await copier.MoveDirectoryAsync("test", "other", progress, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(1.0, progressValue);
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
