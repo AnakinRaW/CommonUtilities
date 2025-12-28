@@ -261,7 +261,7 @@ public abstract class ICollectionTestSuite<T> : IEnumerableTestSuite<T>
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void ICollection_Generic_Add_ToReadOnlyFrugalList(int count)
+    public void ICollection_Generic_Add_ToReadOnlyCollection(int count)
     {
         if (IsReadOnly || AddRemoveClear_ThrowsNotSupported)
         {

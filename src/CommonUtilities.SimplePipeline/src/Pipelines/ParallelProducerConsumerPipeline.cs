@@ -103,12 +103,12 @@ public abstract class ParallelProducerConsumerPipeline : Pipeline
     {
         try
         {
-            _stepRunner.Error += OnError;
+            _stepRunner.Error += OnError!;
             await _stepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            _stepRunner.Error -= OnError;
+            _stepRunner.Error -= OnError!;
         }
 
         if (!PipelineFailed)

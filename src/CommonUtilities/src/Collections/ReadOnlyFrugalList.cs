@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
@@ -8,6 +9,8 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// A read-only variant of the <see cref="FrugalList{T}"/>.
 /// </summary>
 /// <typeparam name="T">The type of elements in the list.</typeparam>
+[DebuggerTypeProxy(typeof(IReadOnlyCollectionDebugView<>))]
+[DebuggerDisplay("Count = {Count}")]
 public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
 {
     /// <summary>

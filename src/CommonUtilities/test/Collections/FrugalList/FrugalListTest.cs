@@ -1,7 +1,7 @@
 ﻿using System;
 // ReSharper disable InconsistentNaming
 
-namespace AnakinRaW.CommonUtilities.Test.Collections;
+namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
 public class FrugalListTest_String : FrugalListTestBase<string>
 {

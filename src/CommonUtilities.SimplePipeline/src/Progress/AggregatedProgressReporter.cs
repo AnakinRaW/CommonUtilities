@@ -110,7 +110,7 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObjec
         {
             if (!_progressSteps.Add(step))
                 continue;
-            step.Progress += OnStepProgress;
+            step.Progress += OnStepProgress!;
             TotalSize += step.Size;
         }
     }
@@ -134,7 +134,7 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObjec
     protected override void DisposeResources()
     {
         foreach (var step in _progressSteps) 
-            step.Progress -= OnStepProgress;
+            step.Progress -= OnStepProgress!;
         _progressSteps.Clear();
     }
 }

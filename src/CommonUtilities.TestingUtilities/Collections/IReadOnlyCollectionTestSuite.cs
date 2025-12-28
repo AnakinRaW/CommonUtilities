@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.Testing.Collections;
 /// <see cref="IReadOnlyCollection{T}"/> interface
 /// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public abstract class IReadOnlyCollectionTestSuite<T> : INonModifyingEnumerableTestSuite<T>
+public abstract class IReadOnlyCollectionTestSuite<T> : IEnumerableTestSuite<T>
 {
     /// <summary>
     /// Creates an instance of an <see cref="IReadOnlyCollection{T}"/> that can be used for testing.
@@ -31,6 +31,11 @@ public abstract class IReadOnlyCollectionTestSuite<T> : INonModifyingEnumerableT
     {
         var collection = CreateEnumerable(null, count, 0, 0);
         return GenericIReadOnlyCollectionFactory(collection);
+    }
+
+    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    {
+        yield break;
     }
 
     #region Count

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace AnakinRaW.CommonUtilities.Collections;
@@ -54,6 +55,8 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// </para>
 /// </remarks>
 /// <typeparam name="T">The type of elements in the list.</typeparam>
+[DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
+[DebuggerDisplay("Count = {Count}")]
 public struct FrugalList<T> : IList<T>
 {
     private static readonly EqualityComparer<T> ItemComparer = EqualityComparer<T>.Default;
