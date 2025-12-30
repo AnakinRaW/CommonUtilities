@@ -1,10 +1,47 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.Testing;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
+
+public class TestStepTest : PipelineStepTestBase
+{
+    protected override bool StepRespectsCancellationToken => true;
+    protected override bool StepAddsExceptionsToErrorProperty => true;
+    protected override bool StepAddsStopRunnerExceptionToErrorProperty => false;
+
+    protected override Type GetExpectedExceptionType(Exception thrownException)
+    {
+        // TestStep propagates exceptions as-is
+        return thrownException.GetType();
+    }
+
+    protected override PipelineStep CreateStep()
+    {
+        return new TestStep(null, ServiceProvider);
+    }
+
+    protected override PipelineStep CreateStepWithAction(Func<CancellationToken, Task> action)
+    {
+        return new TestStep(action, ServiceProvider);
+    }
+
+    [Fact]
+    public void Ctor_NullArgs_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => new TestStep(null, null!));
+    }
+
+    [Fact]
+    public void ToString_IsTypeName()
+    {
+        var step = new TestStep(null, ServiceProvider);
+        Assert.Equal(step.GetType().Name, step.ToString());
+    }
+}
 
 public class PipelineStepTest : TestBaseWithServiceProvider
 {
