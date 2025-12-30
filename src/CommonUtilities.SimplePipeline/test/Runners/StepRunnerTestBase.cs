@@ -79,6 +79,261 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
     #endregion
 
+    #region IsRunning Property Tests
+
+    [Fact]
+    public void IsRunning_BeforeRun_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+        runner.AddStep(step);
+
+        Assert.False(runner.IsRunning);
+    }
+
+    [Fact]
+    public async Task IsRunning_DuringExecution_ReturnsTrue()
+    {
+        var runner = CreateStepRunner();
+        var isRunningDuringExecution = false;
+        var stepStarted = new ManualResetEventSlim(false);
+        var canComplete = new ManualResetEventSlim(false);
+
+        var step = new TestStep(async _ =>
+        {
+            await Task.Yield();
+            stepStarted.Set();
+            isRunningDuringExecution = runner.IsRunning;
+            canComplete.Wait(TestContext.Current.CancellationToken);
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        var runTask = runner.RunAsync(CancellationToken.None);
+
+        stepStarted.Wait(TestContext.Current.CancellationToken);
+        Assert.True(runner.IsRunning, "IsRunning should be true during execution");
+
+        canComplete.Set();
+        await runTask;
+
+        Assert.True(isRunningDuringExecution, "IsRunning should have been true inside step");
+    }
+
+    [Fact]
+    public async Task IsRunning_AfterSuccessfulCompletion_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.False(runner.IsRunning);
+    }
+
+    [Fact]
+    public async Task IsRunning_AfterExecutionWithErrors_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => throw new InvalidOperationException(), ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.False(runner.IsRunning);
+    }
+
+    [Fact]
+    public async Task IsRunning_AfterCancellation_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var cts = new CancellationTokenSource();
+        var stepStarted = new ManualResetEventSlim(false);
+        var canComplete = new ManualResetEventSlim(false);
+
+        var step = new TestStep(async _ =>
+        {
+            await Task.Yield();
+            stepStarted.Set();
+            canComplete.Wait(TestContext.Current.CancellationToken);
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        var runTask = runner.RunAsync(cts.Token);
+
+        stepStarted.Wait(TestContext.Current.CancellationToken);
+        cts.Cancel();
+        canComplete.Set();
+
+        await runTask;
+
+        Assert.False(runner.IsRunning);
+    }
+
+    #endregion
+
+    #region IsCancelled Property Tests
+
+    [Fact]
+    public void IsCancelled_BeforeRun_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+        runner.AddStep(step);
+
+        Assert.False(runner.IsCancelled);
+    }
+
+    [Fact]
+    public async Task IsCancelled_DuringNormalExecution_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var isCancelledDuringExecution = false;
+        var stepStarted = new ManualResetEventSlim(false);
+        var canComplete = new ManualResetEventSlim(false);
+
+        var step = new TestStep(async _ =>
+        {
+            await Task.Yield();
+            stepStarted.Set();
+            isCancelledDuringExecution = runner.IsCancelled;
+            canComplete.Wait(TestContext.Current.CancellationToken);
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        var runTask = runner.RunAsync(CancellationToken.None);
+
+        stepStarted.Wait(TestContext.Current.CancellationToken);
+        Assert.False(runner.IsCancelled, "IsCancelled should be false during normal execution");
+
+        canComplete.Set();
+        await runTask;
+
+        Assert.False(isCancelledDuringExecution, "IsCancelled should have been false inside step");
+    }
+
+    [Fact]
+    public async Task IsCancelled_AfterNormalCompletion_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.False(runner.IsCancelled);
+    }
+
+    [Fact]
+    public async Task IsCancelled_AfterCancellation_ReturnsTrue()
+    {
+        var runner = CreateStepRunner();
+        var cts = new CancellationTokenSource();
+        var stepStarted = new ManualResetEventSlim(false);
+        var canComplete = new ManualResetEventSlim(false);
+
+        var step = new TestStep(async ct =>
+        {
+            await Task.Yield();
+            stepStarted.Set();
+            canComplete.Wait(TestContext.Current.CancellationToken);
+            ct.ThrowIfCancellationRequested();
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        var runTask = runner.RunAsync(cts.Token);
+
+        stepStarted.Wait(TestContext.Current.CancellationToken);
+        cts.Cancel();
+        canComplete.Set();
+
+        await runTask;
+
+        Assert.True(runner.IsCancelled);
+    }
+
+    [Fact]
+    public async Task IsCancelled_AfterExecutionWithErrors_ReturnsFalse()
+    {
+        var runner = CreateStepRunner();
+        var step = new TestStep(_ => throw new InvalidOperationException(), ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.False(runner.IsCancelled, "IsCancelled should be false when errors occur without cancellation");
+        Assert.NotNull(runner.Exception);
+    }
+
+    [Fact]
+    public async Task IsCancelled_AlreadyCancelledToken_ReturnsTrue()
+    {
+        var runner = CreateStepRunner();
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(cts.Token);
+
+        Assert.True(runner.IsCancelled);
+    }
+
+    [Fact]
+    public async Task IsCancelled_StopRunnerExceptionWithCancel_ReturnsTrue()
+    {
+        var runner = CreateStepRunner();
+        
+        var step = new TestStep(_ => throw new StopRunnerException(), ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.True(runner.IsCancelled, "IsCancelled should be true when StopRunnerException causes cancellation");
+    }
+
+    [Fact]
+    public async Task IsCancelled_OnErrorSetsCancellation_ReturnsTrue()
+    {
+        var runner = CreateStepRunner();
+
+        runner.Error += (_, args) =>
+        { 
+            args.Cancel = true;
+        };
+
+        var step = new TestStep(_ => throw new Exception(), ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        await runner.RunAsync(CancellationToken.None);
+
+        Assert.True(runner.IsCancelled, "IsCancelled should be true when StopRunnerException causes cancellation");
+    }
+
+    #endregion
+
     #region AddStep Tests
 
     [Fact]

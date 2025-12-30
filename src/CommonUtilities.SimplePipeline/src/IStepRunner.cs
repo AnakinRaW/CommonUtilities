@@ -27,6 +27,24 @@ public interface IStepRunner
     public int WorkerCount { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the <see cref="IStepRunner"/> is currently executing steps.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the runner is actively executing steps; otherwise, <see langword="false"/>.
+    /// </value>
+    bool IsRunning { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether the step runner has been cancelled.
+    /// </summary>
+    /// <remarks>
+    /// This property returns <see langword="true"/> if the step runner was cancelled during its execution,
+    /// typically due to a cancellation request via a <see cref="CancellationToken"/>.
+    /// Otherwise, it returns <see langword="false"/>.
+    /// </remarks>
+    bool IsCancelled { get; }
+
+    /// <summary>
     /// Gets a read-only list of only those steps were executed by the <see cref="IStepRunner"/>.
     /// </summary>
     IReadOnlyCollection<IStep> ExecutedSteps { get; }

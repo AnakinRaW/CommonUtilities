@@ -21,26 +21,22 @@ public class AsyncStepRunner : IStepRunner
     private readonly ConcurrentQueue<IStep> _pendingSteps = new();
     private readonly ConcurrentBag<IStep> _executedSteps = [];
     private readonly ConcurrentBag<Exception> _exceptions = [];
-
-    private TaskCompletionSource<Task> _completionSource = new();
+    private readonly TaskCompletionSource<Task> _completionSource = new();
 
     /// <inheritdoc />
     public AggregateException? Exception => _exceptions.IsEmpty ? null : new AggregateException(_exceptions);
-    
-    /// <summary>
-    /// 
-    /// </summary>
+
+    /// <inheritdoc />
     public bool IsRunning { get; private set; }
 
     /// <inheritdoc />
     public int WorkerCount { get; }
 
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public IReadOnlyCollection<IStep> ExecutedSteps => _executedSteps.ToArray();
 
-    internal bool IsCancelled { get; private set; }
+    /// <inheritdoc />
+    public bool IsCancelled { get; private set; }
 
     /// <summary>
     /// 
@@ -81,21 +77,6 @@ public class AsyncStepRunner : IStepRunner
         var task = CreateRunnerTask(token);
         _completionSource.TrySetResult(task);
         return task;
-    }
-
-    /// <summary>
-    /// Resets the state of the <see cref="AsyncStepRunner"/> to its initial state, clearing all executed steps and exceptions.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the method is called while the step runner is running.</exception>
-    public void Reset()
-    {
-        if (IsRunning)
-            throw new InvalidOperationException("Cannot reset while step runner is running.");
-
-        while (_exceptions.TryTake(out _)) ;
-        while (_executedSteps.TryTake(out _)) ;
-        IsCancelled = false;
-        _completionSource = new TaskCompletionSource<Task>();
     }
 
     /// <inheritdoc/>
@@ -191,6 +172,7 @@ public class AsyncStepRunner : IStepRunner
     {
         try
         {
+            IsRunning = true;
             if (WorkerCount == 1)
                 await RunWorkerAsync(token).ConfigureAwait(false);
             else
