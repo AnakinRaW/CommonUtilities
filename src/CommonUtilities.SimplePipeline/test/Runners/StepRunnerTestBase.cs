@@ -438,7 +438,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         Assert.True(executed);
         Assert.Contains(step, runner.ExecutedSteps);
-        Assert.Single(runner.ExecutedSteps);
+        await Assert.Single(runner.ExecutedSteps);
     }
 
     [Fact]
@@ -1492,7 +1492,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         var awaiterAfter = runner.GetAwaiter();
         Assert.True(awaiterAfter.IsCompleted);
+#pragma warning disable xUnit1031
         awaiterAfter.GetResult();
+#pragma warning restore xUnit1031
     }
 
     [Fact]
@@ -1577,7 +1579,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         await runner.RunAsync(CancellationToken.None);
 
-        Assert.Single(runner.ExecutedSteps);
+        await Assert.Single(runner.ExecutedSteps);
         Assert.Contains(step, runner.ExecutedSteps);
     }
 
@@ -1971,7 +1973,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         FinishAdding(runner);
 
         var runTask = runner.RunAsync(CancellationToken.None);
+#pragma warning disable xUnit1031
         var testCompleted = WaitForTaskWithTimeout(runTask, TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+#pragma warning restore xUnit1031
 
         Assert.True(testCompleted, "Test should complete (step1 detects the would-be deadlock internally)");
     }
