@@ -11,8 +11,12 @@ using System.Threading.Tasks;
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 /// <summary>
-/// 
+/// Represents an asynchronous step runner that manages the execution of steps in a pipeline.
 /// </summary>
+/// <remarks>
+/// This class provides functionality to add steps, execute them asynchronously, and handle errors during execution.
+/// It supports multiple workers for parallel step execution and ensures proper cancellation and error handling.
+/// </remarks>
 public class AsyncStepRunner : IStepRunner
 {
     /// <inheritdoc />
@@ -39,17 +43,17 @@ public class AsyncStepRunner : IStepRunner
     public bool IsCancelled { get; private set; }
 
     /// <summary>
-    /// 
+    /// Gets the logger instance used for logging messages related to the execution of the step runner.
     /// </summary>
     protected ILogger? Logger { get; }
 
     /// <summary>
-    /// 
+    /// Initializes a new instance of the <see cref="AsyncStepRunner"/> class with the specified number of workers and a service provider.
     /// </summary>
-    /// <param name="workerCount"></param>
-    /// <param name="serviceProvider"></param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="workerCount">The number of workers to use for executing steps. Must be between 1 and 64, inclusive.</param>
+    /// <param name="serviceProvider">The service provider used to resolve dependencies required by the runner.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="workerCount"/> is less than 1 or greater than 64.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     public AsyncStepRunner(int workerCount, IServiceProvider serviceProvider)
     {
         if (workerCount is < 1 or > 64)
