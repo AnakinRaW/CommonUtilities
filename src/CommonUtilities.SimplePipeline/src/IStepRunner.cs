@@ -62,7 +62,22 @@ public interface IStepRunner
     /// <summary>
     /// Gets an awaiter used to await this <see cref="IStepRunner"/>.
     /// </summary>
-    /// <returns>An awaiter instance.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the step runner has not been started.</exception>
+    /// <remarks>
+    /// <para>
+    /// This method enables the <see cref="IStepRunner"/> to be used with the <c>await</c> keyword.
+    /// </para>
+    /// <para>
+    /// If called before <see cref="RunAsync"/> has been invoked, the awaiter will block until 
+    /// the runner is started and has completed execution of all steps.
+    /// </para>
+    /// <para>
+    /// If called during execution, the awaiter will block until all steps have finished.
+    /// </para>
+    /// <para>
+    /// The awaiter does not throw exceptions for failed steps. Any errors that occurred during 
+    /// execution are available through the <see cref="Exception"/> property.
+    /// </para>
+    /// </remarks>
+    /// <returns>A <see cref="TaskAwaiter"/> instance that can be used to await the runner's completion.</returns>
     TaskAwaiter GetAwaiter();
 }

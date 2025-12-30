@@ -10,72 +10,6 @@ using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
-internal class ProducerConsumerStepRunner(int workerCount, IServiceProvider serviceProvider)
-    : AsyncStepRunner(workerCount, serviceProvider), IDisposable
-{
-    private readonly BlockingCollection<IStep> _stepQueue = new();
-    private bool _disposed;
-
-    protected BlockingCollection<IStep> StepQueue => _stepQueue;
-
-    ~ProducerConsumerStepRunner()
-    {
-        Dispose(false);
-    }
-
-    /// <summary>
-    /// Adds a step to the runner. Can be called while the runner is executing.
-    /// </summary>
-    public override void AddStep(IStep step)
-    {
-        if (step == null)
-            throw new ArgumentNullException(nameof(step));
-        if (_disposed)
-            throw new ObjectDisposedException(GetType().FullName);
-        _stepQueue.Add(step);
-    }
-
-    /// <summary>
-    /// Signals this instance does not expect any more steps.
-    /// </summary>
-    public void Finish()
-    {
-        if (!_stepQueue.IsAddingCompleted)
-            _stepQueue.CompleteAdding();
-    }
-
-    protected override bool TakeNextStep([NotNullWhen(true)] out IStep? step, CancellationToken cancellationToken)
-    {
-        return _stepQueue.TryTake(out step, Timeout.Infinite, cancellationToken);
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-        if (disposing) 
-            _stepQueue.Dispose();
-        _disposed = true;
-    }
-
-    protected override void OnRunnerStopped()
-    {
-        base.OnRunnerStopped();
-        Finish();
-    }
-}
-
-/// <summary>
-/// A <see cref="IStepRunner"/> that executes steps sequentially using a single worker.
-/// </summary>
-public class SequentialStepRunner(IServiceProvider serviceProvider) : AsyncStepRunner(1, serviceProvider);
-
 /// <summary>
 /// 
 /// </summary>
@@ -263,7 +197,11 @@ public class AsyncStepRunner : IStepRunner
             {
                 var workers = new Task[WorkerCount];
                 for (var i = 0; i < WorkerCount; i++)
-                    workers[i] = RunWorkerAsync(token);
+                    workers[i] = Task.Factory.StartNew(
+                        () => RunWorkerAsync(token),
+                        CancellationToken.None,
+                        TaskCreationOptions.LongRunning,
+                        TaskScheduler.Default).Unwrap(); 
                 await Task.WhenAll(workers).ConfigureAwait(false);
             }
         }
@@ -286,11 +224,20 @@ public class AsyncStepRunner : IStepRunner
                     _executedSteps.Add(step);
                     await step.RunAsync(token).ConfigureAwait(false);
                 }
-                catch (StopRunnerException)
+                catch (StopRunnerException e)
                 {
-                    OnRunnerStopped();
+                    _exceptions.Add(e);
                     Logger?.LogTrace("Stop subsequent steps");
                     IsCancelled = true;
+
+                    var error = new StepRunnerErrorEventArgs(e, step)
+                    {
+                        Cancel = true
+                    };
+                    OnError(e, error);
+
+                    OnRunnerStopped();
+
                     break;
                 }
                 catch (Exception e)
@@ -316,8 +263,11 @@ public class AsyncStepRunner : IStepRunner
         }
         catch (OperationCanceledException e)
         {
-            OnError(e, new StepRunnerErrorEventArgs(e, null));
             IsCancelled = true;
+            OnError(e, new StepRunnerErrorEventArgs(e, null)
+            {
+                Cancel = true
+            });
         }
     }
 }
