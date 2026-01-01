@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
-public abstract class StepRunnerPipelineBase<TStepRunner>(IServiceProvider serviceProvider) : Pipeline(serviceProvider) where TStepRunner : IStepRunner
+public abstract class StepRunnerPipelineBase<TStepRunner>(IServiceProvider serviceProvider) 
+    : Pipeline(serviceProvider) where TStepRunner : IStepRunner
 {
     private TStepRunner? _stepRunner;
 
@@ -31,7 +32,9 @@ public abstract class StepRunnerPipelineBase<TStepRunner>(IServiceProvider servi
 
     protected static void ThrowIfAnyStepsFailed(IEnumerable<IStep> steps)
     {
-        var failedBuildSteps = steps.WhereFailed().ToList();
+        var failedBuildSteps = steps
+            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
+            .ToList();
         if (failedBuildSteps.Count > 0)
             throw new StepFailureException(failedBuildSteps);
     }
@@ -54,7 +57,7 @@ public abstract class StepRunnerPipelineBase<TStepRunner>(IServiceProvider servi
     protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
     {
         if (!e.Cancel)
-            PipelineFailed = true;
+            Failed = true;
 
         if (FailFast || e.Cancel)
             Cancel();

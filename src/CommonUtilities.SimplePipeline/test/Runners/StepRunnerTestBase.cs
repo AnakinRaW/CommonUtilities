@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
@@ -834,6 +835,43 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         Assert.Contains(exception2, runner.Exception.InnerExceptions);
     }
 
+    [Fact]
+    public async Task RunAsync_ReentryNotAllowed_ThrowsInvalidOperationException()
+    {
+        var runner = CreateStepRunner();
+        var mre = new ManualResetEventSlim(false);
+        var isRunning = new TaskCompletionSource<bool>();
+        
+        var executed = false;
+        var step = new TestStep(_ =>
+        {
+            isRunning.SetResult(true);
+            mre.Wait();
+            executed = true;
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+
+        Assert.False(runner.IsRunning);
+        
+        var runTask = runner.RunAsync(CancellationToken.None);
+
+        await isRunning.Task;
+        Assert.True(runner.IsRunning);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await runner.RunAsync(CancellationToken.None));
+        mre.Set();
+
+        await runTask;
+
+        Assert.True(executed);
+        Assert.Contains(step, runner.ExecutedSteps);
+        await Assert.Single(runner.ExecutedSteps);
+    }
+
     #endregion
 
     #region StopRunnerException Tests
@@ -1377,6 +1415,14 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         _ = runner.RunAsync(CancellationToken.None);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => runner.Wait(TimeSpan.FromSeconds(-1)));
+    }
+
+    [Fact]
+    public void WaitWithTimeout_RunnerNeverRuns_ThrowsTimeoutException()
+    {
+        var runner = CreateStepRunner();
+        FinishAdding(runner);
+        Assert.Throws<TimeoutException>(() => runner.Wait(TimeSpan.FromSeconds(1)));
     }
 
     #endregion

@@ -117,8 +117,7 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObjec
 
     private void OnStepProgress(object sender, ProgressEventArgs<TInfo> e)
     {
-        if (sender is not TStep step)
-            throw new InvalidCastException($"Cannot cast '{sender.GetType()}' to {typeof(TStep)}");
+        var step = (TStep)sender;
         if (!_progressSteps.Contains(step))
             return;
 

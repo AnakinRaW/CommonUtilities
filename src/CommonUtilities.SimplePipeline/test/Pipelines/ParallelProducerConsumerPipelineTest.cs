@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.Extensions;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
@@ -68,7 +69,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         await firstTask;
 
         Assert.Equal(1, stepRunCount);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
 
         async IAsyncEnumerable<IStep> ProduceStepsAsync()
         {
@@ -254,7 +255,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
 
         Assert.Equal(1, prepareCallCount);
         Assert.True(stepExecuted);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
 
         async IAsyncEnumerable<IStep> ProduceStepsAsync()
         {
@@ -394,7 +395,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         continuePreparation.SetResult(true);
         await runTask;
 
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
 
         async IAsyncEnumerable<IStep> ProduceStepsAsync()
         {

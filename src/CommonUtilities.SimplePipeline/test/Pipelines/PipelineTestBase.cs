@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
@@ -28,8 +29,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     public void Ctor_WithValidServiceProvider_InitializesCorrectly()
     {
         var pipeline = CreatePipeline([]);
-        Assert.False(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
         Assert.False(pipeline.IsDisposed);
     }
 
@@ -44,7 +45,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await pipeline.PrepareAsync(TestContext.Current.CancellationToken);
 
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -293,8 +294,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
     }
 
     [Fact]
@@ -307,8 +308,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         Assert.NotNull(record);
 
 
-        Assert.True(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.True(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
     }
 
     [Fact]
@@ -320,8 +321,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.True(pipeline.Cancelled);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -333,8 +334,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.True(pipeline.Cancelled);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -385,8 +386,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         waitUntilCanceled.Set();
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => runTask);
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.True(pipeline.Cancelled);
+        Assert.False(pipeline.Failed);
     }
 
     #endregion
@@ -430,7 +431,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.PrepareAsync(TestContext.Current.CancellationToken));
         Assert.Equal(0, counter);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -450,7 +451,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         await Assert.ThrowsAsync<ObjectDisposedException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
         Assert.False(executed);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -558,8 +559,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => pipelineTask);
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.True(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.True(pipeline.Cancelled);
         Assert.True(capturedToken.IsCancellationRequested);
     }
     
@@ -579,8 +580,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await pipeline.RunAsync(CancellationToken.None);
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
         Assert.True(executed);
     }
 
@@ -594,8 +595,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         await pipeline.PrepareAsync(TestContext.Current.CancellationToken);
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
     }
 
     [Fact]
@@ -608,8 +609,8 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         pipeline.Cancel(); // Should not throw
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
     }
 
     [Fact]
@@ -621,7 +622,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         pipeline.Cancel();
         pipeline.Cancel();
 
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Cancelled);
     }
 
     [Fact]

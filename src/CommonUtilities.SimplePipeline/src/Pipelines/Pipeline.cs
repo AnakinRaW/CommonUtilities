@@ -29,9 +29,9 @@ public abstract class Pipeline : DisposableObject, IPipeline
         _preparationTask?.IsCompletedSuccessfully == true;
 #endif
 
-    public bool PipelineFailed { get; protected set; }
+    public bool Failed { get; protected set; }
     
-    public bool PipelineCancelled { get; protected set; }
+    public bool Cancelled { get; protected set; }
     
     protected Pipeline(IServiceProvider serviceProvider)
     {
@@ -84,7 +84,7 @@ public abstract class Pipeline : DisposableObject, IPipeline
             if (_linkedCancellationTokenSource != null)
             {
                 _linkedCancellationTokenSource.Cancel();
-                PipelineCancelled = true;
+                Cancelled = true;
             }
         }
     }
@@ -127,12 +127,12 @@ public abstract class Pipeline : DisposableObject, IPipeline
         }
         catch (OperationCanceledException)
         {
-            PipelineCancelled = true;
+            Cancelled = true;
             throw;
         }
         catch
         {
-            PipelineFailed = true;
+            Failed = true;
             throw;
         }
         finally

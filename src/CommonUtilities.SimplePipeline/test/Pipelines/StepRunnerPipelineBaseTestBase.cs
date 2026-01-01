@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
@@ -134,7 +135,7 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
 
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Theory]
@@ -163,7 +164,7 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, runCounter);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -208,12 +209,12 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
 
         await Assert.ThrowsAsync<StepFailureException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineFailed);
+        Assert.True(pipeline.Failed);
 
         if (runnerBehavior is RunnerBehavior.Sequential)
         {
             Assert.False(secondStepRan, "FailFast should prevent subsequent steps from running");
-            Assert.True(pipeline.PipelineCancelled);
+            Assert.True(pipeline.Cancelled);
         }
     }
 
@@ -250,8 +251,8 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
 
         var e  = await Assert.ThrowsAsync<StepFailureException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
+        Assert.True(pipeline.Failed);
+        Assert.False(pipeline.Cancelled);
         Assert.Contains("failed with error", e.Message);
         Assert.Contains("Test error", e.Message);
     }
@@ -266,7 +267,7 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
 
         var e = await Assert.ThrowsAsync<StepFailureException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineFailed);
+        Assert.True(pipeline.Failed);
         Assert.Contains("failed with error", e.Message);
         Assert.Contains("Error1", e.Message);
         Assert.Contains("Error2", e.Message);
@@ -289,8 +290,8 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
 
         Assert.False(executed);
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.True(pipeline.Cancelled);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -303,8 +304,8 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         // OperationCanceledException from a step should propagate
         await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
+        Assert.True(pipeline.Cancelled);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -317,8 +318,8 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.False(pipeline.PipelineFailed);
-        Assert.True(pipeline.PipelineCancelled);
+        Assert.False(pipeline.Failed);
+        Assert.True(pipeline.Cancelled);
     }
 
     [Fact]
@@ -425,7 +426,7 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("abc", sb.ToString());
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Theory]
@@ -458,6 +459,95 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
             Assert.Equal([1, 2], executedSteps);
         else
             Assert.Contains(2, executedSteps);
+    }
+
+    #endregion
+
+    #region Common Usage Tests
+
+    [Theory]
+    [InlineData(RunnerBehavior.Concurrent)]
+    [InlineData(RunnerBehavior.Sequential)]
+    public async Task UsageTest_StepsWaitingForEachOther(RunnerBehavior runnerBehavior)
+    {
+        if (!IsRunBehaviorSupported(runnerBehavior))
+            return;
+
+        var executedSteps = new ConcurrentQueue<int>();
+
+        var s1 = new TestStep(async _ =>
+        {
+            await Task.Delay(200, TestContext.Current.CancellationToken);
+            executedSteps.Enqueue(1);
+        }, ServiceProvider);
+        var s2 = new TestStep(async _ =>
+        {
+            await s1;
+            executedSteps.Enqueue(2);
+        }, ServiceProvider);
+        var s3 = new TestStep(_ =>
+        {
+            executedSteps.Enqueue(3);
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+
+        var pipeline = CreateStepRunnerPipelineBase([s1, s2, s3], Random.Bool(), runnerBehavior);
+
+        await pipeline.RunAsync(TestContext.Current.CancellationToken);
+
+        if (runnerBehavior == RunnerBehavior.Sequential)
+            Assert.Equal([1,2,3], executedSteps);
+        else
+        {
+            var list = executedSteps.ToList();
+            Assert.True(list.IndexOf(1) < list.IndexOf(2), "1 should appear before 2");
+        }
+    }
+
+    [Theory]
+    [InlineData(RunnerBehavior.Concurrent)]
+    [InlineData(RunnerBehavior.Sequential)]
+    public async Task UsageTest_StepsWaitingForEachOther_WrongInsertionOrderHangsOnSequential_WorksForConcurrentRun(RunnerBehavior runnerBehavior)
+    {
+        if (!IsRunBehaviorSupported(runnerBehavior))
+            return;
+
+        var executedSteps = new ConcurrentQueue<int>();
+
+        var s1 = new TestStep(_ =>
+        {
+            executedSteps.Enqueue(1);
+            return Task.CompletedTask;
+        }, ServiceProvider);
+        var s2 = new TestStep(async _ =>
+        {
+            await s1;
+            executedSteps.Enqueue(2);
+        }, ServiceProvider);
+        var s3 = new TestStep(_ =>
+        {
+            executedSteps.Enqueue(3);
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        // Insertion order for Sequential runs is broken and will cause starvation
+        var pipeline = CreateStepRunnerPipelineBase([s2, s1, s3], Random.Bool(), runnerBehavior);
+        
+        if (runnerBehavior == RunnerBehavior.Sequential)
+        {
+            var runTask = pipeline.RunAsync(TestContext.Current.CancellationToken);
+            var finished = await Task.WhenAny(
+                runTask, 
+                Task.Delay(5000, TestContext.Current.CancellationToken));
+            Assert.NotEqual(runTask, finished);
+        }
+        else
+        {
+            await pipeline.RunAsync(TestContext.Current.CancellationToken);
+            var list = executedSteps.ToList();
+            Assert.True(list.IndexOf(1) < list.IndexOf(2), "1 should appear before 2");
+        }
     }
 
     #endregion

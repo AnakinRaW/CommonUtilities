@@ -208,17 +208,21 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
             return;
         
         var innerException = new Exception("Test");
-        var expected = new AggregateException(new OperationCanceledException(null, innerException));
-        var step = CreateStepWithAction(_ => throw expected);
+        var aggregateException = new AggregateException(new OperationCanceledException(null, innerException));
+        var step = CreateStepWithAction(_ => throw aggregateException);
 
-        var expectedType = GetExpectedExceptionType(expected)!;
-        await Assert.ThrowsAsync(expectedType, () => step.RunAsync(CancellationToken.None));
+        var expectedType = GetExpectedExceptionType(aggregateException)!;
+        var actualException = await Assert.ThrowsAsync(expectedType, () => step.RunAsync(CancellationToken.None));
 
         if (StepAddsExceptionsToErrorProperty)
         {
             Assert.NotNull(step.Error);
-            // Should unwrap to inner exception
-            Assert.Same(innerException, step.Error);
+            
+            if (actualException == aggregateException)
+            {
+                // Only if we did not modify the exception in the step unwrap to inner exception
+                Assert.Same(innerException, step.Error);
+            }
         }
         else
         {

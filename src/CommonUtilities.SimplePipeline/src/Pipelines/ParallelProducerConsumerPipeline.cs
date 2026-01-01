@@ -55,12 +55,12 @@ public abstract class ParallelProducerConsumerPipeline(int workerCount, IService
         }
         catch (OperationCanceledException)
         {
-            PipelineCancelled = true;
+            Cancelled = true;
             throw;
         }
         catch
         {
-            PipelineFailed = true;
+            Failed = true;
             throw;
         }
         finally
@@ -87,12 +87,12 @@ public abstract class ParallelProducerConsumerPipeline(int workerCount, IService
         }
         catch (OperationCanceledException)
         {
-            PipelineCancelled = true;
+            Cancelled = true;
             Cancel();
         }
         catch (Exception e)
         {
-            PipelineFailed = true;
+            Failed = true;
             _preparationException = e;
 
             if (FailFast)
@@ -100,14 +100,7 @@ public abstract class ParallelProducerConsumerPipeline(int workerCount, IService
         }
         finally
         {
-            try
-            {
-                StepRunner.Finish();
-            }
-            catch (InvalidOperationException)
-            {
-                // Already finished or not initialized
-            }
+            StepRunner.Finish();
         }
     }
 }

@@ -24,7 +24,7 @@ public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestBas
 
         await Assert.ThrowsAsync<InvalidOperationException>(async ()=> await pipeline.PrepareAsync(TestContext.Current.CancellationToken));
 
-        Assert.False(pipeline.PipelineFailed);
+        Assert.False(pipeline.Failed);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestBas
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        Assert.True(pipeline.PipelineFailed);
+        Assert.True(pipeline.Failed);
     }
 
     #endregion

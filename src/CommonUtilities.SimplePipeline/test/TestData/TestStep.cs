@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
+namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 
 public class TestStep : PipelineStep
 {
