@@ -1,7 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,25 +13,20 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// Steps are added to the runner while execution is already in progress.
 /// Useful when preparation is work-intensive.
 /// </remarks>
-public abstract class ParallelProducerConsumerPipeline(
-    int workerCount,
-    IServiceProvider serviceProvider) : Pipeline(serviceProvider)
+public abstract class ParallelProducerConsumerPipeline(int workerCount, IServiceProvider serviceProvider)
+    : StepRunnerPipelineBase<ProducerConsumerStepRunner>(serviceProvider)
 {
-    private ProducerConsumerStepRunner? _stepRunner;
     private Exception? _preparationException;
-
-    /// <summary>
-    /// Gets a value indicating the pipeline shall abort execution on the first received error.
-    /// </summary>
-    public bool FailFast { get; protected set; } = false;
-
-    private ProducerConsumerStepRunner StepRunner =>
-        _stepRunner ?? throw new InvalidOperationException("Step runner not initialized.");
 
     /// <summary>
     /// Builds the steps asynchronously as they become available.
     /// </summary>
     protected abstract IAsyncEnumerable<IStep> BuildStepsAsync(CancellationToken token);
+
+    protected sealed override ProducerConsumerStepRunner CreateRunner()
+    {
+        return new ProducerConsumerStepRunner(workerCount, ServiceProvider);
+    }
 
     /// <inheritdoc/>
     protected sealed override async Task PrepareCoreAsync(CancellationToken token)
@@ -79,29 +73,10 @@ public abstract class ParallelProducerConsumerPipeline(
     /// <inheritdoc/>
     protected sealed override async Task ExecuteAsync(CancellationToken token)
     {
-        try
-        {
-            StepRunner.Error += OnError!;
-            await StepRunner.RunAsync(token).ConfigureAwait(false);
-        }
-        finally
-        {
-            StepRunner.Error -= OnError!;
-        }
+        await base.ExecuteAsync(token).ConfigureAwait(false);
 
         if (_preparationException is not null)
             throw _preparationException;
-
-        var failedSteps = StepRunner.ExecutedSteps.WhereFailed().ToList();
-        if (failedSteps.Count > 0)
-            throw new StepFailureException(failedSteps);
-    }
-
-
-    protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
-    {
-        if (FailFast || e.Cancel)
-            Cancel();
     }
 
     private async Task RunPreparationAsync(CancellationToken token)
@@ -134,11 +109,6 @@ public abstract class ParallelProducerConsumerPipeline(
                 // Already finished or not initialized
             }
         }
-    }
-
-    private void InitializeRunner()
-    {
-        _stepRunner ??= new ProducerConsumerStepRunner(workerCount, ServiceProvider);
     }
 }
 

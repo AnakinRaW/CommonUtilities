@@ -5,36 +5,33 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.Extensions;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class ParallelProducerConsumerPipelineTest : PipelineTestBase
+public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<ProducerConsumerStepRunner>
 {
-    protected override Pipeline CreatePipeline(IList<IStep> steps)
+    protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateStepRunnerPipelineBase(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {
-        return CreatePipeline(steps, false);
+        return CreateConsumerPipeline(steps.ToAsyncEnumerable(), failFast, runnerBehavior);
     }
 
     protected override ITrackingPipeline CreateTrackingPipeline(Func<CancellationToken, Task> prepare, Func<CancellationToken, Task> run)
     {
         IEnumerable<IStep> steps = [new TestStep(run, ServiceProvider)];
-        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, 4, false);
+        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, GetWorkerCount(GetRandomRunBehavior()), false);
     }
 
-    protected Pipeline CreatePipeline(IList<IStep> steps, bool failFast)
+    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {
-        return CreateConsumerPipeline(steps.ToAsyncEnumerable(), failFast, 4);
+        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
     }
 
-    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IList<IStep> steps, bool failFast = true, int workerCount = 4)
+    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps)
     {
-        return CreateConsumerPipeline(steps.ToAsyncEnumerable(), failFast, workerCount);
-    }
-
-    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast = true, int workerCount = 4)
-    {
-        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps, null, workerCount, failFast);
+        return CreateConsumerPipeline(steps, Random.Bool(), GetRandomRunBehavior());
     }
 
     #region Constructor Tests
@@ -43,36 +40,12 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
     public void Ctor_NullServiceProvider_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new TestParallelProducerConsumerPipeline(
-            null!, 
-            AsyncEnumerable.Empty<IStep>(), null, 4, true));
-    }
-
-    #endregion
-
-    #region FailFast
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void FailFast_CtorSetsProperty(bool failFast)
-    {
-        var pipeline = CreateConsumerPipeline([], failFast);
-        Assert.Equal(failFast, pipeline.FailFast);
+            null!, AsyncEnumerable.Empty<IStep>(), null, 4, true));
     }
 
     #endregion
 
     #region RunAsync
-
-    [Fact]
-    public async Task RunAsync_EmptyAsyncEnumerable_Succeeds()
-    {
-        var pipeline = CreateConsumerPipeline(AsyncEnumerable.Empty<IStep>());
-
-        await pipeline.RunAsync(TestContext.Current.CancellationToken);
-
-        Assert.False(pipeline.PipelineFailed);
-    }
 
     [Fact]
     public async Task RunAsync_ConcurrentCallsDuringBackgroundPreparation_OnlyFirstSucceeds()
@@ -89,9 +62,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         // Wait for production/preparation to start
         await productionStarted.Task;
 
-        // Try to call RunAsync again - should throw
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            pipeline.RunAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pipeline.RunAsync(CancellationToken.None));
 
         continueProduction.SetResult(true);
         await firstTask;
@@ -116,26 +87,28 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
     [InlineData(true)]
     public async Task RunAsync_PreparationFails_ThrowsPreparationException(bool failFast)
     {
-        var mre = new ManualResetEventSlim(false);
+        var barrier = new ManualResetEventSlim(false);
+        var canThrow = new TaskCompletionSource<int>(false);
 
         var ran = false;
-        var s1 = new TestStep(async ct =>
+        var s1 = new TestStep(ct =>
         {
-            await Task.Yield();
-            mre.Wait(ct);
+            canThrow.SetResult(1);
+            barrier.Wait(ct);
             ct.ThrowIfCancellationRequested();
             ran = true;
+            return Task.CompletedTask;
         }, ServiceProvider);
         var s2 = new TestStep(null, ServiceProvider);
 
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), failFast);
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), failFast, GetRandomRunBehavior());
 
         var task = Assert.ThrowsAsync<ApplicationException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
         if (failFast)
             await task;
 
-        mre.Set();
+        barrier.Set();
         await task;
 
         if (failFast)
@@ -147,7 +120,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         {
             yield return s1;
             yield return s2;
-            await Task.Yield();
+            await canThrow.Task;
             throw new ApplicationException("test");
         }
     }
@@ -184,18 +157,24 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         }
     }
 
-    [Fact]
-    public async Task RunAsync_StepsProducedWhileRunning_AllExecuted()
+    [Theory]
+    [InlineData(RunnerBehavior.Concurrent)]
+    [InlineData(RunnerBehavior.Sequential)]
+    public async Task RunAsync_StepsProducedWhileRunning_AllExecuted(RunnerBehavior runnerBehavior)
     {
-        var executedSteps = new ConcurrentBag<int>();
-        var stepCount = 10;
-        var delay = 50;
+        var executedSteps = new ConcurrentQueue<int>();
+        const int stepCount = 10;
+        const int delay = 50;
 
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), Random.Bool(), runnerBehavior);
 
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(stepCount, executedSteps.Count);
+        if (runnerBehavior is RunnerBehavior.Sequential)
+            Assert.Equal(executedSteps.ToList().OrderBy(x => x), executedSteps);
+        return;
+
 
         async IAsyncEnumerable<IStep> ProduceStepsAsync()
         {
@@ -204,7 +183,7 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
                 var stepIndex = i;
                 yield return new TestStep(_ =>
                 {
-                    executedSteps.Add(stepIndex);
+                    executedSteps.Enqueue(stepIndex);
                     return Task.CompletedTask;
                 }, ServiceProvider);
                 await Task.Delay(delay, TestContext.Current.CancellationToken);
@@ -212,14 +191,16 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         }
     }
 
-    [Fact]
-    public async Task RunAsync_ConsumesStepsWhileProducing()
+    [Theory]
+    [InlineData(RunnerBehavior.Concurrent)]
+    [InlineData(RunnerBehavior.Sequential)] // Checks, production is started on ThreadPool
+    public async Task RunAsync_ConsumesStepsWhileProducing(RunnerBehavior runnerBehavior)
     {
         var executionStartedDuringProduction = false;
         var firstStepExecutionStarted = new TaskCompletionSource<bool>();
         var canContinueProduction = new TaskCompletionSource<bool>();
 
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), workerCount: 4);
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), Random.Bool(), runnerBehavior);
 
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
@@ -250,54 +231,122 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         }
     }
 
-    //[Fact]
-    //public async Task RunAsync_CalledWhilePrepareAsyncInProgress_WaitsForSamePreparation()
-    //{
-    //    var preparationStarted = new TaskCompletionSource<bool>();
-    //    var continuePreparation = new TaskCompletionSource<bool>();
-    //    var stepExecuted = false;
-    //    var prepareCallCount = 0;
+    [Fact]
+    public async Task RunAsync_CalledDuringStepProduction_WaitsForSamePreparation()
+    {
+        var preparationStarted = new TaskCompletionSource<bool>();
+        var continuePreparation = new TaskCompletionSource<bool>();
+        var stepExecuted = false;
+        var prepareCallCount = 0;
 
-    //    var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
 
-    //    // Start PrepareAsync but don't await completion
-    //    var prepareTask = pipeline.PrepareAsync(CancellationToken.None);
+        var prepareTask = pipeline.PrepareAsync(CancellationToken.None);
 
-    //    // Wait for preparation to actually start inside PrepareCoreAsync
-    //    await preparationStarted.Task;
+        await preparationStarted.Task;
 
-    //    // Now call RunAsync while preparation is in progress
-    //    // This should NOT start a new preparation, but wait for the existing one
-    //    var runTask = pipeline.RunAsync(CancellationToken.None);
+        var runTask = pipeline.RunAsync(CancellationToken.None);
 
-    //    // Allow preparation to complete
-    //    continuePreparation.SetResult(true);
+        continuePreparation.SetResult(true);
 
-    //    // Both tasks should complete
-    //    await prepareTask;
-    //    await runTask;
+        await prepareTask;
+        await runTask;
 
-    //    // Preparation should only have happened once
-    //    Assert.Equal(1, prepareCallCount);
-    //    Assert.True(stepExecuted);
-    //    Assert.False(pipeline.PipelineFailed);
+        Assert.Equal(1, prepareCallCount);
+        Assert.True(stepExecuted);
+        Assert.False(pipeline.PipelineFailed);
 
-    //    async IAsyncEnumerable<IStep> ProduceStepsAsync()
-    //    {
-    //        Interlocked.Increment(ref prepareCallCount);
-    //        preparationStarted.SetResult(true);
-    //        await continuePreparation.Task;
-    //        yield return new TestStep(_ =>
-    //        {
-    //            stepExecuted = true;
-    //            return Task.CompletedTask;
-    //        }, ServiceProvider);
-    //    }
-    //}
+        async IAsyncEnumerable<IStep> ProduceStepsAsync()
+        {
+            Interlocked.Increment(ref prepareCallCount);
+            preparationStarted.SetResult(true);
+            await continuePreparation.Task;
+            yield return new TestStep(_ =>
+            {
+                stepExecuted = true;
+                return Task.CompletedTask;
+            }, ServiceProvider);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_PreparationCancelled_ThrowsOperationCanceledException()
+    {
+        using var cts = new CancellationTokenSource();
+        var tcs = new TaskCompletionSource<bool>();
+
+        var s1 = new TestStep(async _ =>
+        {
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+            tcs.SetResult(true);
+        }, ServiceProvider);
+
+        var s2Run = false;
+        var s2 = new TestStep(_ =>
+        {
+            s2Run = true;
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
+
+        Assert.False(s2Run);
+        return;
+
+        async IAsyncEnumerable<IStep> ProduceStepsAsync()
+        {
+            yield return s1;
+            await tcs.Task;
+            cts.Cancel();
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+            yield return s2;
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_CancelledDuringProduction_StopsProducing()
+    {
+        var cts = new CancellationTokenSource();
+        var productionGate = new TaskCompletionSource<bool>();
+        var cancelGate = new TaskCompletionSource<bool>();
+        var producedSteps = new List<int>();
+
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+
+        var runTask = Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
+
+        await productionGate.Task;
+
+        cts.Cancel();
+        cancelGate.SetResult(true);
+
+        await runTask;
+
+        Assert.Equal(2, producedSteps.Count);
+
+        async IAsyncEnumerable<IStep> ProduceStepsAsync()
+        {
+            for (var i = 0; i < 10; i++)
+            {
+                if (i == 2)
+                {
+                    productionGate.SetResult(true);
+                    await cancelGate.Task;
+                }
+
+                cts.Token.ThrowIfCancellationRequested();
+
+                producedSteps.Add(i);
+                yield return new TestStep(_ => Task.CompletedTask, ServiceProvider);
+            }
+        }
+    }
 
     #endregion
 
-    #region Preparation Failure Tests
+    #region PrepareAsync
 
     [Fact]
     public async Task PrepareAsync_ConcurrentCallsDuringStepProduction_OnlyFirstSucceeds()
@@ -308,15 +357,11 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
 
         var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
 
-        // Start first PrepareAsync
         var firstTask = pipeline.PrepareAsync(CancellationToken.None);
 
-        // Wait for production to start
         await productionStarted.Task;
 
-        // Try to call PrepareAsync again - should throw
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            pipeline.PrepareAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pipeline.PrepareAsync(CancellationToken.None));
 
         continueProduction.SetResult(true);
         await firstTask;
@@ -332,7 +377,6 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
         }
     }
 
-
     [Fact]
     public async Task PrepareAsync_CalledAfterRunAsyncStartedPreparation_ThrowsInvalidOperationException()
     {
@@ -341,17 +385,12 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
 
         var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
 
-        // Start RunAsync which will trigger background preparation
         var runTask = pipeline.RunAsync(CancellationToken.None);
 
-        // Wait for preparation to start
         await preparationStarted.Task;
 
-        // Try to call PrepareAsync - should throw because preparation was already started by RunAsync
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            pipeline.PrepareAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pipeline.PrepareAsync(CancellationToken.None));
 
-        // Let the pipeline complete
         continuePreparation.SetResult(true);
         await runTask;
 
@@ -403,126 +442,16 @@ public class ParallelProducerConsumerPipelineTest : PipelineTestBase
 
     #endregion
 
-    #region Cancellation Tests
+    #region Dispose
 
     [Fact]
-    public async Task RunAsync_PreparationCancelled_ThrowsOperationCanceledException()
+    public async Task Dispose_DisposesRunner()
     {
-        using var cts = new CancellationTokenSource();
-        var tcs = new TaskCompletionSource<bool>();
-
-        var s1 = new TestStep(async _ =>
-        {
-            await Task.Delay(100, TestContext.Current.CancellationToken);
-            tcs.SetResult(true);
-        }, ServiceProvider);
-
-        var s2Run = false;
-        var s2 = new TestStep(_ =>
-        {
-            s2Run = true;
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
-
-        await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
-
-        Assert.False(s2Run);
-        return;
-
-        async IAsyncEnumerable<IStep> ProduceStepsAsync()
-        {
-            yield return s1;
-            await tcs.Task;
-            cts.Cancel();
-            await Task.Delay(100, TestContext.Current.CancellationToken);
-            yield return s2;
-        }
-    }
-
-    [Fact]
-    public async Task RunAsync_CancelledDuringProduction_StopsProducing()
-    {
-        var cts = new CancellationTokenSource();
-        var productionGate = new TaskCompletionSource<bool>();
-        var cancelGate = new TaskCompletionSource<bool>();
-        var producedSteps = new List<int>();
-
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
-
-        var runTask = Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
-
-        // Wait until step 2 is about to be produced
-        await productionGate.Task;
-
-        // Cancel and signal to continue
-        cts.Cancel();
-        cancelGate.SetResult(true);
-
-        await runTask;
-
-        // Only steps 0 and 1 should have been produced
-        Assert.Equal(2, producedSteps.Count);
-
-        async IAsyncEnumerable<IStep> ProduceStepsAsync()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                if (i == 2)
-                {
-                    productionGate.SetResult(true);
-                    await cancelGate.Task;
-                }
-
-                // This should throw after cancellation
-                cts.Token.ThrowIfCancellationRequested();
-
-                producedSteps.Add(i);
-                yield return new TestStep(_ => Task.CompletedTask, ServiceProvider);
-            }
-        }
-    }
-
-    #endregion
-
-    #region Parallel Execution Tests
-
-    [Fact]
-    public async Task RunAsync_ExecutesStepsInParallel()
-    {
-        var concurrentCount = 0;
-        var maxConcurrent = 0;
-        var lockObj = new object();
-
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync(), workerCount: 4);
-
-        await pipeline.RunAsync(TestContext.Current.CancellationToken);
-
-        Assert.True(maxConcurrent > 1, $"Expected parallel execution, but max concurrent was {maxConcurrent}");
-
-        async IAsyncEnumerable<IStep> ProduceStepsAsync()
-        {
-            for (var i = 0; i < 8; i++)
-            {
-                yield return new TestStep(async _ =>
-                {
-                    lock (lockObj)
-                    {
-                        concurrentCount++;
-                        maxConcurrent = Math.Max(maxConcurrent, concurrentCount);
-                    }
-
-                    await Task.Delay(100, TestContext.Current.CancellationToken);
-
-                    lock (lockObj)
-                    {
-                        concurrentCount--;
-                    }
-                }, ServiceProvider);
-            }
-            await Task.Yield();
-        }
+        var pipeline = CreateStepRunnerPipelineBase([]);
+        await pipeline.PrepareAsync(TestContext.Current.CancellationToken);
+        pipeline.Dispose();
+        Assert.True(pipeline.IsDisposed);
+        Assert.Throws<ObjectDisposedException>(() => pipeline.StepRunner.AddStep(new TestStep(null, ServiceProvider)));
     }
 
     #endregion

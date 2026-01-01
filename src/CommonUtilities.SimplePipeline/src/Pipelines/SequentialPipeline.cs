@@ -6,7 +6,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// <summary>
 /// A simple pipeline that runs all steps sequentially.
 /// </summary>
-public abstract class SequentialPipeline : StepRunnerPipelineBase
+public abstract class SequentialPipeline : StepRunnerPipeline
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SequentialPipeline"/> class.

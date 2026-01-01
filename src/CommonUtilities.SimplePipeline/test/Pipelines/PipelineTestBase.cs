@@ -1,5 +1,4 @@
 ﻿using AnakinRaW.CommonUtilities.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -67,11 +66,11 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         var prepareCount = 0;
         var barrier = new TaskCompletionSource<bool>();
 
-        var pipeline = new ConcurrentPreparationTestPipeline(async _ =>
+        var pipeline = CreateTrackingPipeline(async _ =>
         {
             Interlocked.Increment(ref prepareCount);
             await barrier.Task;
-        }, ServiceProvider);
+        }, _ => Task.CompletedTask);
 
         var firstTask = pipeline.PrepareAsync(CancellationToken.None);
 
@@ -90,11 +89,11 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     public async Task PrepareAsync_FailedPreparation_CannotRetry()
     {
         var callCount = 0;
-        var pipeline = new FailingPreparationPipeline(() =>
+        var pipeline = CreateTrackingPipeline(_ =>
         {
             callCount++;
             throw new ArgumentException("Preparation failed");
-        }, ServiceProvider);
+        }, _ => Task.CompletedTask);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             pipeline.PrepareAsync(TestContext.Current.CancellationToken));
@@ -103,6 +102,26 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
             pipeline.PrepareAsync(TestContext.Current.CancellationToken));
 
         Assert.Equal(1, callCount);
+    }
+
+    [Fact]
+    public async Task PrepareAsync_Cancelled_ThrowsOperationCancelledException()
+    {
+        var mre = new ManualResetEventSlim(false);
+        var cts = new CancellationTokenSource();
+
+        var pipeline = CreateTrackingPipeline(async ct =>
+        {
+            await Task.Yield();
+            mre.Wait(TestContext.Current.CancellationToken);
+            ct.ThrowIfCancellationRequested();
+        }, _ => Task.CompletedTask);
+
+        var prepareTask = pipeline.PrepareAsync(cts.Token);
+        cts.Cancel();
+        mre.Set();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await prepareTask);
     }
 
     [Fact]
@@ -145,29 +164,23 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     [Fact]
     public async Task RunAsync_PreparationThrowsNonCancellationException_SetsPipelineFailed()
     {
-        var pipeline = new FailingPreparationPipeline(
-            () => throw new ArgumentException("Preparation failed"),
-            ServiceProvider);
+        var pipeline = CreateTrackingPipeline(
+            _ => throw new ArgumentException("Preparation failed"), 
+            _ => Task.CompletedTask);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
-
-        Assert.True(pipeline.PipelineFailed);
-        Assert.False(pipeline.PipelineCancelled);
     }
 
     [Fact]
     public async Task RunAsync_PreparationThrowsOperationCanceledException_SetsPipelineCancelled()
     {
-        var pipeline = new FailingPreparationPipeline(
-            () => throw new OperationCanceledException(),
-            ServiceProvider);
+        var pipeline = CreateTrackingPipeline(
+            _ => throw new OperationCanceledException(),
+            _ => Task.CompletedTask);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
-
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
     }
 
     [Fact]
@@ -331,13 +344,13 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         var waitToCancel = new TaskCompletionSource<bool>();
         var waitUntilCanceled = new ManualResetEvent(false);
 
-        var pipeline = new ConcurrentPreparationTestPipeline(async ct =>
+        var pipeline = CreateTrackingPipeline(async ct =>
         {
             await Task.Yield();
             waitToCancel.SetResult(true);
             waitUntilCanceled.WaitOne();
             ct.ThrowIfCancellationRequested();
-        }, ServiceProvider);
+        }, _ => Task.CompletedTask);
 
         var runTask = pipeline.RunAsync(cts.Token);
         await waitToCancel.Task;
@@ -346,8 +359,6 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         waitUntilCanceled.Set();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => runTask);
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
     }
 
     [Fact]
@@ -474,18 +485,42 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     #region Cancel Tests
 
     [Fact]
-    public async Task Cancel_DuringWaitForPreparation_CancelsPipeline()
+    public async Task Cancel_DuringPreparation_HasNoEffect()
     {
         var waitToCancel = new TaskCompletionSource<bool>();
         var waitUntilCanceled = new ManualResetEvent(false);
 
-        var pipeline = new ConcurrentPreparationTestPipeline(async ct =>
+        var pipeline = CreateTrackingPipeline(async ct =>
         {
             await Task.Yield();
             waitToCancel.SetResult(true);
             waitUntilCanceled.WaitOne();
             ct.ThrowIfCancellationRequested();
-        }, ServiceProvider);
+        }, _ => Task.CompletedTask);
+
+        var prepareTask = pipeline.PrepareAsync(CancellationToken.None);
+        await waitToCancel.Task;
+
+        pipeline.Cancel();
+        waitUntilCanceled.Set();
+
+        var e = await Record.ExceptionAsync(() => prepareTask);
+        Assert.Null(e);
+    }
+
+    [Fact]
+    public async Task Cancel_DuringWaitForPreparation_CancelsPipeline()
+    {
+        var waitToCancel = new TaskCompletionSource<bool>();
+        var waitUntilCanceled = new ManualResetEvent(false);
+
+        var pipeline = CreateTrackingPipeline(async ct =>
+        {
+            await Task.Yield();
+            waitToCancel.SetResult(true);
+            waitUntilCanceled.WaitOne();
+            ct.ThrowIfCancellationRequested();
+        }, _ => Task.CompletedTask);
 
         var runTask = pipeline.RunAsync(CancellationToken.None);
         await waitToCancel.Task;
@@ -494,8 +529,6 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         waitUntilCanceled.Set();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => runTask);
-        Assert.True(pipeline.PipelineCancelled);
-        Assert.False(pipeline.PipelineFailed);
     }
 
     [Fact]
@@ -618,51 +651,6 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     }
 
     #endregion
-
-    private class ConcurrentPreparationTestPipeline(Func<CancellationToken, Task> onPrepare, IServiceProvider serviceProvider)
-        : Pipeline(serviceProvider)
-    {
-        protected override async Task PrepareCoreAsync(CancellationToken token)
-        {
-            await onPrepare(token);
-        }
-
-        protected override Task ExecuteAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
-    }
-
-    private class FailingPreparationPipeline(Action onPrepare, IServiceProvider serviceProvider)
-        : Pipeline(serviceProvider)
-    {
-        protected override Task PrepareCoreAsync(CancellationToken token)
-        {
-            onPrepare();
-            return Task.CompletedTask;
-        }
-
-        protected override Task ExecuteAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
-    }
-
-    private class TrackingPipeline(Action onPrepare, Action? onRun = null) 
-        : Pipeline(new ServiceCollection().BuildServiceProvider()), ITrackingPipeline
-    {
-        protected override Task PrepareCoreAsync(CancellationToken token)
-        {
-            onPrepare();
-            return Task.CompletedTask;
-        }
-
-        protected override Task ExecuteAsync(CancellationToken token)
-        {
-            onRun?.Invoke();
-            return Task.CompletedTask;
-        }
-    }
 }
 
 public interface ITrackingPipeline : IPipeline;
