@@ -1,158 +1,173 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Base implementation for an <see cref="IPipeline"/>
+/// Base implementation for an <see cref="IPipeline"/>.
 /// </summary>
 public abstract class Pipeline : DisposableObject, IPipeline
 {
-    /// <summary>
-    /// The cancellation token source used by this pipeline to send cancellation request.
-    /// </summary>
-    protected CancellationTokenSource? LinkedCancellationTokenSource;
+    private Task? _preparationTask;
+    private Task? _runTask;
+    private readonly object _lock = new();
 
-    /// <summary>
-    /// Returns the service provider of the <see cref="Pipeline"/>.
-    /// </summary>
+    private CancellationTokenSource? _linkedCancellationTokenSource;
+    private readonly object _cancellationLock = new();
+
     protected readonly IServiceProvider ServiceProvider;
-
-    /// <summary>
-    /// Returns the logger of the <see cref="Pipeline"/>.
-    /// </summary>
     protected readonly ILogger? Logger;
 
-    /// <summary>
-    /// Gets a value indicating whether the preparation of the <see cref="Pipeline"/> was successful.
-    /// </summary>
-    protected bool Prepared { get; set; }
+    protected bool IsPrepared =>
+#if NETSTANDARD2_0 || NETFRAMEWORK
+        _preparationTask is { Status: TaskStatus.RanToCompletion, IsCompleted: true };
+#else
+        _preparationTask?.IsCompletedSuccessfully == true;
+#endif
 
-    /// <summary>
-    /// Gets a value indicating whether the execution of the pipeline has encountered a failure.
-    /// </summary>
     public bool PipelineFailed { get; protected set; }
-
-    /// <summary>
-    /// Gets a value indicating the pipeline shall abort execution on the first received error.
-    /// </summary>
-    protected virtual bool FailFast => false;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Pipeline"/> class.
-    /// </summary>
-    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
+    
+    public bool PipelineCancelled { get; protected set; }
+    
     protected Pipeline(IServiceProvider serviceProvider)
     {
         ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
-    
+
     /// <inheritdoc/>
-    public async Task PrepareAsync()
+    public Task PrepareAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-        if (!Prepared)
+        token.ThrowIfCancellationRequested();
+        lock (_lock)
         {
+            if (_preparationTask is not null)
+                throw new InvalidOperationException("Pipeline preparation has already been started.");
+
             try
             {
-                await PrepareCoreAsync().ConfigureAwait(false);
+                _preparationTask = PrepareCoreAsync(token);
             }
-            finally
+            catch (Exception ex)
             {
-                Prepared = true;
+                _preparationTask = Task.FromException(ex);
+                throw;
             }
+            return _preparationTask;
         }
     }
 
     /// <inheritdoc/>
-    public virtual async Task RunAsync(CancellationToken token = default)
+    public Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
 
-        await PrepareAsync().ConfigureAwait(false);
+        var m = typeof(TaskExtensions).GetMethods();
 
-        try
+        lock (_lock)
         {
-            try
-            {
-                LinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                await RunCoreAsync(LinkedCancellationTokenSource.Token).ConfigureAwait(false);
-                LinkedCancellationTokenSource.Token.ThrowIfCancellationRequested();
-            }
-            finally
-            {
-                if (LinkedCancellationTokenSource is not null)
-                {
-                    LinkedCancellationTokenSource.Dispose();
-                    LinkedCancellationTokenSource = null;
-                }
-            }
-        }
-        catch (Exception)
-        {
-            PipelineFailed = true;
-            throw;
+            if (_runTask is not null)
+                throw new InvalidOperationException("Pipeline has already been started.");
+
+            _runTask = RunCoreAsync(token);
+            return _runTask;
         }
     }
 
     /// <inheritdoc />
     public void Cancel()
     {
-        LinkedCancellationTokenSource?.Cancel();
+        lock (_cancellationLock)
+        {
+            if (_linkedCancellationTokenSource != null)
+            {
+                _linkedCancellationTokenSource.Cancel();
+                PipelineCancelled = true;
+            }
+        }
     }
 
-    /// <inheritdoc/>
-    [ExcludeFromCodeCoverage]
-    public override string ToString()
+    protected void SetLinkedCancellationTokenSource(CancellationTokenSource? cts)
     {
-        return GetType().Name;
+        lock (_cancellationLock)
+        {
+            _linkedCancellationTokenSource = cts;
+        }
     }
 
     /// <summary>
     /// Performs the actual preparation of this instance.
     /// </summary>
-    /// <returns><see langword="true"/> if the planning was successful; <see langword="false"/> otherwise.</returns>
-    protected abstract Task<bool> PrepareCoreAsync();
+    protected abstract Task PrepareCoreAsync(CancellationToken token);
 
     /// <summary>
-    /// Implements the run logic of this instance.
+    /// Orchestrates and executes the pipeline.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    ///  Override this method to customize execution flow.
+    /// </para>
+    /// <para>
+    /// The default implementation calls <see cref="PrepareAsync"/> if needed,
+    /// sets up cancellation, and delegates to <see cref="ExecuteAsync"/>.
+    /// </para>
+    /// </remarks>
+    protected virtual async Task RunCoreAsync(CancellationToken token)
+    {
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+        SetLinkedCancellationTokenSource(cts);
+        
+        try
+        {
+            await WaitForPreparationAsync(cts.Token).ConfigureAwait(false);
+            await ExecuteAsync(cts.Token).ConfigureAwait(false);
+            cts.Token.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            PipelineCancelled = true;
+            throw;
+        }
+        catch
+        {
+            PipelineFailed = true;
+            throw;
+        }
+        finally
+        {
+            SetLinkedCancellationTokenSource(null);
+            cts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Waits for preparation or starts it if not yet started.
+    /// </summary>
+    protected Task WaitForPreparationAsync(CancellationToken token)
+    {
+        Task task;
+
+        lock (_lock)
+        {
+            _preparationTask ??= PrepareCoreAsync(token);
+            task = _preparationTask;
+        }
+        return task.WaitAsync(token);
+
+    }
+
+    /// <summary>
+    /// Implements the actual execution logic of this instance.
     /// </summary>
     /// <remarks>It's assured this instance is already prepared when this method gets called.</remarks>
-    /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
-    protected abstract Task RunCoreAsync(CancellationToken token);
+    protected abstract Task ExecuteAsync(CancellationToken token);
 
-    /// <summary>
-    /// Throws an <see cref="StepFailureException"/> if any of the passed steps ended with an error that is not the result of cancellation.
-    /// </summary>
-    /// <param name="steps">The steps that were executed by the pipeline.</param>
-    /// <exception cref="StepFailureException">If any of <paramref name="steps"/> has an error that is not the result of cancellation.</exception>
-    protected void ThrowIfAnyStepsFailed(IEnumerable<IStep> steps)
-    {
-        var failedBuildSteps = steps
-            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>())
-            .ToList();
 
-        if (failedBuildSteps.Any())
-            throw new StepFailureException(failedBuildSteps);
-    }
-
-    /// <summary>
-    /// The default event handler that can be used when an error occurs within a step.
-    /// <see cref="PipelineFailed"/> is set to <see langword="true"/>. When <see cref="FailFast"/> is <see langword="true"/>, the pipeline gets cancelled.
-    /// </summary>
-    /// <param name="sender">The sender of the event.</param>
-    /// <param name="e">The event arguments.</param>
-    protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
-    {
-        PipelineFailed = true;
-        if (FailFast || e.Cancel)
-            Cancel();
-    }
+    [ExcludeFromCodeCoverage]
+    public override string ToString() => GetType().Name;
 }

@@ -1,122 +1,145 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// A simple pipeline that runs all steps on the thread pool in parallel. Allows to run the pipeline even if preparation is not completed.
+/// A pipeline that runs preparation and execution in parallel using a producer/consumer pattern.
 /// </summary>
 /// <remarks>
-/// Useful, if preparation is work intensive.
+/// Steps are added to the runner while execution is already in progress.
+/// Useful when preparation is work-intensive.
 /// </remarks>
-public abstract class ParallelProducerConsumerPipeline : Pipeline
-{ 
-    private readonly ProducerConsumerStepRunner _stepRunner;
-
+public abstract class ParallelProducerConsumerPipeline(
+    int workerCount,
+    IServiceProvider serviceProvider) : Pipeline(serviceProvider)
+{
+    private ProducerConsumerStepRunner? _stepRunner;
     private Exception? _preparationException;
 
-    /// <inheritdoc />
-    protected override bool FailFast { get; }
+    /// <summary>
+    /// Gets a value indicating the pipeline shall abort execution on the first received error.
+    /// </summary>
+    public bool FailFast { get; protected set; } = false;
+
+    private ProducerConsumerStepRunner StepRunner =>
+        _stepRunner ?? throw new InvalidOperationException("Step runner not initialized.");
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ParallelProducerConsumerPipeline"/> class.
+    /// Builds the steps asynchronously as they become available.
     /// </summary>
-    /// <param name="serviceProvider">The service provider for dependency injection within the pipeline.</param>
-    /// <param name="workerCount">The number of worker threads to be used for parallel execution.</param>
-    /// <param name="failFast">A value indicating whether the pipeline should fail fast.</param>
-    protected ParallelProducerConsumerPipeline(int workerCount, bool failFast, IServiceProvider serviceProvider) : base(serviceProvider)
-    {
-        FailFast = failFast;
-        _stepRunner = new ProducerConsumerStepRunner(workerCount, serviceProvider);
-    }
+    protected abstract IAsyncEnumerable<IStep> BuildStepsAsync(CancellationToken token);
 
     /// <inheritdoc/>
-    public sealed override async Task RunAsync(CancellationToken token = default)
+    protected sealed override async Task PrepareCoreAsync(CancellationToken token)
     {
-        ThrowIfDisposed();
+        InitializeRunner();
+        await foreach (var step in BuildStepsAsync(token).ConfigureAwait(false)) 
+            StepRunner.AddStep(step);
+        StepRunner.Finish();
+    }
+    
+    /// <inheritdoc/>
+    protected sealed override async Task RunCoreAsync(CancellationToken token)
+    {
+        InitializeRunner();
 
-        LinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+        SetLinkedCancellationTokenSource(cts);
 
-        if (!Prepared)
-        {
-            Task.Run(async () =>
-            {
-                try
-                { 
-                    await PrepareAsync().ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    PipelineFailed = true;
-                    _preparationException = e;
-                    
-                    if (FailFast)
-                        Cancel();
-                }
-                finally
-                {
-                    _stepRunner.Finish();
-                }
-            }, LinkedCancellationTokenSource.Token).Forget();
-        }
+        if (!IsPrepared) 
+            RunPreparationAsync(cts.Token).Forget();
 
         try
         {
-            await RunCoreAsync(LinkedCancellationTokenSource.Token).ConfigureAwait(false);
-            LinkedCancellationTokenSource.Token.ThrowIfCancellationRequested();
+            await ExecuteAsync(cts.Token).ConfigureAwait(false);
+            cts.Token.ThrowIfCancellationRequested();
         }
-        catch (Exception)
+        catch (OperationCanceledException)
+        {
+            PipelineCancelled = true;
+            throw;
+        }
+        catch
         {
             PipelineFailed = true;
             throw;
         }
         finally
         {
-            if (LinkedCancellationTokenSource is not null)
-            {
-                LinkedCancellationTokenSource.Dispose();
-                LinkedCancellationTokenSource = null;
-            }
+            SetLinkedCancellationTokenSource(null);
+            cts.Dispose();
         }
     }
 
-    /// <summary>
-    /// Builds the steps in the order they should be executed within the pipeline.
-    /// </summary>
-    /// <returns>A list of steps in the order they should be executed.</returns>
-    protected abstract IAsyncEnumerable<IStep> BuildSteps();
-
     /// <inheritdoc/>
-    protected override async Task<bool> PrepareCoreAsync()
-    {
-        await foreach (var step in BuildSteps().ConfigureAwait(false)) 
-            _stepRunner.AddStep(step);
-        _stepRunner.Finish();
-        return true;
-    }
-
-    /// <inheritdoc/>
-    protected override async Task RunCoreAsync(CancellationToken token)
+    protected sealed override async Task ExecuteAsync(CancellationToken token)
     {
         try
         {
-            _stepRunner.Error += OnError!;
-            await _stepRunner.RunAsync(token).ConfigureAwait(false);
+            StepRunner.Error += OnError!;
+            await StepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            _stepRunner.Error -= OnError!;
+            StepRunner.Error -= OnError!;
         }
-
-        if (!PipelineFailed)
-            return;
 
         if (_preparationException is not null)
             throw _preparationException;
 
-        ThrowIfAnyStepsFailed(_stepRunner.ExecutedSteps);
+        var failedSteps = StepRunner.ExecutedSteps.WhereFailed().ToList();
+        if (failedSteps.Count > 0)
+            throw new StepFailureException(failedSteps);
+    }
+
+
+    protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
+    {
+        if (FailFast || e.Cancel)
+            Cancel();
+    }
+
+    private async Task RunPreparationAsync(CancellationToken token)
+    {
+        try
+        {
+            await WaitForPreparationAsync(token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            PipelineCancelled = true;
+            Cancel();
+        }
+        catch (Exception e)
+        {
+            PipelineFailed = true;
+            _preparationException = e;
+
+            if (FailFast)
+                Cancel();
+        }
+        finally
+        {
+            try
+            {
+                StepRunner.Finish();
+            }
+            catch (InvalidOperationException)
+            {
+                // Already finished or not initialized
+            }
+        }
+    }
+
+    private void InitializeRunner()
+    {
+        _stepRunner ??= new ProducerConsumerStepRunner(workerCount, ServiceProvider);
     }
 }
+
+

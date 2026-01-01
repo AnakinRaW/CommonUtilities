@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
@@ -17,5 +18,13 @@ internal static class Extensions
                 _ => false
             };
         }
+    }
+
+    public static IEnumerable<IStep> WhereFailed(this IEnumerable<IStep> steps)
+    {
+        if (steps == null) 
+            throw new ArgumentNullException(nameof(steps));
+        return steps
+            .Where(p => p.Error != null && !p.Error.IsExceptionType<OperationCanceledException>());
     }
 }
