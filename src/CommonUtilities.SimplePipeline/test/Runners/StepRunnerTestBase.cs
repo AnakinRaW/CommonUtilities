@@ -30,17 +30,6 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     {
     }
 
-    #region Helper Methods
-
-    private static async Task<bool> WaitForTaskWithTimeout(Task task, TimeSpan timeout)
-    {
-        var delayTask = Task.Delay(timeout);
-        var completedTask = await Task.WhenAny(task, delayTask);
-        return completedTask == task;
-    }
-
-    #endregion
-
     #region Initial State Tests
 
     [Fact]
@@ -550,6 +539,48 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         await runner.RunAsync(CancellationToken.None);
 
         Assert.Equal(new[] { 0, 1, 2, 3, 4 }, executionOrder);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RunAsync_StepsAreExecutedOnThreadPool_DoesNotDeadlock(bool sequential)
+    {
+        if (sequential && !SupportsSequentialExecutionOrder)
+            return;
+
+        var waitSource = new TaskCompletionSource<bool>();
+
+        var runner = CreateStepRunner(sequential);
+        var canComplete = new ManualResetEventSlim(false);
+
+        var step1 = new TestStep(_ =>
+        {
+            canComplete.Wait();
+            waitSource.SetResult(true);
+            return Task.CompletedTask;
+        }, ServiceProvider);
+        var step2 = new TestStep(async _ =>
+        {
+            await waitSource.Task;
+        }, ServiceProvider);
+
+
+        runner.AddStep(step1);
+        runner.AddStep(step2);
+
+        FinishAdding(runner);
+
+        var task = runner.RunAsync(CancellationToken.None);
+
+        canComplete.Set();
+        await waitSource.Task;
+
+        var completedTask = 
+            await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        Assert.Same(task, completedTask);
+
+        Assert.True(task is {IsCompleted: true, Status: TaskStatus.RanToCompletion});
     }
 
     #endregion
@@ -1579,7 +1610,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         await runner.RunAsync(CancellationToken.None);
 
-        await Assert.Single(runner.ExecutedSteps);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        Assert.Single(runner.ExecutedSteps);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         Assert.Contains(step, runner.ExecutedSteps);
     }
 
@@ -1981,4 +2014,13 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     }
 
     #endregion
+
+
+    // TODO: Remove
+    private static async Task<bool> WaitForTaskWithTimeout(Task task, TimeSpan timeout)
+    {
+        var delayTask = Task.Delay(timeout);
+        var completedTask = await Task.WhenAny(task, delayTask);
+        return completedTask == task;
+    }
 }

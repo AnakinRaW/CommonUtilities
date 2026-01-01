@@ -25,4 +25,11 @@ public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
     {
         Assert.Throws<ArgumentNullException>(() => new SequentialStepRunner(null!));
     }
+
+    [Fact]
+    public void Ctor_WorkerCountIsOne()
+    {
+        var runner = new SequentialStepRunner(ServiceProvider);
+        Assert.Equal(1, runner.WorkerCount);
+    }
 }

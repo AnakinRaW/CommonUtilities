@@ -178,7 +178,7 @@ public class AsyncStepRunner : IStepRunner
         {
             IsRunning = true;
             if (WorkerCount == 1)
-                await RunWorkerAsync(token).ConfigureAwait(false);
+                await Task.Run(() => RunWorkerAsync(token), CancellationToken.None).ConfigureAwait(false);
             else
             {
                 var workers = new Task[WorkerCount];
