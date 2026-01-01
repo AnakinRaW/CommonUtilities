@@ -66,9 +66,6 @@ public abstract class Pipeline : DisposableObject, IPipeline
     public Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-
-        var m = typeof(TaskExtensions).GetMethods();
-
         lock (_lock)
         {
             if (_runTask is not null)
