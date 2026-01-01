@@ -10,7 +10,7 @@ using Testably.Abstractions.Testing;
 using Xunit;
 using System.Collections.Generic;
 using System.Globalization;
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 using System.Security.Cryptography;
 #endif
 
@@ -258,7 +258,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA256))]
     [MemberData(nameof(ProviderHashTestData_SHA384))]
     [MemberData(nameof(ProviderHashTestData_SHA512))]
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     [MemberData(nameof(ProviderHashTestData_SHA3_256))]
     [MemberData(nameof(ProviderHashTestData_SHA3_384))]
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
@@ -308,7 +308,7 @@ public class HashingServiceTest
     [MemberData(nameof(ProviderHashTestData_SHA256))]
     [MemberData(nameof(ProviderHashTestData_SHA384))]
     [MemberData(nameof(ProviderHashTestData_SHA512))]
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
     [MemberData(nameof(ProviderHashTestData_SHA3_256))]
     [MemberData(nameof(ProviderHashTestData_SHA3_384))]
     [MemberData(nameof(ProviderHashTestData_SHA3_512))]
@@ -387,7 +387,7 @@ public class HashingServiceTest
         yield return [HashTypeKey.SHA256];
         yield return [HashTypeKey.SHA384];
         yield return [HashTypeKey.SHA512];
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
         if (SHA3_256.IsSupported)
             yield return [HashTypeKey.SHA3_256];
         if (SHA3_384.IsSupported)
@@ -397,7 +397,7 @@ public class HashingServiceTest
 #endif
     }
 
-#if NET8_0_OR_GREATER
+#if NET10_0_OR_GREATER
 
     public static IEnumerable<object[]> ProviderHashTestData_SHA3_256()
     {
