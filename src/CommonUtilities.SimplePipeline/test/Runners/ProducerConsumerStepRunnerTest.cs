@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
@@ -207,30 +206,41 @@ public class ProducerConsumerStepRunnerTest : StepRunnerTestBase<ProducerConsume
     #region RunAsync Extended Behavior
 
     [Fact]
-    public async Task RunAsync_MultipleWorkers_AllWorkersProcessSteps()
+    public async Task RunAsync_MultipleWorkers_ExecutesStepsConcurrently()
     {
         const int workerCount = 4;
-        const int stepsPerWorker = 10;
+        const int totalSteps = 20;
         var runner = CreateStepRunner(workerCount);
         var executedSteps = new ConcurrentBag<int>();
-        var workerIds = new ConcurrentBag<int>();
 
-        for (var i = 0; i < workerCount * stepsPerWorker; i++)
+        var concurrentCount = 0;
+        var maxConcurrentCount = 0;
+        var lockObj = new object();
+
+        for (var i = 0; i < totalSteps; i++)
         {
             var index = i;
             runner.AddStep(new TestStep(async _ =>
             {
-                await Task.Delay(10, TestContext.Current.CancellationToken);
+                var current = Interlocked.Increment(ref concurrentCount);
+                lock (lockObj)
+                {
+                    if (current > maxConcurrentCount)
+                        maxConcurrentCount = current;
+                }
+
+                await Task.Delay(new Random().Next(50, 300), TestContext.Current.CancellationToken);
                 executedSteps.Add(index);
-                workerIds.Add(Environment.CurrentManagedThreadId);
+
+                Interlocked.Decrement(ref concurrentCount);
             }, ServiceProvider));
         }
 
         runner.Finish();
         await runner.RunAsync(CancellationToken.None);
 
-        Assert.Equal(workerCount * stepsPerWorker, executedSteps.Count);
-        Assert.True(workerIds.Distinct().Count() >= 2, "Multiple workers should process steps");
+        Assert.Equal(totalSteps, executedSteps.Count);
+        Assert.True(maxConcurrentCount >= 2, $"Expected concurrent execution, but max concurrent was {maxConcurrentCount}");
     }
 
     [Fact]
