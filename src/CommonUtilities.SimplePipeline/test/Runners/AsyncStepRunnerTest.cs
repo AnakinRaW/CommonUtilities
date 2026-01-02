@@ -8,9 +8,9 @@ public class AsyncStepRunnerTest : StepRunnerTestBase<AsyncStepRunner>
 
     public override bool SupportsSequentialExecutionOrder => true;
 
-    protected override AsyncStepRunner CreateStepRunner(bool sequential = false)
+    protected override AsyncStepRunner CreateStepRunner(bool? sequential = null)
     {
-        var workers = sequential ? 1 : 4;
+        var workers = sequential is true ? 1 : 4;
         return CreateStepRunner(workers);
     }
 

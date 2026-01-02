@@ -17,7 +17,16 @@ public abstract class SequentialPipeline : StepRunnerPipeline
     {
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Creates an instance of <see cref="IStepRunner"/> to execute the steps in the pipeline sequentially.
+    /// </summary>
+    /// <remarks>
+    /// This method returns a <see cref="SequentialStepRunner"/>.
+    /// The runner ensures that all steps are executed one after another in a sequential manner.
+    /// </remarks>
+    /// <returns>
+    /// An instance of <see cref="IStepRunner"/> that executes steps sequentially.
+    /// </returns>
     protected sealed override IStepRunner CreateRunner()
     {
         return new SequentialStepRunner(ServiceProvider);

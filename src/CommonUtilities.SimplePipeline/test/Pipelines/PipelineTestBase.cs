@@ -32,6 +32,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         Assert.False(pipeline.Failed);
         Assert.False(pipeline.Cancelled);
         Assert.False(pipeline.IsDisposed);
+        Assert.False(pipeline.IsPrepared);
     }
 
     #endregion
@@ -46,6 +47,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         await pipeline.PrepareAsync(TestContext.Current.CancellationToken);
 
         Assert.False(pipeline.Failed);
+        Assert.True(pipeline.IsPrepared);
     }
 
     [Fact]
@@ -103,6 +105,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
             pipeline.PrepareAsync(TestContext.Current.CancellationToken));
 
         Assert.Equal(1, callCount);
+        Assert.False(((Pipeline)pipeline).IsPrepared);
     }
 
     [Fact]
@@ -123,6 +126,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         mre.Set();
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await prepareTask);
+        Assert.False(((Pipeline)pipeline).IsPrepared);
     }
 
     [Fact]
@@ -143,6 +147,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         cts.Cancel();
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.PrepareAsync(cts.Token));
+        Assert.False(pipeline.IsPrepared);
     }
 
     #endregion
@@ -160,6 +165,7 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         Assert.Equal(1, prepareCount);
         Assert.Equal(1, runCount);
+        Assert.True(((Pipeline)pipeline).IsPrepared);
     }
 
     [Fact]
@@ -171,6 +177,17 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             pipeline.RunAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task RunAsync_PreparationFailed_RethrowsPreparationException()
+    {
+        var pipeline = CreateTrackingPipeline(
+            _ => throw new ArgumentException("Preparation failed"),
+            _ => Task.CompletedTask);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () => await pipeline.PrepareAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -481,6 +498,42 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
         Assert.True(pipeline.IsDisposed);
     }
 
+    [Fact]
+    public async Task Dispose_DuringPreparation_ThrowsInvalidOperationException()
+    {
+        var preparationStarted = new TaskCompletionSource<bool>();
+        var preparationDelay = new TaskCompletionSource<bool>();
+
+        var pipeline = CreateTrackingPipeline(async _ =>
+        {
+            preparationStarted.SetResult(true);
+            await preparationDelay.Task;
+        }, _ => Task.CompletedTask);
+
+        pipeline.PrepareAsync(TestContext.Current.CancellationToken).Forget();
+
+        await preparationStarted.Task;
+
+        Assert.Throws<InvalidOperationException>(() => pipeline.Dispose());
+        // The rest is undefined behavior...
+    }
+
+    [Fact]
+    public void Dispose_DuringExecution_ThrowsInvalidOperationException()
+    {
+        var disposed = new TaskCompletionSource<bool>();
+        var step = new TestStep(async _ =>
+        {
+            await disposed.Task;
+        }, ServiceProvider);
+        var pipeline = CreatePipeline([step]);
+        
+        pipeline.RunAsync(TestContext.Current.CancellationToken).Forget();
+
+        Assert.Throws<InvalidOperationException>(() => pipeline.Dispose());
+        // The rest is undefined behavior...
+    }
+
     #endregion
 
     #region Cancel Tests
@@ -614,16 +667,34 @@ public abstract class PipelineTestBase : TestBaseWithServiceProvider
     }
 
     [Fact]
-    public void Cancel_CalledMultipleTimes_NoException()
+    public async Task Cancel_CalledMultipleTimes_NoException()
     {
-        var pipeline = CreatePipeline([]);
+        var waitToCancel = new TaskCompletionSource<bool>();
+        var waitUntilCanceled = new ManualResetEvent(false);
+
+        var step = new TestStep(_ =>
+        {
+            waitToCancel.SetResult(true);
+            waitUntilCanceled.WaitOne();
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        var pipeline = CreatePipeline([step]);
+
+        await pipeline.PrepareAsync(CancellationToken.None);
+
+        var pipelineTask = pipeline.RunAsync(CancellationToken.None);
+        await waitToCancel.Task;
 
         pipeline.Cancel();
         pipeline.Cancel();
         pipeline.Cancel();
+        
+        waitUntilCanceled.Set();
 
-        Assert.False(pipeline.Cancelled);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => pipelineTask);
     }
+
 
     [Fact]
     public void Cancel_OnDisposedPipeline_NoException()

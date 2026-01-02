@@ -46,9 +46,9 @@ public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestBas
             return null!;
         }
 
-        protected override Task PrepareRunnerAsync(CancellationToken token)
+        protected override Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<IList<IStep>>([]);
         }
     }
 }

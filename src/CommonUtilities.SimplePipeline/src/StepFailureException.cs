@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
@@ -10,7 +11,13 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </summary>
 public sealed class StepFailureException : Exception
 {
-    private readonly IEnumerable<IStep> _failedSteps;
+    /// <summary>
+    /// Gets the collection of steps that failed.
+    /// </summary>
+    /// <value>
+    /// A read-only collection of <see cref="IStep"/> instances representing the failed steps.
+    /// </value>
+    public IReadOnlyCollection<IStep> FailedSteps { get; }
 
     /// <inheritdoc/>
     public override string Message => Error;
@@ -22,11 +29,14 @@ public sealed class StepFailureException : Exception
         {
             if (field is not null)
                 return field;
-
-            var stringBuilder = new StringBuilder();
-            
-            foreach (var step in _failedSteps)
-                stringBuilder.Append($"Step '{step}' failed with error: {step.Error?.Message};");
+            var stringBuilder = new StringBuilder($"{FailedSteps.Count} Failed Step(s)");
+            if (FailedSteps.Count > 0)
+            {
+                stringBuilder.Append(':');
+                stringBuilder.Append(' ');
+            }
+            foreach (var step in FailedSteps)
+                stringBuilder.Append($"Step '{step}' failed with error: {step.Error?.Message ?? "n/a"};");
             field = stringBuilder.ToString().TrimEnd(';');
             return field;
         }
@@ -38,6 +48,8 @@ public sealed class StepFailureException : Exception
     /// <param name="failedSteps">The failed steps.</param>
     public StepFailureException(IEnumerable<IStep> failedSteps)
     {
-        _failedSteps = failedSteps ?? throw new ArgumentNullException(nameof(failedSteps));
+        if (failedSteps == null) 
+            throw new ArgumentNullException(nameof(failedSteps));
+        FailedSteps = failedSteps.ToList();
     }
 }

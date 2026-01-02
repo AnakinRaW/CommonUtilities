@@ -44,6 +44,17 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
             null!, AsyncEnumerable.Empty<IStep>(), null, 4, true));
     }
 
+    [Fact]
+    public void Ctor_InvalidWorkerCount_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+            ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, 0, true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+            ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, new Random().Next(int.MinValue, 0), true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+            ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, new Random().Next(65, int.MaxValue), true));
+    }
+
     #endregion
 
     #region RunAsync
@@ -345,6 +356,86 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         }
     }
 
+    [Fact]
+    public async Task RunAsync_PreparationFailsImmediately_ThrowsException()
+    {
+        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+
+        await Assert.ThrowsAsync<ApplicationException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
+
+        async IAsyncEnumerable<IStep> ProduceStepsAsync()
+        {
+            await Task.Yield();
+            throw new ApplicationException("Immediate failure");
+#pragma warning disable CS0162 // Unreachable code detected
+            yield break;
+#pragma warning restore CS0162
+        }
+    }
+
+    [Theory]
+    [InlineData(RunnerBehavior.Concurrent)]
+    [InlineData(RunnerBehavior.Sequential)]
+    public async Task RunAsync_PreparationAndExecutionConcurrent_NoDeadlock(RunnerBehavior runnerBehavior)
+    {
+        var firstStepStarted = new ManualResetEventSlim(false);
+        var allowPreparationToContinue = new ManualResetEventSlim(false);
+        var executedSteps = new ConcurrentBag<int>();
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
+
+        
+        var pipeline = new NonAwaitingTestParallelProducerConsumerPipeline(ServiceProvider,
+            GetWorkerCount(runnerBehavior), buildSteps: BuildSteps);
+
+        var runTask = pipeline.RunAsync(linkedCts.Token);
+
+        // Wait for execution to start with timeout
+        Assert.True(firstStepStarted.Wait(TimeSpan.FromSeconds(5), linkedCts.Token),
+            "First step did not start; pipeline may be deadlocked.");
+
+        // Allow preparation to continue producing steps
+        allowPreparationToContinue.Set();
+
+        // Should complete without deadlock
+        await runTask;
+
+        Assert.False(cts.IsCancellationRequested, "Pipeline hit timeout; possible deadlock.");
+        Assert.Equal(11, executedSteps.Count);
+        Assert.Contains(0, executedSteps);
+
+        async IAsyncEnumerable<IStep> BuildSteps([EnumeratorCancellation] CancellationToken token)
+        {
+            // First step: starts execution, signals, then blocks
+            yield return new TestStep(async _ =>
+            {
+                await Task.Yield();
+                executedSteps.Add(0);
+                firstStepStarted.Set();
+
+                // Wait with timeout to avoid hanging
+                if (!allowPreparationToContinue.Wait(TimeSpan.FromSeconds(8), linkedCts.Token))
+                    throw new TimeoutException("First step timed out waiting for continuation signal");
+            }, ServiceProvider);
+
+            // Wait for first step to actually start executing with timeout
+            if (!firstStepStarted.Wait(TimeSpan.FromSeconds(5), linkedCts.Token))
+                throw new TimeoutException("BuildSteps timed out waiting for first step to start");
+
+            // Produce more steps while first step is still running
+            for (var i = 1; i <= 10; i++)
+            {
+                var index = i;
+                yield return new TestStep(_ =>
+                {
+                    executedSteps.Add(index);
+                    return Task.CompletedTask;
+                }, ServiceProvider);
+            }
+        }
+    }
+
     #endregion
 
     #region PrepareAsync
@@ -425,20 +516,15 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     }
 
     [Fact]
-    public async Task RunAsync_PreparationFailsImmediately_ThrowsException()
+    public async Task PrepareAsync_RunnerInitializedWithCtorWorkerCount()
     {
-        var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
+        var workerCount = new Random().Next(1, 65);
+        var pipeline = new TestParallelProducerConsumerPipeline(ServiceProvider, Array.Empty<IStep>().ToAsyncEnumerable(),
+            null, workerCount, false);
 
-        await Assert.ThrowsAsync<ApplicationException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
+        await pipeline.PrepareAsync(CancellationToken.None);
 
-        async IAsyncEnumerable<IStep> ProduceStepsAsync()
-        {
-            await Task.Yield();
-            throw new ApplicationException("Immediate failure");
-#pragma warning disable CS0162 // Unreachable code detected
-            yield break;
-#pragma warning restore CS0162
-        }
+        Assert.Equal(workerCount, pipeline.StepRunner.WorkerCount);
     }
 
     #endregion
@@ -482,6 +568,20 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
             {
                 yield return step;
             }
+        }
+    }
+
+    public class NonAwaitingTestParallelProducerConsumerPipeline(
+        IServiceProvider serviceProvider,
+        int workerCount,
+        Func<CancellationToken, IAsyncEnumerable<IStep>> buildSteps)
+        : ParallelProducerConsumerPipeline(workerCount, serviceProvider)
+    {
+        private readonly Func<CancellationToken, IAsyncEnumerable<IStep>> _buildSteps = buildSteps ?? throw new ArgumentNullException(nameof(buildSteps));
+
+        protected override IAsyncEnumerable<IStep> BuildStepsAsync(CancellationToken token)
+        {
+            return _buildSteps(token);
         }
     }
 }

@@ -14,37 +14,92 @@ public abstract class Pipeline : DisposableObject, IPipeline
 {
     private Task? _preparationTask;
     private Task? _runTask;
-    private readonly object _lock = new();
 
-    private CancellationTokenSource? _linkedCancellationTokenSource;
-    private readonly object _cancellationLock = new();
+#if NET10_0_OR_GREATER
+    private readonly Lock _reentryLock = new();
+#else
+    private readonly object _reentryLock = new();
+#endif
 
+    /// <summary>
+    /// Gets the <see cref="System.Threading.CancellationTokenSource"/> used to cancel the execution of the pipeline.
+    /// Returns <see langword="null"/> if the execution is not started or already finished.
+    /// </summary>
+    protected CancellationTokenSource? CancellationTokenSource;
+    
+    /// <summary>
+    /// Gets the <see cref="IServiceProvider"/> for the pipeline.
+    /// </summary>
     protected readonly IServiceProvider ServiceProvider;
+    
+    /// <summary>
+    /// Gets the <see cref="ILogger"/> for the pipeline or <see langword="null"/> if no logger is registered.
+    /// </summary>
     protected readonly ILogger? Logger;
 
-    protected bool IsPrepared =>
+    /// <summary>
+    /// Gets a value indicating whether the pipeline has been successfully prepared.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the pipeline preparation task has completed successfully; otherwise, <see langword="false"/>.
+    /// </value>
+    protected internal bool IsPrepared =>
 #if NETSTANDARD2_0 || NETFRAMEWORK
         _preparationTask is { Status: TaskStatus.RanToCompletion, IsCompleted: true };
 #else
         _preparationTask?.IsCompletedSuccessfully == true;
 #endif
 
+    /// <summary>
+    /// Gets a value indicating whether the pipeline has encountered a failure during its execution.
+    /// </summary>
+    /// <remarks>
+    /// This property is set to <see langword="true"/> if an exception occurs during the execution of the pipeline.
+    /// </remarks>
     public bool Failed { get; protected set; }
     
+    /// <summary>
+    /// Gets a value indicating whether the pipeline has been cancelled.
+    /// </summary>
+    /// <remarks>
+    /// This property is set to <see langword="true"/> when the pipeline is explicitly cancelled
+    /// or when an <see cref="OperationCanceledException"/> is thrown during execution.
+    /// </remarks>
     public bool Cancelled { get; protected set; }
     
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Pipeline"/> class with the specified service provider.
+    /// </summary>
+    /// <param name="serviceProvider">The <see cref="IServiceProvider"/> used to resolve dependencies for the pipeline.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
     protected Pipeline(IServiceProvider serviceProvider)
     {
         ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         Logger = serviceProvider.GetService<ILoggerFactory>()?.CreateLogger(GetType());
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Returns a string representation of the current <see cref="Pipeline"/> instance.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="string"/> that represents the name of the current pipeline type.
+    /// </returns>
+    [ExcludeFromCodeCoverage]
+    public override string ToString() => GetType().Name;
+
+    /// <summary>
+    /// Prepares the pipeline for execution.
+    /// </summary>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the preparation to complete.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous preparation operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the pipeline already is prepared or preparation has been started.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the pipeline has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
     public Task PrepareAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
         token.ThrowIfCancellationRequested();
-        lock (_lock)
+        lock (_reentryLock)
         {
             if (_preparationTask is not null)
                 throw new InvalidOperationException("Pipeline preparation has already been started.");
@@ -62,11 +117,17 @@ public abstract class Pipeline : DisposableObject, IPipeline
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Executes the pipeline asynchronously.
+    /// </summary>
+    /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the pipeline has already been started or is executing.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the pipeline has been disposed.</exception>
     public Task RunAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();
-        lock (_lock)
+        lock (_reentryLock)
         {
             if (_runTask is not null)
                 throw new InvalidOperationException("Pipeline has already been started.");
@@ -76,24 +137,21 @@ public abstract class Pipeline : DisposableObject, IPipeline
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Cancels the execution of the pipeline.
+    /// </summary>
+    /// <remarks>
+    /// This method ensures that the pipeline's execution is stopped by canceling the associated 
+    /// <see cref="CancellationTokenSource"/>. Once canceled, the <see cref="Cancelled"/> property is set to <c>true</c>.
+    /// </remarks>
+    /// <exception cref="ObjectDisposedException">Thrown if the pipeline or its associated resources have already been disposed.</exception>
     public void Cancel()
     {
-        lock (_cancellationLock)
+        var cts = CancellationTokenSource;
+        if (cts != null)
         {
-            if (_linkedCancellationTokenSource != null)
-            {
-                _linkedCancellationTokenSource.Cancel();
-                Cancelled = true;
-            }
-        }
-    }
-
-    protected void SetLinkedCancellationTokenSource(CancellationTokenSource? cts)
-    {
-        lock (_cancellationLock)
-        {
-            _linkedCancellationTokenSource = cts;
+            cts.Cancel();
+            Cancelled = true;
         }
     }
 
@@ -101,6 +159,12 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// Performs the actual preparation of this instance.
     /// </summary>
     protected abstract Task PrepareCoreAsync(CancellationToken token);
+
+    /// <summary>
+    /// Implements the actual execution logic of this instance.
+    /// </summary>
+    /// <remarks>It's assured this instance is already prepared when this method gets called.</remarks>
+    protected abstract Task ExecuteAsync(CancellationToken token);
 
     /// <summary>
     /// Orchestrates and executes the pipeline.
@@ -116,14 +180,13 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// </remarks>
     protected virtual async Task RunCoreAsync(CancellationToken token)
     {
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-        SetLinkedCancellationTokenSource(cts);
+        CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
         
         try
         {
-            await WaitForPreparationAsync(cts.Token).ConfigureAwait(false);
-            await ExecuteAsync(cts.Token).ConfigureAwait(false);
-            cts.Token.ThrowIfCancellationRequested();
+            await WaitForPreparationAsync(CancellationTokenSource.Token).ConfigureAwait(false);
+            await ExecuteAsync(CancellationTokenSource.Token).ConfigureAwait(false);
+            CancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
         {
@@ -137,9 +200,29 @@ public abstract class Pipeline : DisposableObject, IPipeline
         }
         finally
         {
-            SetLinkedCancellationTokenSource(null);
-            cts.Dispose();
+            CancellationTokenSource?.Dispose();
+            CancellationTokenSource = null;
         }
+    }
+
+    /// <summary>
+    /// Releases resources used by the pipeline, including any tasks and cancellation tokens.
+    /// </summary>
+    protected override void DisposeResources()
+    {
+        lock (_reentryLock)
+        {
+            _preparationTask?.Dispose();
+            _runTask?.Dispose();
+            CancellationTokenSource?.Dispose();
+            CancellationTokenSource = null;
+
+            // Safe because we explicitly check the methods if disposed
+            _preparationTask = null;
+            _runTask = null;
+        }
+
+        base.DisposeResources();
     }
 
     /// <summary>
@@ -149,7 +232,7 @@ public abstract class Pipeline : DisposableObject, IPipeline
     {
         Task task;
 
-        lock (_lock)
+        lock (_reentryLock)
         {
             _preparationTask ??= PrepareCoreAsync(token);
             task = _preparationTask;
@@ -157,14 +240,4 @@ public abstract class Pipeline : DisposableObject, IPipeline
         return task.WaitAsync(token);
 
     }
-
-    /// <summary>
-    /// Implements the actual execution logic of this instance.
-    /// </summary>
-    /// <remarks>It's assured this instance is already prepared when this method gets called.</remarks>
-    protected abstract Task ExecuteAsync(CancellationToken token);
-
-
-    [ExcludeFromCodeCoverage]
-    public override string ToString() => GetType().Name;
 }

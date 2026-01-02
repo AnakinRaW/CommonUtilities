@@ -268,12 +268,11 @@ public class RunPipelineStepTest : PipelineStepTestBase
             return new AsyncStepRunner(4, ServiceProvider);
         }
 
-        protected override async Task PrepareRunnerAsync(CancellationToken token)
+        protected override async Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
         {
             if (onPrepare is not null)
                 await onPrepare(token);
-            foreach (var step in steps)
-                StepRunner.AddStep(step);
+            return steps;
         }
     }
 }

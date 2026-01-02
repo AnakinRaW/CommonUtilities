@@ -30,6 +30,17 @@ public class AsyncStepRunner : IStepRunner
     /// <inheritdoc />
     public AggregateException? Exception => _exceptions.IsEmpty ? null : new AggregateException(_exceptions);
 
+    /// <summary>
+    /// Gets a value indicating whether the steps in the pipeline are executed sequentially.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the steps are executed sequentially; otherwise, <see langword="false"/>.
+    /// </value>
+    /// <remarks>
+    /// The execution is considered sequential when the <see cref="WorkerCount"/> is set to 1.
+    /// </remarks>
+    public bool IsSequential => WorkerCount == 1;
+
     /// <inheritdoc />
     public bool IsRunning { get; private set; }
 

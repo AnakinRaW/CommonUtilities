@@ -10,8 +10,10 @@ public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
 
     public override bool SupportsSequentialExecutionOrder => true;
 
-    protected override SequentialStepRunner CreateStepRunner(bool sequential = false)
+    protected override SequentialStepRunner CreateStepRunner(bool? sequential = null)
     {
+        if (sequential is false)
+            throw new InvalidOperationException();
         return new SequentialStepRunner(ServiceProvider);
     }
 

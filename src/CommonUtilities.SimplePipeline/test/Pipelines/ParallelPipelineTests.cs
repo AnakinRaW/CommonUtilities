@@ -1,6 +1,7 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
@@ -33,7 +34,7 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
 
     private class TestParallelPipeline : StepRunnerPipeline, ITrackingPipeline
     {
-        private readonly IEnumerable<IStep> _steps;
+        private readonly IList<IStep> _steps;
         private readonly int _workerCount;
         private readonly Func<CancellationToken, Task>? _prepareAction;
 
@@ -45,7 +46,7 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
             bool failFast = true) 
             : base(serviceProvider)
         {
-            _steps = steps;
+            _steps = steps.ToList();
             _workerCount = workerCount;
             FailFast = failFast;
             _prepareAction = onPrepare;
@@ -56,12 +57,11 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
             return new AsyncStepRunner(_workerCount, ServiceProvider);
         }
 
-        protected override Task PrepareRunnerAsync(CancellationToken token)
+        protected override async Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
         {
-            foreach (var step in _steps) 
-                StepRunner.AddStep(step);
-
-            return _prepareAction is null ? Task.CompletedTask : _prepareAction(token);
+            if (_prepareAction is not null)
+                await _prepareAction(token);
+            return _steps;
         }
     }
 }

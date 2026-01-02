@@ -35,12 +35,12 @@ public class PipelineTest : PipelineTestBase
     {
         protected override Task PrepareCoreAsync(CancellationToken token)
         {
-            return prepare(token);
+            return Task.Run(() => prepare(token), CancellationToken.None);
         }
 
         protected override Task ExecuteAsync(CancellationToken token)
         {
-            return run(token);
+            return Task.Run(() => run(token), CancellationToken.None);
         }
     }
 }

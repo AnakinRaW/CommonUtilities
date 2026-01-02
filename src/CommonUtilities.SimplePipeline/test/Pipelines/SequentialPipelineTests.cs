@@ -57,12 +57,11 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
             _prepareAction = onPrepare;
         }
 
-        protected override Task PrepareRunnerAsync(CancellationToken token)
+        protected override async Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
         {
-            foreach (var step in _steps) 
-                StepRunner.AddStep(step);
-
-            return _prepareAction is null ? Task.CompletedTask : _prepareAction(token);
+            if (_prepareAction is not null)
+                await _prepareAction(token);
+            return _steps;
         }
     }
 }

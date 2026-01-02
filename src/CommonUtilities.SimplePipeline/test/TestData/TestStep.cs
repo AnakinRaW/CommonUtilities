@@ -23,6 +23,20 @@ public class TestStep : PipelineStep
     {
         return _action?.Invoke(token) ?? Task.CompletedTask;
     }
+
+    public static async Task<IStep> CreateFailed(Exception? error, IServiceProvider serviceProvider)
+    {
+        var step = new TestStep(_ => error is not null ? throw error : Task.CompletedTask, serviceProvider);
+        try
+        {
+            await step.RunAsync(CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            // Ignore
+        }
+        return step;
+    }
 }
 
 

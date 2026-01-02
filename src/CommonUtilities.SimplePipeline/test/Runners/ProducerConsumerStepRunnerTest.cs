@@ -17,9 +17,9 @@ public class ProducerConsumerStepRunnerTest : StepRunnerTestBase<ProducerConsume
 
     protected override bool SupportsAddingStepsAfterCancellation => false;
 
-    protected override ProducerConsumerStepRunner CreateStepRunner(bool sequential = false)
+    protected override ProducerConsumerStepRunner CreateStepRunner(bool? sequential = null)
     {
-        var workers = sequential ? 1 : 4;
+        var workers = sequential is true ? 1 : 4;
         return CreateStepRunner(workers);
     }
 

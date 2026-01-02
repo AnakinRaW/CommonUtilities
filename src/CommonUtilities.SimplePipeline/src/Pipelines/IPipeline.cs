@@ -14,6 +14,7 @@ public interface IPipeline : IDisposable
     /// </summary>
     /// <param name="token">Token to cancel the preparation.</param>
     /// <exception cref="OperationCanceledException">Cancellation was requested.</exception>
+    /// <exception cref="ObjectDisposedException">The pipeline was disposed.</exception>
     Task PrepareAsync(CancellationToken token = default);
 
     /// <summary>
@@ -21,6 +22,7 @@ public interface IPipeline : IDisposable
     /// </summary>
     /// <param name="token">Token to cancel the execution.</param>
     /// <exception cref="OperationCanceledException">Cancellation was requested.</exception>
+    /// <exception cref="ObjectDisposedException">The pipeline was disposed.</exception>
     Task RunAsync(CancellationToken token = default);
 
     /// <summary>

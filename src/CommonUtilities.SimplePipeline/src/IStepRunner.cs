@@ -14,7 +14,7 @@ public interface IStepRunner
     /// <summary>
     /// The event that is raised when the execution caused an exception.
     /// </summary>
-    event EventHandler<StepRunnerErrorEventArgs>? Error;
+    event EventHandler<StepRunnerErrorEventArgs> Error;
 
     /// <summary>
     /// Gets an aggregated exception of all failed steps or <see langword="null"/> if no step failed.

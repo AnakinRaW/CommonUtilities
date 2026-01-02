@@ -4,12 +4,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where T : class, IStepRunner
+public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where T : AsyncStepRunner
 {
     /// <summary>
     /// Indicates whether the runner guarantees sequential step execution order.
@@ -23,7 +24,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
     protected virtual bool SupportsAddingStepsAfterCancellation => true;
 
-    protected abstract T CreateStepRunner(bool sequential = false);
+    protected abstract T CreateStepRunner(bool? sequential = null);
 
     protected abstract T CreateStepRunner(int workerCount);
 
@@ -34,7 +35,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     #region Initial State Tests
 
     [Fact]
-    public void NewRunner_InitialState_InvalidWorkerCount()
+    public void NewRunner_InitialState_ConcurrentRunner()
     {
         if (HasSequentialStepExecutionOrder)
             return;
@@ -42,9 +43,21 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         Assert.Throws<ArgumentOutOfRangeException>("workerCount", () => CreateStepRunner(new Random().Next(int.MinValue, 0)));
         Assert.Throws<ArgumentOutOfRangeException>("workerCount", () => CreateStepRunner(new Random().Next(65, int.MaxValue)));
 
-        var workerCount = new Random().Next(1, 65);
+        var workerCount = new Random().Next(2, 65);
         var runner = CreateStepRunner(workerCount);
         Assert.Equal(workerCount, runner.WorkerCount);
+        Assert.False(runner.IsSequential);
+    }
+
+    [Fact]
+    public void NewRunner_InitialState_Sequential()
+    {
+        if (!SupportsSequentialExecutionOrder)
+            return;
+
+        var runner = CreateStepRunner(true);
+        Assert.Equal(1, runner.WorkerCount);
+        Assert.True(runner.IsSequential);
     }
 
     [Fact]
@@ -548,6 +561,8 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     public async Task RunAsync_StepsAreExecutedOnThreadPool_DoesNotDeadlock(bool sequential)
     {
         if (sequential && !SupportsSequentialExecutionOrder)
+            return;
+        if (!sequential && HasSequentialStepExecutionOrder)
             return;
 
         var waitSource = new TaskCompletionSource<bool>();
@@ -1843,6 +1858,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     [Fact]
     public async Task Error_ConcurrentErrors_AllErrorsRecorded()
     {
+        if (HasSequentialStepExecutionOrder)
+            return;
+        
         var runner = CreateStepRunner(sequential: false);
         var errorCount = 0;
 

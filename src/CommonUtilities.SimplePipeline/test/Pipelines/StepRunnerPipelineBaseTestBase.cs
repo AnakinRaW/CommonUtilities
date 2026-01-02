@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase where TRunner : IStepRunner
+public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase where TRunner : class, IStepRunner
 {
     protected virtual bool RunnerSupportsSequentialRuns => true;
 
@@ -84,11 +84,11 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
     #region StepRunner
 
     [Fact]
-    public void StepRunner_NotYetInitialized_ThrowsInvalidOperationException()
+    public void StepRunner_AccessAlwaysInitializes()
     {
         var step = new TestStep(_ => Task.CompletedTask, ServiceProvider);
         var pipeline = CreateStepRunnerPipelineBase([step], Random.Bool());
-        Assert.Throws<InvalidOperationException>(() => pipeline.StepRunner);
+        Assert.NotNull(pipeline.StepRunner);
     }
 
     [Fact]
