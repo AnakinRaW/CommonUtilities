@@ -143,7 +143,6 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
     /// </summary>
     /// <remarks>
     /// This method ensures that any resources associated with the pipeline, including the step runner, are properly disposed of.
-    /// If the step runner is initialized and implements <see cref="IDisposable"/>, it will be disposed of.
     /// </remarks>
     protected override void DisposeResources()
     {
@@ -151,8 +150,6 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
         if (IsStepRunnerInitialized)
         {
             StepRunner.Error -= OnError!;
-            if (StepRunner is IDisposable disposableRunner)
-                disposableRunner.Dispose();
         }
     }
 }

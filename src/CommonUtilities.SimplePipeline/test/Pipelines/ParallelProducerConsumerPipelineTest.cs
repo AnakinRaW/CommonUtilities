@@ -217,6 +217,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         await pipeline.RunAsync(TestContext.Current.CancellationToken);
 
         Assert.True(executionStartedDuringProduction, "Step execution should start before production completes");
+        return;
 
         async IAsyncEnumerable<IStep> ProduceStepsAsync()
         {
@@ -528,20 +529,6 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         await pipeline.PrepareAsync(CancellationToken.None);
 
         Assert.Equal(workerCount, pipeline.StepRunner.WorkerCount);
-    }
-
-    #endregion
-
-    #region Dispose
-
-    [Fact]
-    public async Task Dispose_DisposesRunner()
-    {
-        var pipeline = CreateStepRunnerPipelineBase([]);
-        await pipeline.PrepareAsync(TestContext.Current.CancellationToken);
-        pipeline.Dispose();
-        Assert.True(pipeline.IsDisposed);
-        Assert.Throws<ObjectDisposedException>(() => pipeline.StepRunner.AddStep(new TestStep(null, ServiceProvider)));
     }
 
     #endregion

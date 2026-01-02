@@ -143,14 +143,19 @@ public class AsyncStepRunner : IStepRunner
     }
 
     /// <summary>
-    /// Attempts to retrieve the next step to be executed from the queue.
+    /// Asynchronously retrieves the next step to be executed from the pending steps queue.
     /// </summary>
-    /// <param name="step">When this method returns, contains the next <see cref="IStep"/> to be executed if one is available; otherwise, <see langword="null"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a step to become available.</param>
-    /// <returns><see langword="true"/> if a step was successfully retrieved; otherwise, <see langword="false"/>.</returns>
-    protected virtual bool TakeNextStep([NotNullWhen(true)] out IStep? step, CancellationToken cancellationToken)
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the next step.</param>
+    /// <returns>
+    /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation. 
+    /// The result contains the next <see cref="IStep"/> to be executed, or <see langword="null"/> if no steps are available.
+    /// </returns>
+    /// <remarks>
+    /// This method is designed to be overridden in derived classes to customize the behavior of step retrieval.
+    /// </remarks>
+    protected virtual ValueTask<IStep?> TakeNextStepAsync(CancellationToken cancellationToken)
     {
-        return _pendingSteps.TryDequeue(out step);
+        return new ValueTask<IStep?>(_pendingSteps.TryDequeue(out var step) ? step : null);
     }
 
     /// <summary>
@@ -213,7 +218,7 @@ public class AsyncStepRunner : IStepRunner
         var alreadyCancelled = false;
         try
         {
-            while (TakeNextStep(out var step, token))
+            while (await TakeNextStepAsync(token).ConfigureAwait(false) is { } step)
             {
                 try
                 {

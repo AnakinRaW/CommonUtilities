@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 
@@ -18,37 +18,22 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// </para>
 /// </remarks>
 public class ProducerConsumerStepRunner(int workerCount, IServiceProvider serviceProvider)
-    : AsyncStepRunner(workerCount, serviceProvider), IDisposable
+    : AsyncStepRunner(workerCount, serviceProvider)
 {
-    private bool _disposed;
+    private readonly Channel<IStep> _stepChannel = Channel.CreateUnbounded<IStep>();
 
     /// <summary>
-    /// Gets the collection of steps managed by the runner.
+    /// Adds a step to the runner for execution.
     /// </summary>
-    /// <remarks>
-    /// This property provides access to the underlying <see cref="BlockingCollection{T}"/> 
-    /// that stores the steps to be processed.
-    /// </remarks>
-    protected BlockingCollection<IStep> StepQueue { get; } = new();
-
-    /// <summary>
-    /// Finalizes an instance of the <see cref="ProducerConsumerStepRunner"/> class.
-    /// </summary>
-    ~ProducerConsumerStepRunner()
-    {
-        Dispose(false);
-    }
-
-    /// <summary>
-    /// Adds a step to the runner. Can be called while the runner is executing.
-    /// </summary>
+    /// <param name="step">The step to add to the runner.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="step"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the runner has already been finished and cannot accept new steps.</exception>
     public override void AddStep(IStep step)
     {
         if (step == null)
             throw new ArgumentNullException(nameof(step));
-        if (_disposed)
-            throw new ObjectDisposedException(GetType().FullName);
-        StepQueue.Add(step);
+        if (!_stepChannel.Writer.TryWrite(step))
+            throw new InvalidOperationException("Runner has been finished.");
     }
 
     /// <summary>
@@ -66,46 +51,30 @@ public class ProducerConsumerStepRunner(int workerCount, IServiceProvider servic
     /// </remarks>
     public void Finish()
     {
-        if (!StepQueue.IsAddingCompleted)
-            StepQueue.CompleteAdding();
+        _stepChannel.Writer.TryComplete();
     }
 
     /// <summary>
-    /// Attempts to retrieve and remove the next step from the queue for processing.
+    /// Asynchronously retrieves the next step to be executed from the internal queue.
     /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the next <see cref="IStep"/> to be executed,
+    /// or <see langword="null"/> if no more steps are available.
+    /// </returns>
     /// <remarks>
-    /// This method blocks until a step becomes available in the queue or the operation is canceled.
+    /// This method waits for a step to become available in the queue. If the queue is empty and no more steps will be added,
+    /// it returns <see langword="null"/>. The operation can be cancelled by the provided <paramref name="cancellationToken"/>.
     /// </remarks>
-    /// <param name="step">When this method returns, contains the step retrieved from the queue if one was available; otherwise, <see langword="null"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns><see langword="true"/> if a step was successfully retrieved from the queue; otherwise, <see langword="false"/>.</returns>
-    /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the <paramref name="cancellationToken"/>.</exception>
-    protected override bool TakeNextStep([NotNullWhen(true)] out IStep? step, CancellationToken cancellationToken)
+    /// <exception cref="OperationCanceledException">Thrown if the operation is cancelled via the <paramref name="cancellationToken"/>.</exception>
+    protected override async ValueTask<IStep?> TakeNextStepAsync(CancellationToken cancellationToken)
     {
-        return StepQueue.TryTake(out step, Timeout.Infinite, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Releases the resources used by the <see cref="ProducerConsumerStepRunner"/>.
-    /// </summary>
-    /// <param name="disposing">
-    /// <see langword="true"/> to release both managed and unmanaged resources; 
-    /// <see langword="false"/> to release only unmanaged resources.
-    /// </param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-        if (disposing) 
-            StepQueue.Dispose();
-        _disposed = true;
+        while (await _stepChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (_stepChannel.Reader.TryRead(out var step))
+                return step;
+        }
+        return null;
     }
 
     /// <summary>

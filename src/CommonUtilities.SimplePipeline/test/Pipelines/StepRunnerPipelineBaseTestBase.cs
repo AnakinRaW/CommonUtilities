@@ -232,7 +232,7 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         var s2 = new TestStep(_ => { executed.Enqueue(2); throw new InvalidOperationException(); }, ServiceProvider);
         var s3 = new TestStep(_ => { executed.Enqueue(3); return Task.CompletedTask; }, ServiceProvider);
 
-        var pipeline = CreateStepRunnerPipelineBase([s1, s2, s3], false);
+        var pipeline = CreateStepRunnerPipelineBase([s1, s2, s3], false, runnerBehavior);
 
         await Assert.ThrowsAsync<StepFailureException>(
             () => pipeline.RunAsync(TestContext.Current.CancellationToken));

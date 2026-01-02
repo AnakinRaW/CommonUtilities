@@ -42,12 +42,11 @@ public abstract class PipelineStep : DisposableObject, IStep
     }
 
     /// <inheritdoc/>
-    public async Task RunAsync(CancellationToken token)
+    public Task RunAsync(CancellationToken token)
     {
         var task = ExecuteStepAsync(token);
         _completionSource.TrySetResult(task);
-
-        await task.ConfigureAwait(false);
+        return task;
     }
 
 
