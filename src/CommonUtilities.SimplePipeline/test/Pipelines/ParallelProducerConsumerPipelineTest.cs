@@ -284,7 +284,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     [Fact]
     public async Task RunAsync_PreparationCancelled_ThrowsOperationCanceledException()
     {
-        using var cts = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
         var tcs = new TaskCompletionSource<bool>();
 
         var s1 = new TestStep(async _ =>
@@ -383,7 +383,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         var executedSteps = new ConcurrentBag<int>();
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
+        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
 
         
         var pipeline = new NonAwaitingTestParallelProducerConsumerPipeline(ServiceProvider,
@@ -404,8 +404,11 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         Assert.False(cts.IsCancellationRequested, "Pipeline hit timeout; possible deadlock.");
         Assert.Equal(11, executedSteps.Count);
         Assert.Contains(0, executedSteps);
+        return;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         async IAsyncEnumerable<IStep> BuildSteps([EnumeratorCancellation] CancellationToken token)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             // First step: starts execution, signals, then blocks
             yield return new TestStep(async _ =>
