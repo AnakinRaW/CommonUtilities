@@ -14,7 +14,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </para>
 /// <para>
 /// For pipelines that need to run preparation and execution in parallel (producer/consumer pattern),
-/// use <see cref="ParallelProducerConsumerPipeline "/> instead.
+/// use <see cref="ProducerConsumerPipeline "/> instead.
 /// </para>
 /// </remarks>
 public abstract class StepRunnerPipeline(IServiceProvider serviceProvider) : StepRunnerPipelineBase<IStepRunner>(serviceProvider)

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<ProducerConsumerStepRunner>
+public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<ProducerConsumerStepRunner>
 {
     protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateStepRunnerPipelineBase(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {
@@ -22,15 +22,15 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     protected override ITrackingPipeline CreateTrackingPipeline(Func<CancellationToken, Task> prepare, Func<CancellationToken, Task> run)
     {
         IEnumerable<IStep> steps = [new TestStep(run, ServiceProvider)];
-        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, GetWorkerCount(GetRandomRunBehavior()), false);
+        return new TestProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, GetWorkerCount(GetRandomRunBehavior()), false);
     }
 
-    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
+    private ProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {
-        return new TestParallelProducerConsumerPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
+        return new TestProducerConsumerPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
     }
 
-    private ParallelProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps)
+    private ProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps)
     {
         return CreateConsumerPipeline(steps, Random.Bool(), GetRandomRunBehavior());
     }
@@ -40,18 +40,18 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     [Fact]
     public void Ctor_NullServiceProvider_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => new TestParallelProducerConsumerPipeline(
+        Assert.Throws<ArgumentNullException>(() => new TestProducerConsumerPipeline(
             null!, AsyncEnumerable.Empty<IStep>(), null, 4, true));
     }
 
     [Fact]
     public void Ctor_InvalidWorkerCount_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestProducerConsumerPipeline(
             ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, 0, true));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestProducerConsumerPipeline(
             ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, new Random().Next(int.MinValue, 0), true));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TestParallelProducerConsumerPipeline(
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TestProducerConsumerPipeline(
             ServiceProvider, AsyncEnumerable.Empty<IStep>(), null, new Random().Next(65, int.MaxValue), true));
     }
 
@@ -387,7 +387,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
 
         
-        var pipeline = new NonAwaitingTestParallelProducerConsumerPipeline(ServiceProvider,
+        var pipeline = new NonAwaitingTestProducerConsumerPipeline(ServiceProvider,
             GetWorkerCount(runnerBehavior), buildSteps: BuildSteps);
 
         var runTask = pipeline.RunAsync(linkedCts.Token);
@@ -491,7 +491,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         var proceedWithProduction = new TaskCompletionSource<bool>();
         var enumerationCompleted = new TaskCompletionSource<bool>();
 
-        var pipeline = new TestParallelProducerConsumerPipelineExposed(
+        var pipeline = new TestProducerConsumerPipelineExposed(
             ServiceProvider,
             CreateSteps(CancellationToken.None),
             prepareAction: null,
@@ -622,7 +622,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     public async Task PrepareAsync_RunnerInitializedWithCtorWorkerCount()
     {
         var workerCount = new Random().Next(1, 65);
-        var pipeline = new TestParallelProducerConsumerPipeline(ServiceProvider, Array.Empty<IStep>().ToAsyncEnumerable(),
+        var pipeline = new TestProducerConsumerPipeline(ServiceProvider, Array.Empty<IStep>().ToAsyncEnumerable(),
             null, workerCount, false);
 
         await pipeline.PrepareAsync(CancellationToken.None);
@@ -632,12 +632,12 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
 
     #endregion
 
-    private class TestParallelProducerConsumerPipeline : ParallelProducerConsumerPipeline, ITrackingPipeline
+    private class TestProducerConsumerPipeline : ProducerConsumerPipeline, ITrackingPipeline
     {
         private readonly IAsyncEnumerable<IStep> _steps;
         private readonly Func<CancellationToken, Task>? _prepareAction;
 
-        public TestParallelProducerConsumerPipeline(
+        public TestProducerConsumerPipeline(
             IServiceProvider serviceProvider, 
             IAsyncEnumerable<IStep> steps,
             Func<CancellationToken, Task>? onPrepare,
@@ -661,11 +661,11 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         }
     }
 
-    private class NonAwaitingTestParallelProducerConsumerPipeline(
+    private class NonAwaitingTestProducerConsumerPipeline(
         IServiceProvider serviceProvider,
         int workerCount,
         Func<CancellationToken, IAsyncEnumerable<IStep>> buildSteps)
-        : ParallelProducerConsumerPipeline(workerCount, serviceProvider)
+        : ProducerConsumerPipeline(workerCount, serviceProvider)
     {
         private readonly Func<CancellationToken, IAsyncEnumerable<IStep>> _buildSteps = buildSteps ?? throw new ArgumentNullException(nameof(buildSteps));
 
@@ -675,13 +675,13 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         }
     }
 
-    private class TestParallelProducerConsumerPipelineExposed(
+    private class TestProducerConsumerPipelineExposed(
         IServiceProvider serviceProvider,
         IAsyncEnumerable<IStep> steps,
         Func<CancellationToken, Task>? prepareAction,
         int workerCount,
         bool failFast)
-        : TestParallelProducerConsumerPipeline(serviceProvider, steps, prepareAction, workerCount, failFast)
+        : TestProducerConsumerPipeline(serviceProvider, steps, prepareAction, workerCount, failFast)
     {
         public ProducerConsumerStepRunner ExposedStepRunner => StepRunner;
     }

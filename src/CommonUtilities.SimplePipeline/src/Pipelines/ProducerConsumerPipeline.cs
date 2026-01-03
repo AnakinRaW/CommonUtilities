@@ -13,18 +13,18 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// Steps are added to the runner while execution is already in progress.
 /// Useful when preparation is work-intensive.
 /// </remarks>
-public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<ProducerConsumerStepRunner>
+public abstract class ProducerConsumerPipeline : StepRunnerPipelineBase<ProducerConsumerStepRunner>
 {
     private readonly int _workerCount;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ParallelProducerConsumerPipeline"/> class with the specified worker count and service provider.
+    /// Initializes a new instance of the <see cref="ProducerConsumerPipeline"/> class with the specified worker count and service provider.
     /// </summary>
     /// <param name="workerCount">The number of workers to be used in the pipeline. Must be between 1 and 64 inclusive.</param>
     /// <param name="serviceProvider">The <see cref="IServiceProvider"/> used to resolve dependencies for the pipeline.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="workerCount"/> is less than 1 or greater than 64.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    protected ParallelProducerConsumerPipeline(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
+    protected ProducerConsumerPipeline(int workerCount, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         if (workerCount is < 1 or > 64)
             throw new ArgumentOutOfRangeException(nameof(workerCount), "worker count must be between 1 and 64 inclusive");
