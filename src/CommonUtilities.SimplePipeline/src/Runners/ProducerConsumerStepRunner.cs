@@ -30,10 +30,23 @@ public class ProducerConsumerStepRunner(int workerCount, IServiceProvider servic
     /// <exception cref="InvalidOperationException">Thrown when the runner has already been finished and cannot accept new steps.</exception>
     public override void AddStep(IStep step)
     {
+        if (!TryAddStep(step))
+            throw new InvalidOperationException("Runner has been finished.");
+    }
+
+    /// <summary>
+    /// Attempts to add a step to the runner for execution.
+    /// </summary>
+    /// <param name="step">The step to add to the runner.</param>
+    /// <returns>
+    /// <see langword="true"/> if the step was successfully added; otherwise, <see langword="false"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="step"/> is <see langword="null"/>.</exception>
+    public bool TryAddStep(IStep step)
+    {
         if (step == null)
             throw new ArgumentNullException(nameof(step));
-        if (!_stepChannel.Writer.TryWrite(step))
-            throw new InvalidOperationException("Runner has been finished.");
+        return _stepChannel.Writer.TryWrite(step);
     }
 
     /// <summary>

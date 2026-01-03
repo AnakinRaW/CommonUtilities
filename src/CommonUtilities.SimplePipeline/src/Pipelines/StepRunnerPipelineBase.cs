@@ -104,18 +104,18 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
     /// <exception cref="StepFailureException">
     /// Thrown when if any executed step failed excluding those which represent a cancelled Step.
     /// </exception>
-    protected override async Task ExecuteAsync(CancellationToken token)
+    protected sealed override async Task ExecuteAsync(CancellationToken token)
     {
         try
         {
-            StepRunner.Error += OnError!;
+            StepRunner.Error += OnRunnerExecutionError!;
             await StepRunner.RunAsync(token).ConfigureAwait(false);
         }
         finally
         {
-            StepRunner.Error -= OnError!;
+            StepRunner.Error -= OnRunnerExecutionError!;
         }
-
+        token.ThrowIfCancellationRequested();
         StepRunner.ExecutedSteps.ThrowStepFailureExceptionForFailedSteps();
     }
 
@@ -129,13 +129,19 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
     /// should be cancelled or marked as failed. If <see cref="FailFast"/> is enabled or the error indicates
     /// cancellation, the pipeline will be cancelled immediately.
     /// </remarks>
-    protected virtual void OnError(object sender, StepRunnerErrorEventArgs e)
+    protected virtual void OnRunnerExecutionError(object sender, StepRunnerErrorEventArgs e)
     {
-        Cancelled |= e.Cancel;
-        Failed |= !e.Cancel;
+        var isCancel = IsCancel(e);
+        Cancelled |= isCancel;
+        Failed |= !isCancel;
 
-        if (FailFast || e.Cancel)
+        if (FailFast || isCancel)
             Cancel();
+    }
+
+    private static bool IsCancel(StepRunnerErrorEventArgs e)
+    {
+        return e.Cancel || e.Exception.IsExceptionType<OperationCanceledException>();
     }
 
     /// <summary>
@@ -149,7 +155,7 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
         base.DisposeResources();
         if (IsStepRunnerInitialized)
         {
-            StepRunner.Error -= OnError!;
+            StepRunner.Error -= OnRunnerExecutionError!;
         }
     }
 }

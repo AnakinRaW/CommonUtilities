@@ -47,7 +47,7 @@ public abstract class Pipeline : DisposableObject, IPipeline
 #if NETSTANDARD2_0 || NETFRAMEWORK
         _preparationTask is { Status: TaskStatus.RanToCompletion, IsCompleted: true };
 #else
-        _preparationTask?.IsCompletedSuccessfully == true;
+        _preparationTask?.IsCompletedSuccessfully is true;
 #endif
 
     /// <summary>

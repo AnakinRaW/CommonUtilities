@@ -61,10 +61,4 @@ public abstract class StepRunnerPipeline(IServiceProvider serviceProvider) : Ste
     {
         return base.RunCoreAsync(token);
     }
-
-    /// <inheritdoc/>
-    protected sealed override Task ExecuteAsync(CancellationToken token)
-    {
-        return base.ExecuteAsync(token);
-    }
 }

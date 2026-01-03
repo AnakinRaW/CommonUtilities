@@ -71,8 +71,11 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
     protected sealed override async Task PrepareCoreAsync(CancellationToken token)
     {
         _ = StepRunner;
-        await foreach (var step in BuildStepsAsync(token).ConfigureAwait(false)) 
+        await foreach (var step in BuildStepsAsync(token).ConfigureAwait(false))
+        {
+            //token.ThrowIfCancellationRequested();
             StepRunner.AddStep(step);
+        }
         StepRunner.Finish();
     }
     
@@ -101,6 +104,8 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
         {
             await ExecuteAsync(linkedToken).ConfigureAwait(false);
             linkedToken.ThrowIfCancellationRequested();
+            token.ThrowIfCancellationRequested();
+            await WaitForPreparationAsync(token).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -117,21 +122,6 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
             CancellationTokenSource?.Dispose();
             CancellationTokenSource = null;
         }
-    }
-
-    /// <summary>
-    /// Executes the pipeline asynchronously with the specified cancellation token.
-    /// </summary>
-    /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous execution of the pipeline.</returns>
-    /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the provided <paramref name="token"/>.</exception>
-    /// <exception cref="Exception">The exception that happened during preparation</exception>
-    protected sealed override async Task ExecuteAsync(CancellationToken token)
-    {
-        await base.ExecuteAsync(token).ConfigureAwait(false);
-
-        if (_preparationException is not null)
-            throw _preparationException;
     }
 
     private async Task RunPreparationAsync(CancellationToken token)
@@ -159,5 +149,3 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
         }
     }
 }
-
-
