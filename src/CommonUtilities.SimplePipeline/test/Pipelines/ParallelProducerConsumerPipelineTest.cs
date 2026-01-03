@@ -303,7 +303,7 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
 
         var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
 
         Assert.False(s2Run);
         return;
@@ -441,38 +441,19 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
     }
 
     [Fact]
-    public async Task RunAsync_CancellationDoesNotCauseStepAddedProductionThrowsInvaliddOperationException()
+    public async Task RunAsync_CancellationDoesNotCauseStepAddedProductionThrowsInvalidOperationException()
     {
         var productionStarted = new TaskCompletionSource<bool>();
-        var proceedWithProduction = new TaskCompletionSource<bool>();
         var enumerationCompleted = new TaskCompletionSource<bool>();
 
-        async IAsyncEnumerable<IStep> CreateSteps([EnumeratorCancellation] CancellationToken _)
-        {
-            productionStarted.SetResult(true);
-            await proceedWithProduction.Task.ConfigureAwait(false);
-
-            try
-            {
-                yield return new TestStep(_ => Task.CompletedTask, ServiceProvider);
-            }
-            finally
-            {
-                enumerationCompleted.TrySetResult(true);
-            }
-        }
-
-        var pipeline = new TestParallelProducerConsumerPipelineExposed(
-            ServiceProvider,
+        var pipeline = CreateConsumerPipeline(
             CreateSteps(CancellationToken.None),
-            prepareAction: null,
-            workerCount: 1,
-            failFast: false);
+            Random.Bool(),
+            RunnerBehavior.Sequential);
 
         var pipelineTask = pipeline.RunAsync(new CancellationToken(true));
 
         await productionStarted.Task;
-        proceedWithProduction.SetResult(true);
 
         var productionCompletedAndHandledTask = Task.Run(async () =>
         {
@@ -487,20 +468,11 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await pipelineTask);
         
         Assert.False(pipeline.Failed);
-    }
-
-    [Fact]
-    public async Task RunAsync_StepAddedAfterRunnerFinishedUnexpectedly_RethrowsInvalidOperationException()
-    {
-        var productionStarted = new TaskCompletionSource<bool>();
-        var proceedWithProduction = new TaskCompletionSource<bool>();
-        var enumerationCompleted = new TaskCompletionSource<bool>();
+        return;
 
         async IAsyncEnumerable<IStep> CreateSteps([EnumeratorCancellation] CancellationToken _)
         {
             productionStarted.SetResult(true);
-            await proceedWithProduction.Task;
-
             try
             {
                 yield return new TestStep(_ => Task.CompletedTask, ServiceProvider);
@@ -510,6 +482,14 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
                 enumerationCompleted.TrySetResult(true);
             }
         }
+    }
+
+    [Fact]
+    public async Task RunAsync_StepAddedAfterRunnerFinishedUnexpectedly_RethrowsInvalidOperationException()
+    {
+        var productionStarted = new TaskCompletionSource<bool>();
+        var proceedWithProduction = new TaskCompletionSource<bool>();
+        var enumerationCompleted = new TaskCompletionSource<bool>();
 
         var pipeline = new TestParallelProducerConsumerPipelineExposed(
             ServiceProvider,
@@ -522,7 +502,8 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
 
         await productionStarted.Task;
 
-        // Finish the runner without cancellation request
+        // Finish the runner without cancellation request,
+        // which means that something really unexpected was going on
         pipeline.ExposedStepRunner.Finish();
 
         proceedWithProduction.SetResult(true);
@@ -540,6 +521,22 @@ public class ParallelProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBa
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await pipelineTask);
 
         Assert.True(pipeline.Failed);
+        return;
+
+        async IAsyncEnumerable<IStep> CreateSteps([EnumeratorCancellation] CancellationToken _)
+        {
+            productionStarted.SetResult(true);
+            await proceedWithProduction.Task;
+
+            try
+            {
+                yield return new TestStep(_ => Task.CompletedTask, ServiceProvider);
+            }
+            finally
+            {
+                enumerationCompleted.TrySetResult(true);
+            }
+        }
     }
 
     #endregion

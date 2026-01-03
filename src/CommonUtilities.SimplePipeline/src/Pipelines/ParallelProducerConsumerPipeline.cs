@@ -15,7 +15,6 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 /// </remarks>
 public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<ProducerConsumerStepRunner>
 {
-    private Exception? _preparationException;
     private readonly int _workerCount;
 
     /// <summary>
@@ -73,8 +72,9 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
         _ = StepRunner;
         await foreach (var step in BuildStepsAsync(token).ConfigureAwait(false))
         {
-            //token.ThrowIfCancellationRequested();
-            StepRunner.AddStep(step);
+            token.ThrowIfCancellationRequested();
+            if (!StepRunner.TryAddStep(step) && !Cancelled)
+                throw new InvalidOperationException("Unable to add write steps to underlying runner");
         }
         StepRunner.Finish();
     }
@@ -103,9 +103,8 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
         try
         {
             await ExecuteAsync(linkedToken).ConfigureAwait(false);
-            linkedToken.ThrowIfCancellationRequested();
-            token.ThrowIfCancellationRequested();
             await WaitForPreparationAsync(token).ConfigureAwait(false);
+            linkedToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
         {
@@ -135,11 +134,9 @@ public abstract class ParallelProducerConsumerPipeline : StepRunnerPipelineBase<
             Cancelled = true;
             Cancel();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Failed = true;
-            _preparationException = e;
-
             if (FailFast)
                 Cancel();
         }

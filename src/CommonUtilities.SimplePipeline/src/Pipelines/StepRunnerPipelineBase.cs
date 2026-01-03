@@ -115,7 +115,6 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
         {
             StepRunner.Error -= OnRunnerExecutionError!;
         }
-        token.ThrowIfCancellationRequested();
         StepRunner.ExecutedSteps.ThrowStepFailureExceptionForFailedSteps();
     }
 
