@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AnakinRaW.CommonUtilities.Extensions;
+namespace AnakinRaW.CommonUtilities.Testing.Extensions;
 
 /// <summary>
 /// Provides extension methods for string manipulation and testing.

@@ -26,8 +26,17 @@ public abstract class PipelineStep : DisposableObject, IStep
     protected readonly ILogger? Logger;
 
     /// <summary>
-    /// Gets the exception that occurred during execution or <see langword="null"/> if no error occurred.
+    /// Gets the exception that occurred during the execution of the step,
+    /// or <see langword="null"/> if the step completed successfully.
     /// </summary>
+    /// <remarks>
+    /// If the step is cancelled by an <see cref="OperationCanceledException"/>
+    /// (which may also be wrapped inside an <see cref="AggregateException"/>),
+    /// this property contains the underlying cause of the cancellation when available,
+    /// otherwise it may be <see langword="null"/>.
+    /// For all other failures, this property contains the exception that caused
+    /// the step to fail.
+    /// </remarks>
     public Exception? Error { get; internal set; }
 
     /// <summary>
@@ -59,13 +68,18 @@ public abstract class PipelineStep : DisposableObject, IStep
             : GetAwaitableTask().GetAwaiter();
     }
     
-    /// <inheritdoc/>
+    /// <summary>
+    /// Returns a string that represents the current <see cref="PipelineStep"/> instance.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current <see cref="PipelineStep"/> instance, typically the name of the step's type.
+    /// </returns>
     public override string ToString()
     {
         return GetType().Name;
     }
 
-    /// <summary>
+    /// <summary>0
     /// Executes this step. 
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
@@ -94,16 +108,20 @@ public abstract class PipelineStep : DisposableObject, IStep
         {
             throw;
         }
-        catch (AggregateException ex)
+        catch (AggregateException e)
         {
-            if (!ex.IsExceptionType<OperationCanceledException>())
-                LogFaultException(ex);
+            if (!e.IsExceptionType<OperationCanceledException>())
+            {
+                Error = e;
+                LogFaultException(e);
+            }
             else
-                Error = ex.InnerExceptions.FirstOrDefault(p => p.IsExceptionType<OperationCanceledException>())?.InnerException;
+                Error = e.InnerExceptions.FirstOrDefault(p => p.IsExceptionType<OperationCanceledException>())?.InnerException;
             throw;
         }
         catch (Exception e)
         {
+            Error = e;
             LogFaultException(e);
             throw;
         }
@@ -111,7 +129,6 @@ public abstract class PipelineStep : DisposableObject, IStep
 
     private void LogFaultException(Exception ex)
     { 
-        Error = ex; 
         Logger?.LogError(ex, ex.InnerException?.Message ?? ex.Message);
     }
 }

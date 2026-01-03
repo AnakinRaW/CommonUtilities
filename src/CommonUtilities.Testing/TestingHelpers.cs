@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace AET.Testing;
+namespace AnakinRaW.CommonUtilities.Testing;
 
 /// <summary>
 /// Provides common helper methods useful creating test code.

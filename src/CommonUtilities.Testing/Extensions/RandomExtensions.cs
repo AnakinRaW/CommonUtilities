@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AnakinRaW.CommonUtilities.Extensions;
+namespace AnakinRaW.CommonUtilities.Testing.Extensions;
 
 /// <summary>
 /// Provides extension methods for the <see cref="System.Random"/> class.
