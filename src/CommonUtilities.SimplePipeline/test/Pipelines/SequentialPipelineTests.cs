@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Extensions;
 using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using AnakinRaW.CommonUtilities.Testing.Extensions;
 using Xunit;

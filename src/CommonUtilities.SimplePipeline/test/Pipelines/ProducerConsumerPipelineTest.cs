@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Extensions;
 using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using AnakinRaW.CommonUtilities.Testing.Extensions;
@@ -329,7 +328,7 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<Produ
 
         var pipeline = CreateConsumerPipeline(ProduceStepsAsync());
 
-        var runTask = Assert.ThrowsAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
+        var runTask = Assert.ThrowsAnyAsync<OperationCanceledException>(() => pipeline.RunAsync(cts.Token));
 
         await productionGate.Task;
 

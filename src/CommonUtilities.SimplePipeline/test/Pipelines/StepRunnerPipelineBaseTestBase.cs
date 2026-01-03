@@ -1,5 +1,4 @@
-﻿using AnakinRaW.CommonUtilities.Extensions;
-using AnakinRaW.CommonUtilities.Testing.Extensions;
+﻿using AnakinRaW.CommonUtilities.Testing.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing;
 using AnakinRaW.CommonUtilities.Testing.EqualityComparers;
 using Xunit;
 
