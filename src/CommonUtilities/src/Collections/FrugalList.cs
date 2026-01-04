@@ -57,7 +57,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public struct FrugalList<T> : IList<T>
+public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
 {
     private static readonly EqualityComparer<T> ItemComparer = EqualityComparer<T>.Default;
     private static readonly EmptyList EmptyDummyList = EmptyList.Instance;
@@ -65,13 +65,13 @@ public struct FrugalList<T> : IList<T>
     private T _firstItem = default!;
     private List<T>? _tailList;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IList{T}"/>
     public readonly int Count => _tailList is null ? 0 : 1 + _tailList.Count;
 
     /// <inheritdoc />
-    public readonly bool IsReadOnly => false;
+    readonly bool ICollection<T>.IsReadOnly => false;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IList{T}"/>
     public T this[int index]
     {
         readonly get
@@ -378,12 +378,12 @@ public struct FrugalList<T> : IList<T>
     /// <summary>
     /// Returns an enumerator that iterates through the <see cref="FrugalList{T}"/>
     /// </summary>
-    /// <returns>A <see cref="FrugalEnumerator"/> for the <see cref="FrugalList{T}"/>.</returns>
-    public FrugalEnumerator GetEnumerator() => new(ref this);
+    /// <returns>A <see cref="Enumerator"/> for the <see cref="FrugalList{T}"/>.</returns>
+    public Enumerator GetEnumerator() => new(ref this);
 
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new FrugalEnumerator(ref this);
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(ref this);
 
-    IEnumerator IEnumerable.GetEnumerator() => new FrugalEnumerator(ref this);
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(ref this);
 
     /// <summary>
     /// Private type exists so that we can perform type checking on that type rather than reference checking.
@@ -400,7 +400,7 @@ public struct FrugalList<T> : IList<T>
     /// <summary>
     /// Enumerates the elements of a <see cref="FrugalList{T}"/>.
     /// </summary>
-    public struct FrugalEnumerator : IEnumerator<T>
+    public struct Enumerator : IEnumerator<T>
     {
         private readonly FrugalList<T> _list;
 
@@ -417,7 +417,7 @@ public struct FrugalList<T> : IList<T>
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal FrugalEnumerator(ref FrugalList<T> list)
+        internal Enumerator(ref FrugalList<T> list)
         {
             _list = list;
             _position = 0;

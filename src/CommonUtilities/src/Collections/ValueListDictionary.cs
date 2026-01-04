@@ -531,16 +531,23 @@ public class ValueListDictionary<TKey, TValue> : IValueListDictionary<TKey, TVal
             foreach (var value in this)
                 array[arrayIndex++] = value;
         }
-
+        
         /// <summary>
         /// Returns an enumerator that iterates through the <see cref="ValueCollection"/>.
         /// </summary>
-        /// <returns>An <see cref="Enumerator"/> for the <see cref="ValueCollection"/>.</returns>
+        /// <returns>
+        /// An enumerator for the <see cref="ValueCollection"/>.
+        /// </returns>
         public Enumerator GetEnumerator() => new(_dictionary);
 
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => GetEnumerator();
+        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+        {
+            if (Count == 0)
+                return EmptyEnumerator<TValue>.Instance;
+            return new Enumerator(_dictionary);
+        }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<TValue>)this).GetEnumerator();
 
         /// <summary>
         /// This operation is not supported on a read-only collection.
@@ -563,68 +570,95 @@ public class ValueListDictionary<TKey, TValue> : IValueListDictionary<TKey, TVal
         /// <summary>
         /// Enumerates the elements of a <see cref="ValueCollection"/>.
         /// </summary>
+        /// <summary>
+        /// Enumerates the elements of a <see cref="ValueCollection"/>.
+        /// </summary>
         public struct Enumerator : IEnumerator<TValue>
         {
-            private ValueListDictionary<TKey, TValue>.Enumerator _dictEnumerator;
-            private FrugalList<TValue>.FrugalEnumerator _valueEnumerator;
-            private bool _hasCurrentList;
+            private readonly ValueListDictionary<TKey, TValue> _dictionary;
+            private FrugalList<TValue> _currentList;
+            private int _keyIndex;
+            private int _valueIndex;
+            private TValue _current;
 
             internal Enumerator(ValueListDictionary<TKey, TValue> dictionary)
             {
-                _dictEnumerator = dictionary.GetEnumerator();
-                _valueEnumerator = default;
-                _hasCurrentList = false;
+                _dictionary = dictionary;
+                _currentList = default;
+                _keyIndex = 0;
+                _valueIndex = -1;
+                _current = default!;
             }
 
-            /// <summary>
-            /// Gets the element at the current position of the enumerator.
-            /// </summary>
-            /// <value>The element in the <see cref="ValueCollection"/> at the current position of the enumerator.</value>
-            public TValue Current => _valueEnumerator.Current;
+            /// <inheritdoc cref="IEnumerator{T}.Current"/>
+            public TValue Current => _current;
 
             /// <inheritdoc />
-            object IEnumerator.Current => Current!;
+            object? IEnumerator.Current
+            {
+                get
+                {
+                    if (_valueIndex < 0)
+                        throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+                    return _current;
+                }
+            }
 
-            /// <summary>
-            /// Advances the enumerator to the next element of the <see cref="ValueCollection"/>.
-            /// </summary>
-            /// <returns>
-            /// <see langword="true"/> if the enumerator was successfully advanced to the next element; 
-            /// <see langword="false"/> if the enumerator has passed the end of the collection.
-            /// </returns>
+            /// <inheritdoc />
             public bool MoveNext()
             {
-                // Try next value in current list
-                if (_hasCurrentList && _valueEnumerator.MoveNext())
-                    return true;
-
-                // Move to next key-value group
-                while (_dictEnumerator.MoveNext())
+                // Try to advance within current cached list
+                if (_valueIndex >= 0)
                 {
-                    _valueEnumerator = _dictEnumerator.Current.Value.GetEnumerator();
-                    _hasCurrentList = true;
-
-                    if (_valueEnumerator.MoveNext())
+                    _valueIndex++;
+                    if (_valueIndex < _currentList.Count)
+                    {
+                        _current = _currentList[_valueIndex];
                         return true;
+                    }
+                    // Current list exhausted, move to next key
+                    _keyIndex++;
                 }
 
+                // Find next non-empty list
+                return MoveToNextKey();
+            }
+
+            private bool MoveToNextKey()
+            {
+                var keyOrder = _dictionary._keyOrder;
+                var values = _dictionary._values;
+
+                while (_keyIndex < keyOrder.Count)
+                {
+                    var key = keyOrder[_keyIndex];
+                    _currentList = values[key];
+
+                    if (_currentList.Count > 0)
+                    {
+                        _valueIndex = 0;
+                        _current = _currentList[0];
+                        return true;
+                    }
+                    _keyIndex++;
+                }
+
+                _valueIndex = -1;
+                _current = default!;
                 return false;
             }
 
-            /// <summary>
-            /// Sets the enumerator to its initial position, which is before the first element in the collection.
-            /// </summary>
+            /// <inheritdoc />
             public void Reset()
             {
-                _dictEnumerator.Reset();
-                _valueEnumerator = default;
-                _hasCurrentList = false;
+                _currentList = default;
+                _keyIndex = 0;
+                _valueIndex = -1;
+                _current = default!;
             }
 
-            /// <summary>
-            /// Releases all resources used by the <see cref="Enumerator"/>.
-            /// </summary>
-            public void Dispose() => _dictEnumerator.Dispose();
+            /// <inheritdoc />
+            public void Dispose() { }
         }
     }
 }

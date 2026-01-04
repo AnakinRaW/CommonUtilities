@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 [DebuggerTypeProxy(typeof(IReadOnlyCollectionDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
+public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
 {
     /// <summary>
     /// Returns an empty <see cref="ReadOnlyFrugalList{T}"/> that has the specified type argument.
@@ -20,11 +20,15 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
 
     private readonly FrugalList<T> _list;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IReadOnlyList{T}"/>
     public int Count => _list.Count;
-
-    /// <inheritdoc />
-    public T this[int index] => _list[index];
+    
+    /// <inheritdoc cref="IReadOnlyList{T}"/>
+    public T this[int index]
+    {
+        get => _list[index];
+        set => throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure to one item.
@@ -39,8 +43,11 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
     /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure with the given enumerable.
     /// </summary>
     /// <param name="items">The items of this list.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="items"/> is <see langword="null"/>.</exception>
     public ReadOnlyFrugalList(IEnumerable<T> items)
     {
+        if (items == null)
+            throw new ArgumentNullException(nameof(items));
         _list = new FrugalList<T>(items);
     }
 
@@ -62,6 +69,22 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
     {
         _list.CopyTo(array, index);
     }
+
+    #region Explixit IList/ICollection<T> implementations
+
+    bool ICollection<T>.IsReadOnly => true;
+
+    void ICollection<T>.Add(T item) => throw new NotSupportedException();
+
+    void IList<T>.Insert(int index, T item) => throw new NotSupportedException("Collection is read-only.");
+
+    bool ICollection<T>.Remove(T item) => throw new NotSupportedException("Collection is read-only.");
+
+    void IList<T>.RemoveAt(int index) => throw new NotSupportedException("Collection is read-only.");
+
+    void ICollection<T>.Clear() => throw new NotSupportedException("Collection is read-only.");
+
+    #endregion
 
     #region Linq Re-Implemenations
 
@@ -144,26 +167,33 @@ public readonly struct ReadOnlyFrugalList<T> : IReadOnlyList<T>
     }
 
     #endregion
-
-    /// <summary>
-    /// Returns an enumerator that iterates through the <see cref="ReadOnlyFrugalList{T}"/>
-    /// </summary>
-    /// <returns>A <see cref="FrugalList{T}.FrugalEnumerator"/> for the <see cref="ReadOnlyFrugalList{T}"/>.</returns>
-    public FrugalList<T>.FrugalEnumerator GetEnumerator()
-    {
-        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        return _list.GetEnumerator();
-    }
-
+    
     /// <inheritdoc />
-    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-        return _list.GetEnumerator();
+        return Count == 0
+            ? EmptyEnumerator<T>.Instance
+            : _list.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
     }
+}
+
+internal sealed class EmptyEnumerator<T> : IEnumerator<T>
+{
+    public static readonly EmptyEnumerator<T> Instance = new();
+
+    public void Dispose() { }
+
+    public bool MoveNext() => false;
+
+    public void Reset() { }
+
+    public T Current => throw new InvalidOperationException("Enumeration has not started. Call MoveNext.");
+
+    object? IEnumerator.Current => Current;
 }

@@ -308,12 +308,12 @@ public abstract class IEnumerableTestSuite<T> : CollectionsTestSuite<T>
     [Fact]
     public void IEnumerable_NonGeneric_GetEnumerator_EmptyCollection_UsesSingleton()
     {
-        var enumerable = NonGenericIEnumerableFactory(0);
+        IEnumerable enumerable = NonGenericIEnumerableFactory(0);
 
-        var enumerator1 = enumerable.GetEnumerator();
+        IEnumerator enumerator1 = enumerable.GetEnumerator();
         try
         {
-            var enumerator2 = enumerable.GetEnumerator();
+            IEnumerator enumerator2 = enumerable.GetEnumerator();
             try
             {
                 Assert.Equal(Enumerator_Empty_UsesSingletonInstance, ReferenceEquals(enumerator1, enumerator2));

@@ -16,6 +16,11 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 {
     protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
 
+    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
+    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
+    
+
     protected virtual ReadOnlyFrugalList<T> GenericReadOnlyListFrugalListFactory(IEnumerable<T> enumerable)
     {
         return new ReadOnlyFrugalList<T>(enumerable);
@@ -31,7 +36,7 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     {
         return GenericReadOnlyListFrugalListFactory(enumerable);
     }
-
+    
     #region Empty
 
     [Fact]
@@ -60,6 +65,7 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
     public void Ctor_Single()
     {
         var t = CreateT(0);
+        // ReSharper disable once CollectionNeverUpdated.Local
         var list = new ReadOnlyFrugalList<T>(t);
 #pragma warning disable xUnit2013
         Assert.Equal(1, list.Count);

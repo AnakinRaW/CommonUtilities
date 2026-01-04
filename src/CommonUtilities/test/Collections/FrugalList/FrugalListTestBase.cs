@@ -44,7 +44,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 #pragma warning disable xUnit2013
         Assert.Equal(0, list.Count);
 #pragma warning restore xUnit2013
-        Assert.False(list.IsReadOnly);
+        Assert.False(((IList<T>)list).IsReadOnly);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 #pragma warning disable xUnit2013
         Assert.Equal(0, list.Count);
 #pragma warning restore xUnit2013
-        Assert.False(list.IsReadOnly);
+        Assert.False(((IList<T>)list).IsReadOnly);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
         Assert.Equal(1, list.Count);
 #pragma warning restore xUnit2013
         Assert.Equal(t, list[0]);
-        Assert.False(list.IsReadOnly);
+        Assert.False(((IList<T>)list).IsReadOnly);
     }
 
     [Theory]
@@ -102,7 +102,7 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
         for (var i = 0; i < enumerableLength; i++)
             Assert.Equal(enumerable[i], list[i]); //"Expected object in item array to be the same as in the list"
 
-        Assert.False(list.IsReadOnly); //"List should not be readonly"
+        Assert.False(((IList<T>)list).IsReadOnly); //"List should not be readonly"
     }
 
     [Theory]
