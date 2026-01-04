@@ -8,6 +8,9 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
 public class ReadOnlyFrugalListTest_String : ReadOnlyFrugalListTestBase<string>
 {
+    //public class CollectionTests()
+    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_String>(new ReadOnlyFrugalListTest_String());
+
     protected override string CreateT(int seed)
     {
         var stringLength = seed % 10 + 5;
@@ -18,10 +21,14 @@ public class ReadOnlyFrugalListTest_String : ReadOnlyFrugalListTestBase<string>
     }
 }
 
+
 public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
 {
     private static readonly int[] _intArray = [-4, 5, -2, 3, 1, 2, -1, -3, 0, 4, -5, 3, 3];
     private static readonly int[] _excludedFromIntArray = [100, -34, 42, int.MaxValue, int.MinValue];
+
+    //public class CollectionTests()
+    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_Int>(new ReadOnlyFrugalListTest_Int());
 
     protected override int CreateT(int seed)
     {
@@ -56,6 +63,9 @@ public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
 
 public class ReadOnlyFrugalListTest_Int_FromFrugal : ReadOnlyFrugalListTestBase<int>
 {
+    //public class CollectionTests()
+    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_Int_FromFrugal>(new ReadOnlyFrugalListTest_Int_FromFrugal());
+
     protected override int CreateT(int seed)
     {
         var rand = new Random(seed);

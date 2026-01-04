@@ -12,14 +12,21 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 /// Contains tests that ensure the correctness of the <see cref="ReadOnlyFrugalList{T}"/> class.
 /// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
+public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
 {
-    protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
+    //protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
 
+    protected override bool IsReadOnly => true;
     protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
     protected override bool Enumerator_Empty_UsesSingletonInstance => true;
-    
+
+    /// <inheritdoc />
+    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    {
+        yield break;
+    }
+
 
     protected virtual ReadOnlyFrugalList<T> GenericReadOnlyListFrugalListFactory(IEnumerable<T> enumerable)
     {
@@ -32,10 +39,20 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
         return GenericReadOnlyListFrugalListFactory(baseCollection);
     }
 
-    protected override IReadOnlyList<T> GenericIReadOnlyListFactory(IEnumerable<T> enumerable)
+    protected override IList<T> GenericIListFactory()
     {
-        return GenericReadOnlyListFrugalListFactory(enumerable);
+        return GenericReadOnlyListFrugalListFactory(0);
     }
+
+    protected override IList<T> GenericIListFactory(int count)
+    {
+        return GenericReadOnlyListFrugalListFactory(count);
+    }
+
+    //protected override IReadOnlyList<T> GenericIReadOnlyListFactory(IEnumerable<T> enumerable)
+    //{
+    //    return GenericReadOnlyListFrugalListFactory(enumerable);
+    //}
     
     #region Empty
 
@@ -95,7 +112,7 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 
         var mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
 
-        foreach (var modifyEnumerable in IListTestSuite<T>.GetModifyEnumerables(mods, CreateT))
+        foreach (var modifyEnumerable in GetModifyEnumerables(mods, CreateT))
             if (modifyEnumerable(asEnumerable))
                 Assert.NotEqual(asEnumerable.ToList(), roFrugal.ToList());
     }
@@ -213,52 +230,52 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IReadOnlyListTestSuite<T>
 
     #region IndexOf
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void IList_Generic_IndexOf_DefaultValueNotContainedInList(int count)
-    {
-        var list = GenericReadOnlyListFrugalListFactory(count);
-        var value = default(T);
-        if (list.Contains(value!))
-            return;
-        Assert.Equal(-1, list.IndexOf(value!));
-    }
+    //[Theory]
+    //[MemberData(nameof(ValidCollectionSizes))]
+    //public void IList_Generic_IndexOf_DefaultValueNotContainedInList(int count)
+    //{
+    //    var list = GenericReadOnlyListFrugalListFactory(count);
+    //    var value = default(T);
+    //    if (list.Contains(value!))
+    //        return;
+    //    Assert.Equal(-1, list.IndexOf(value!));
+    //}
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void IList_Generic_IndexOf_DefaultValueContainedInList(int count)
-    {
-        if (count > 0)
-        {
-            var list = GenericReadOnlyListFrugalListFactory(count);
-            var value = default(T);
-            if (!list.Contains(value!))
-                return;
-            Assert.Equal(0, list.IndexOf(value!));
-        }
-    }
+    //[Theory]
+    //[MemberData(nameof(ValidCollectionSizes))]
+    //public void IList_Generic_IndexOf_DefaultValueContainedInList(int count)
+    //{
+    //    if (count > 0)
+    //    {
+    //        var list = GenericReadOnlyListFrugalListFactory(count);
+    //        var value = default(T);
+    //        if (!list.Contains(value!))
+    //            return;
+    //        Assert.Equal(0, list.IndexOf(value!));
+    //    }
+    //}
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void IList_Generic_IndexOf_ValidValueNotContainedInList(int count)
-    {
-        var list = GenericReadOnlyListFrugalListFactory(count);
-        var seed = 54321;
-        var value = CreateT(seed++);
-        while (list.Contains(value))
-            value = CreateT(seed++);
-        Assert.Equal(-1, list.IndexOf(value));
-    }
+    //[Theory]
+    //[MemberData(nameof(ValidCollectionSizes))]
+    //public void IList_Generic_IndexOf_ValidValueNotContainedInList(int count)
+    //{
+    //    var list = GenericReadOnlyListFrugalListFactory(count);
+    //    var seed = 54321;
+    //    var value = CreateT(seed++);
+    //    while (list.Contains(value))
+    //        value = CreateT(seed++);
+    //    Assert.Equal(-1, list.IndexOf(value));
+    //}
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void IList_Generic_IndexOf_EachValueNoDuplicates(int count)
-    {
-        // Assumes no duplicate elements contained in the list returned by GenericIListFactory
-        var list = GenericReadOnlyListFrugalListFactory(count);
-        foreach (var i in Enumerable.Range(0, count)) 
-            Assert.Equal(i, list.IndexOf(list[i]));
-    }
+    //[Theory]
+    //[MemberData(nameof(ValidCollectionSizes))]
+    //public void IList_Generic_IndexOf_EachValueNoDuplicates(int count)
+    //{
+    //    // Assumes no duplicate elements contained in the list returned by GenericIListFactory
+    //    var list = GenericReadOnlyListFrugalListFactory(count);
+    //    foreach (var i in Enumerable.Range(0, count)) 
+    //        Assert.Equal(i, list.IndexOf(list[i]));
+    //}
 
     #endregion
 

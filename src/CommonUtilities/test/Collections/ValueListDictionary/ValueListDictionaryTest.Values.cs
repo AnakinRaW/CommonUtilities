@@ -12,13 +12,13 @@ public class ValueListDictionary_Values : ICollectionTestSuite<string>
     protected override bool DefaultValueAllowed => true;
     protected override bool DuplicateValuesAllowed => true;
     protected override bool IsReadOnly => true;
-    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
     protected override bool Enumerator_Empty_UsesSingletonInstance => true;
     protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
     protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
-
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
     protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
+
+    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
 
     protected override ICollection<string> GenericICollectionFactory()
     {

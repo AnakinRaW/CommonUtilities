@@ -22,14 +22,10 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
 
     /// <inheritdoc cref="IReadOnlyList{T}"/>
     public int Count => _list.Count;
-    
-    /// <inheritdoc cref="IReadOnlyList{T}"/>
-    public T this[int index]
-    {
-        get => _list[index];
-        set => throw new NotImplementedException();
-    }
 
+    /// <inheritdoc cref="IReadOnlyList{T}"/>
+    public T this[int index] => _list[index];
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure to one item.
     /// </summary>
@@ -71,6 +67,12 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
     }
 
     #region Explixit IList/ICollection<T> implementations
+
+    T IList<T>.this[int index]
+    {
+        get => _list[index];
+        set => throw new NotSupportedException("Collection is read-only.");
+    }
 
     bool ICollection<T>.IsReadOnly => true;
 

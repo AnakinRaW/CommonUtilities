@@ -13,6 +13,10 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 public abstract class FrugalListTestBase<T> : IListTestSuite<T>
 {
     protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
+    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
+    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
+    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
     protected override IList<T> GenericIListFactory()
     {
@@ -24,12 +28,12 @@ public abstract class FrugalListTestBase<T> : IListTestSuite<T>
         return GenericFrugalListFactory(count);
     }
 
-    private static FrugalList<T> GenericFrugalListFactory()
+    protected static FrugalList<T> GenericFrugalListFactory()
     {
         return [];
     }
 
-    private FrugalList<T> GenericFrugalListFactory(int count)
+    protected FrugalList<T> GenericFrugalListFactory(int count)
     {
         var toCreateFrom = CreateEnumerable(null, count, 0, 0);
         return new FrugalList<T>(toCreateFrom);

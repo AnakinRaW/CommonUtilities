@@ -381,9 +381,14 @@ public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
     /// <returns>A <see cref="Enumerator"/> for the <see cref="FrugalList{T}"/>.</returns>
     public Enumerator GetEnumerator() => new(ref this);
 
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(ref this);
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        if (Count == 0)
+            return EmptyEnumerator<T>.Instance;
+        return GetEnumerator();
+    }
 
-    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(ref this);
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 
     /// <summary>
     /// Private type exists so that we can perform type checking on that type rather than reference checking.
