@@ -301,7 +301,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var dictionary = IValueListDictionaryFactory(count);
         Assert.All(dictionary.Keys.ToList(), key =>
         {
-            foreach (var value in dictionary.GetValues(key)) 
+            foreach (var value in dictionary.GetValues(key).ToList()) 
                 Assert.True(dictionary.Remove(key, value));
         });
         Assert.Empty(dictionary);

@@ -6,6 +6,47 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
+public class ReadOnlyValueListDictionary<TKey, TValue>(IValueListDictionary<TKey, TValue> dictionary)
+    : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary)
+    where TKey : notnull
+{
+    /// <summary>Gets an empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</summary>
+    /// <value>An empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</value>
+    /// <remarks>The returned instance is immutable and will always be empty.</remarks>
+    public static ReadOnlyValueListDictionary<TKey, TValue> Empty { get; } = new(new ValueListDictionary<TKey, TValue>());
+}
+
+public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionary<TKey, TValue> dictionary)
+    : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary), IReadOnlyFrugalValueListDictionary<TKey, TValue>
+    where TKey : notnull
+{
+    /// <summary>Gets an empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</summary>
+    /// <value>An empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</value>
+    /// <remarks>The returned instance is immutable and will always be empty.</remarks>
+    public static ReadOnlyFrugalValueListDictionary<TKey, TValue> Empty { get; } = new(new FrugalValueListDictionary<TKey, TValue>());
+
+    public ReadOnlyFrugalList<TValue> this[TKey key] => throw new NotImplementedException();
+
+    public ReadOnlyFrugalList<TValue> GetValues(TKey key)
+    {
+        if (Dictionary is FrugalValueListDictionary<TKey, TValue> frugalDict)
+            return frugalDict.GetValues(key);
+        return new ReadOnlyFrugalList<TValue>(Dictionary.GetValues(key));
+    }
+
+    public bool TryGetValues(TKey key, out ReadOnlyFrugalList<TValue> values)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IEnumerator<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+
+
 /// <summary>
 /// Represents a read-only, generic dictionary that maps keys to one or more values, while maintaining the order of key insertion.
 /// </summary>
@@ -13,76 +54,71 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
 [DebuggerDisplay("Count = {Count}")]
-public class ReadOnlyValueListDictionary<TKey, TValue> : IReadOnlyValueListDictionary<TKey, TValue> where TKey : notnull
+public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> : IReadOnlyValueListDictionary<TKey, TValue> where TKey : notnull
 {
-    private readonly IValueListDictionary<TKey, TValue> _dictionary;
-
-    /// <summary>Gets an empty <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/>.</summary>
-    /// <value>An empty <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/>.</value>
-    /// <remarks>The returned instance is immutable and will always be empty.</remarks>
-    public static ReadOnlyValueListDictionary<TKey, TValue> Empty { get; } = new(new ValueListDictionary<TKey, TValue>());
-
+    protected readonly IValueListDictionary<TKey, TValue> Dictionary;
+    
     /// <inheritdoc />
-    public ReadOnlyFrugalList<TValue> this[TKey key] => _dictionary[key];
+    public IReadOnlyList<TValue> this[TKey key] => Dictionary[key];
 
     /// <summary>
     /// Gets a key collection that contains the keys of the dictionary.
     /// </summary>
-    public KeyCollection Keys => field ??= new KeyCollection(_dictionary.Keys);
+    public KeyCollection Keys => field ??= new KeyCollection(Dictionary.Keys);
 
     /// <summary>
     /// Gets a collection that contains the values in the dictionary.
     /// </summary>
-    public ValueCollection Values => field ??= new ValueCollection(_dictionary.Values);
+    public ValueCollection Values => field ??= new ValueCollection(Dictionary.Values);
 
     ICollection<TValue> IReadOnlyValueListDictionary<TKey, TValue>.Values => Values;
 
     ICollection<TKey> IReadOnlyValueListDictionary<TKey, TValue>.Keys => Keys;
 
     /// <inheritdoc />
-    public int Count => _dictionary.Count;
+    public int Count => Dictionary.Count;
 
     /// <inheritdoc />
-    public int KeyCount => _dictionary.KeyCount;
+    public int KeyCount => Dictionary.KeyCount;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/> class that is a wrapper around the specified value list dictionary.
+    /// Initializes a new instance of the <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> class that is a wrapper around the specified value list dictionary.
     /// </summary>
     /// <param name="dictionary">The dictionary to wrap.</param>
     /// <exception cref="ArgumentNullException"><paramref name="dictionary"/> is <see langword="null"/>.</exception>
-    public ReadOnlyValueListDictionary(IValueListDictionary<TKey, TValue> dictionary)
+    protected ReadOnlyValueListDictionaryBase(IValueListDictionary<TKey, TValue> dictionary)
     {
-        _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
+        Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
     }
 
     /// <inheritdoc />
-    public bool ContainsKey(TKey key) => _dictionary.ContainsKey(key);
+    public bool ContainsKey(TKey key) => Dictionary.ContainsKey(key);
 
     /// <inheritdoc />
-    public ReadOnlyFrugalList<TValue> GetValues(TKey key) => _dictionary.GetValues(key);
+    public IReadOnlyList<TValue> GetValues(TKey key) => Dictionary.GetValues(key);
 
     /// <inheritdoc />
-    public TValue GetLastValue(TKey key) => _dictionary.GetLastValue(key);
+    public TValue GetLastValue(TKey key) => Dictionary.GetLastValue(key);
 
     /// <inheritdoc />
-    public TValue GetFirstValue(TKey key) => _dictionary.GetFirstValue(key);
+    public TValue GetFirstValue(TKey key) => Dictionary.GetFirstValue(key);
 
     /// <inheritdoc />
-    public bool TryGetFirstValue(TKey key, [MaybeNullWhen(false)] out TValue value) => _dictionary.TryGetFirstValue(key, out value);
+    public bool TryGetFirstValue(TKey key, [MaybeNullWhen(false)] out TValue value) => Dictionary.TryGetFirstValue(key, out value);
 
     /// <inheritdoc />
-    public bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value) => _dictionary.TryGetLastValue(key, out value);
+    public bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value) => Dictionary.TryGetLastValue(key, out value);
 
     /// <inheritdoc />
-    public bool TryGetValues(TKey key, out ReadOnlyFrugalList<TValue> values) => _dictionary.TryGetValues(key, out values);
+    public bool TryGetValues(TKey key, out IReadOnlyList<TValue> values) => Dictionary.TryGetValues(key, out values);
 
     /// <inheritdoc />
-    public IEnumerator<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GetEnumerator() => _dictionary.GetEnumerator();
+    public IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetEnumerator() => Dictionary.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
-    /// Represents a read-only collection of the keys of a <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/> object.
+    /// Represents a read-only collection of the keys of a <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> object.
     /// </summary>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
@@ -119,7 +155,7 @@ public class ReadOnlyValueListDictionary<TKey, TValue> : IReadOnlyValueListDicti
     }
 
     /// <summary>
-    /// Represents a read-only collection of the values of a <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/> object.
+    /// Represents a read-only collection of the values of a <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> object.
     /// </summary>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]

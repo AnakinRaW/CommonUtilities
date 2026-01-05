@@ -9,7 +9,7 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 
 #pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 
-public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnumerableTestSuite<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> 
+public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnumerableTestSuite<KeyValuePair<TKey, IReadOnlyList<TValue>>> 
     where TKey : notnull
 {
     protected abstract bool DefaultValueAllowed { get; }
@@ -28,12 +28,12 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     protected abstract IReadOnlyValueListDictionary<TKey, TValue> IReadOnlyValueListDictionaryFactory(int count);
 
-    protected override IEnumerable<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GenericIEnumerableFactory(int count)
+    protected override IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> GenericIEnumerableFactory(int count)
     {
         return IReadOnlyValueListDictionaryFactory(count);
     }
 
-    protected override IEqualityComparer<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GetIEqualityComparer()
+    protected override IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetIEqualityComparer()
     {
         return new KVPComparer();
     }
@@ -539,7 +539,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
         Assert.False(dictionary.TryGetValues(missingKey, out var valueList));
-        Assert.Equal(default, valueList);
+        Assert.Equal([], valueList);
     }
 
     [Theory]
@@ -553,7 +553,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             while (dictionary.ContainsKey(missingKey))
                 RemoveKey(dictionary, missingKey);
             Assert.False(dictionary.TryGetValues(missingKey, out var valueList));
-            Assert.Equal(default, valueList);
+            Assert.Equal([], valueList);
         }
     }
 
@@ -718,9 +718,9 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     }
 
     // ReSharper disable once InconsistentNaming
-    public class KVPComparer : IEqualityComparer<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>>
+    public class KVPComparer : IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>>
     {
-        public bool Equals(KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> x, KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> y)
+        public bool Equals(KeyValuePair<TKey, IReadOnlyList<TValue>> x, KeyValuePair<TKey, IReadOnlyList<TValue>> y)
         {
             if (!Equals(x.Key, y.Key))
                 return false;
@@ -730,7 +730,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             return !x.Value.Where((t, i) => !Equals(t, y.Value[i])).Any();
         }
 
-        public int GetHashCode(KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> obj)
+        public int GetHashCode(KeyValuePair<TKey, IReadOnlyList<TValue>> obj)
         {
             var hashCode = new HashCode();
 

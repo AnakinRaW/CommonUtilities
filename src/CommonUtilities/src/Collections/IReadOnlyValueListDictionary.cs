@@ -14,21 +14,21 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// </para>
 /// <para>
 /// When enumerating, each key appears exactly once with all its associated values
-/// as a <see cref="ReadOnlyFrugalList{T}"/>.
+/// stored to an <see cref="IReadOnlyList{T}"/>.
 /// </para>
 /// </remarks>
 /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
-public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> where TKey : notnull
+public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> where TKey : notnull
 {
     /// <summary>
     /// Gets the list of values associated with the specified key.
     /// </summary>
     /// <param name="key">The key of the values to get.</param>
-    /// <returns>A <see cref="ReadOnlyFrugalList{TValue}"/> containing all values for the specified key.</returns>
+    /// <returns>A <see cref="IReadOnlyList{TValue}"/> containing all values for the specified key.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
-    ReadOnlyFrugalList<TValue> this[TKey key] { get; }
+    IReadOnlyList<TValue> this[TKey key] { get; }
 
     /// <summary>
     /// Gets a collection containing all values in the dictionary.
@@ -91,7 +91,7 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     /// <returns>The list of values of the specified <paramref name="key"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
-    ReadOnlyFrugalList<TValue> GetValues(TKey key);
+    IReadOnlyList<TValue> GetValues(TKey key);
 
     /// <summary>
     /// Gets the last element with the specified key.
@@ -142,5 +142,5 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     /// otherwise, an empty list. This parameter is passed uninitialized.</param>
     /// <returns><see langword="true"/> if the dictionary contains at least one value with the specified key; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
-    bool TryGetValues(TKey key, out ReadOnlyFrugalList<TValue> values);
+    bool TryGetValues(TKey key, out IReadOnlyList<TValue> values);
 }

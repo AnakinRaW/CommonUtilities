@@ -10,7 +10,7 @@ public abstract class ValueListDictionaryTestBase<TKey, TValue> : IValueListDict
 {
     protected override bool DefaultValueAllowed => false;
 
-    protected override KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> CreateT(int seed)
+    protected override KeyValuePair<TKey, IReadOnlyList<TValue>> CreateT(int seed)
     {
         throw new NotSupportedException();
     }

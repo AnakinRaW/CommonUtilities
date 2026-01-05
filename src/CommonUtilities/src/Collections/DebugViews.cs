@@ -11,17 +11,19 @@ internal sealed class IValueListDictionaryDebugView<TKey, TValue>(IReadOnlyValue
     private readonly IReadOnlyValueListDictionary<TKey, TValue> _dict = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public DebugViewValueListDictionaryItem<TKey, TValue>[] Items => _dict.Select(keyValuePair => new DebugViewValueListDictionaryItem<TKey, TValue>(keyValuePair)).ToArray();
+    public DebugViewValueListDictionaryItem<TKey, TValue>[] Items => 
+        _dict.Select(keyValuePair => new DebugViewValueListDictionaryItem<TKey, TValue>(keyValuePair))
+            .ToArray();
 }
 
 [DebuggerDisplay("{ValueList}", Name = "[{Key}]")]
-internal readonly struct DebugViewValueListDictionaryItem<TKey, TValue>(KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> keyValue)
+internal readonly struct DebugViewValueListDictionaryItem<TKey, TValue>(KeyValuePair<TKey, IReadOnlyList<TValue>> keyValue)
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public TKey Key { get; } = keyValue.Key;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public ReadOnlyFrugalList<TValue> ValueList { get; } = keyValue.Value;
+    public IReadOnlyList<TValue> ValueList { get; } = keyValue.Value;
 }
 
 

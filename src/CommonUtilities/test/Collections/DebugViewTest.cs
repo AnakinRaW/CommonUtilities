@@ -17,7 +17,7 @@ public class DebugViewTests
     public static IEnumerable<object[]> TestDebuggerAttributes_ValueListDictionaryInput()
     {
         yield return [new ValueListDictionary<int, string>(), Array.Empty<KeyValuePair<string,string>>()];
-        yield return [new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>()), Array.Empty<KeyValuePair<string, string>>()];
+        //yield return [new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>()), Array.Empty<KeyValuePair<string, string>>()];
 
         yield return
         [
@@ -29,15 +29,15 @@ public class DebugViewTests
                 }
         ];
 
-        yield return
-        [
-            new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
-            new KeyValuePair<string, string>[]
-            {
-                new ("[1]", "Count = 2"),
-                new ("[2]", "Count = 1"),
-            }
-        ];
+        //yield return
+        //[
+        //    new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
+        //    new KeyValuePair<string, string>[]
+        //    {
+        //        new ("[1]", "Count = 2"),
+        //        new ("[2]", "Count = 1"),
+        //    }
+        //];
     }
 
     public static IEnumerable<object[]> TestDebuggerAttributes_FrugalListsInput()

@@ -169,9 +169,14 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
     }
 
     #endregion
-    
-    /// <inheritdoc />
-    public IEnumerator<T> GetEnumerator()
+
+    public FrugalList<T>.Enumerator GetEnumerator()
+    {
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        return _list.GetEnumerator();
+    }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
         return Count == 0

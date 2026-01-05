@@ -329,7 +329,7 @@ public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
     public readonly T First()
     {
         if (Count == 0)
-            throw new InvalidOperationException("The list contains no elements");
+            throw new InvalidOperationException("The sequence contains no elements");
         return _firstItem;
     }
 
@@ -342,7 +342,7 @@ public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
     {
         var count = Count;
         if (count == 0)
-            throw new InvalidOperationException("The list contains no elements");
+            throw new InvalidOperationException("The sequence contains no elements");
         return count switch
         {
             1 => _firstItem,
