@@ -11,6 +11,26 @@ using System.Runtime.InteropServices;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
+internal sealed class EmptyEnumerator<T> : IEnumerator<T>
+{
+    public static readonly EmptyEnumerator<T> Instance = new();
+
+    public T Current => throw new InvalidOperationException();
+
+    object? IEnumerator.Current => Current;
+
+    private EmptyEnumerator() { }
+
+    public bool MoveNext()
+    {
+        return false;
+    }
+
+    public void Reset() { }
+
+    public void Dispose() { }
+}
+
 /// <summary>
 /// Provides a base class for a generic collection that maps keys to lists of values.
 /// </summary>
@@ -26,9 +46,12 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     where TKey : notnull
     where TList : IList<TValue>
 {
+    private int _version;
+
     protected readonly List<TKey> KeyOrderStore = [];
-    
     protected readonly Dictionary<TKey, TList> ValueStore;
+
+    protected int Version => _version;
 
     /// <inheritdoc />
     public IReadOnlyList<TValue> this[TKey key] => GetValues(key);
@@ -117,15 +140,16 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
     protected abstract TList CreateValueStore();
 
-    protected virtual IReadOnlyList<TValue> CreateReadOnlyWrapper(TList list)
+    protected abstract IReadOnlyList<TValue> CreateSnapshot(TList list);
+
+    protected virtual void OnAfterValueListModified(TKey key, TList list)
     {
-        return new ReadOnlyCollection<TValue>(list);
     }
 
     /// <inheritdoc />
     public bool ContainsKey(TKey key)
     {
-        if (key == null) 
+        if (key == null)
             throw new ArgumentNullException(nameof(key));
         return ValueStore.ContainsKey(key);
     }
@@ -135,12 +159,14 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
-            return CreateReadOnlyWrapper(list);
+            return CreateSnapshot(list);
         throw new KeyNotFoundException($"The key '{key}' was not found.");
     }
 
     public TValue GetLastValue(TKey key)
     {
+        if (key == null) 
+            throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
 #if NETSTANDARD2_1_OR_GREATER || NET
             return list[^1];
@@ -153,6 +179,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
     public TValue GetFirstValue(TKey key)
     {
+        if (key == null) 
+            throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
             return list[0];
         throw new KeyNotFoundException($"The key '{key}' was not found.");
@@ -160,6 +188,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
     public bool TryGetFirstValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
+        if (key == null) 
+            throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
         {
             value = list[0];
@@ -172,6 +202,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
     public bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
         {
 #if NETSTANDARD2_1_OR_GREATER || NET
@@ -188,9 +220,11 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
     public bool TryGetValues(TKey key, out IReadOnlyList<TValue> values)
     {
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
         {
-            values = CreateReadOnlyWrapper(list);
+            values = CreateSnapshot(list);
             return true;
         }
 
@@ -211,25 +245,32 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         {
             valueList = CreateValueStoreInternal();
             KeyOrderStore.Add(key);
+            _version++;
         }
         Debug.Assert(valueList is not null);
+        
         valueList.Add(value);
+        OnAfterValueListModified(key, valueList);
+        
         return exists;
 #else
-
         var exists = ValueStore.TryGetValue(key, out var valueList);
         if (!exists)
         {
             valueList = CreateValueStoreInternal();
             KeyOrderStore.Add(key);
+            _version++;
         }
+
         valueList!.Add(value);
-        
+        OnAfterValueListModified(key, valueList);
+
         if (typeof(TList).IsValueType || !exists)
             ValueStore[key] = valueList;
         return exists;
 #endif
     }
+
 
     private TList CreateValueStoreInternal()
     {
@@ -245,6 +286,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             Count -= list.Count;
             ValueStore.Remove(key);
             KeyOrderStore.Remove(key);
+            _version++;
             return true;
         }
 
@@ -256,7 +298,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         if (key == null)
             throw new ArgumentNullException(nameof(key));
 
-# if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
         ref var list = ref CollectionsMarshal.GetValueRefOrNullRef(ValueStore, key);
         if (Unsafe.IsNullRef(ref list))
             return false;
@@ -265,16 +307,17 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             return false;
 
         Count--;
+        OnAfterValueListModified(key, list);
 
-        // If this was the last value, remove the key entirely
         if (list.Count == 0)
         {
             ValueStore.Remove(key);
             KeyOrderStore.Remove(key);
+            _version++;
         }
 
         return true;
-# else
+#else
         if (!ValueStore.TryGetValue(key, out var list))
             return false;
 
@@ -282,12 +325,13 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             return false;
 
         Count--;
+        OnAfterValueListModified(key, list);
 
-        // If this was the last value, remove the key entirely
         if (list.Count == 0)
         {
             ValueStore.Remove(key);
             KeyOrderStore.Remove(key);
+            _version++;
         }
         else if (typeof(TList).IsValueType)
         {
@@ -295,14 +339,18 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         }
 
         return true;
-# endif
+#endif
     }
 
     public void Clear()
     {
-        KeyOrderStore.Clear();
-        ValueStore.Clear();
-        Count = 0;
+        if (KeyOrderStore.Count > 0)
+        {
+            KeyOrderStore.Clear();
+            ValueStore.Clear();
+            Count = 0;
+            _version++;
+        }
     }
 
     /// <summary>
@@ -321,10 +369,12 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     /// </remarks>
     public Enumerator GetEnumerator() => new(this);
 
-    IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>.GetEnumerator()
-        => GetEnumerator();
+    IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>.
+        GetEnumerator() => Count == 0
+            ? EmptyEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>.Instance
+            : GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>)this).GetEnumerator();
 
     /// <summary>
     /// Enumerates the elements of a <see cref="ValueListDictionaryBase{TKey, TValue, TList}"/>.
@@ -336,56 +386,59 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     public struct Enumerator : IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>
     {
         private readonly ValueListDictionaryBase<TKey, TValue, TList> _dictionary;
+        private readonly int _version;
         private int _index;
         private KeyValuePair<TKey, IReadOnlyList<TValue>> _current;
 
         internal Enumerator(ValueListDictionaryBase<TKey, TValue, TList> dictionary)
         {
             _dictionary = dictionary;
+            _version = dictionary.Version;
             _index = 0;
             _current = default;
         }
 
-        /// <inheritdoc />
         public KeyValuePair<TKey, IReadOnlyList<TValue>> Current => _current;
 
-        /// <inheritdoc />
         object IEnumerator.Current
         {
             get
             {
-                if (_index == 0 || _index == _dictionary.KeyOrderStore.Count + 1)
-                    throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+                if (_index == 0 || _index == _dictionary.KeyCount + 1)
+                    throw new InvalidOperationException("Enumeration has not started. Call MoveNext.");
                 return Current;
             }
         }
 
-        /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_index < _dictionary.KeyOrderStore.Count)
+            if (_version != _dictionary._version)
+                throw new InvalidOperationException("Collection was modified; enumeration operation may not execute.");
+
+            var keyOrder = _dictionary.KeyOrderStore;
+
+            while ((uint)_index < (uint)keyOrder.Count)
             {
-                var key = _dictionary.KeyOrderStore[_index];
-                _current = new KeyValuePair<TKey, IReadOnlyList<TValue>>(
-                    key,
-                    _dictionary.CreateReadOnlyWrapper(_dictionary.ValueStore[key]));
-                _index++;
+                var key = keyOrder[_index++];
+                var snapshot = _dictionary.CreateSnapshot(_dictionary.ValueStore[key]);
+                _current = new KeyValuePair<TKey, IReadOnlyList<TValue>>(key, snapshot);
                 return true;
             }
-
-            _index = _dictionary.KeyOrderStore.Count + 1;
+            
+            _index = keyOrder.Count + 1;
             _current = default;
             return false;
         }
 
-        /// <inheritdoc />
         public void Reset()
         {
+            if (_version != _dictionary._version)
+                throw new InvalidOperationException("Collection was modified; enumeration operation may not execute.");
+
             _index = 0;
             _current = default;
         }
 
-        /// <inheritdoc />
         public void Dispose() { }
     }
 
@@ -518,10 +571,9 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         /// <inheritdoc />
         public bool Contains(TValue item)
         {
-            var comparer = EqualityComparer<TValue>.Default;
-            foreach (var value in this)
+            foreach (var list in _dictionary.ValueStore.Values)
             {
-                if (comparer.Equals(value, item))
+                if (list.Contains(item))
                     return true;
             }
             return false;

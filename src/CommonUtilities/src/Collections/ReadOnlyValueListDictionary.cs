@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
@@ -25,23 +26,87 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionar
     /// <remarks>The returned instance is immutable and will always be empty.</remarks>
     public static ReadOnlyFrugalValueListDictionary<TKey, TValue> Empty { get; } = new(new FrugalValueListDictionary<TKey, TValue>());
 
-    public ReadOnlyFrugalList<TValue> this[TKey key] => throw new NotImplementedException();
+    public new ImmutableFrugalList<TValue> this[TKey key] => GetValues(key);
 
-    public ReadOnlyFrugalList<TValue> GetValues(TKey key)
+    public new ImmutableFrugalList<TValue> GetValues(TKey key)
     {
-        if (Dictionary is FrugalValueListDictionary<TKey, TValue> frugalDict)
+        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
             return frugalDict.GetValues(key);
-        return new ReadOnlyFrugalList<TValue>(Dictionary.GetValues(key));
+        return ImmutableFrugalList.Create(Dictionary.GetValues(key));
     }
 
-    public bool TryGetValues(TKey key, out ReadOnlyFrugalList<TValue> values)
+    public bool TryGetValues(TKey key, out ImmutableFrugalList<TValue> values)
     {
-        throw new NotImplementedException();
+        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
+            return frugalDict.TryGetValues(key, out values);
+        var result = Dictionary.TryGetValues(key, out var list);
+        values = ImmutableFrugalList.Create(list);
+        return result;
     }
 
-    public IEnumerator<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GetEnumerator()
+    public new IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> GetEnumerator()
     {
-        throw new NotImplementedException();
+        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
+            return frugalDict.GetEnumerator();
+        if (Dictionary.Count == 0)
+            return EmptyEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>.Instance;
+        return new Enumerator(Dictionary);
+    }
+
+    internal struct Enumerator : IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>
+    {
+        private readonly IValueListDictionary<TKey, TValue> _dictionary;
+        private readonly IReadOnlyList<TKey> _keys;
+        private readonly int _count;
+        private int _index;
+        private KeyValuePair<TKey, ImmutableFrugalList<TValue>> _current;
+
+        internal Enumerator(IValueListDictionary<TKey, TValue> dictionary)
+        {
+            _dictionary = dictionary;
+            var keys = dictionary.Keys; 
+            _keys = keys as IReadOnlyList<TKey> ?? keys.ToArray();
+            _count = _keys.Count;
+            _index = 0;
+            _current = default;
+        }
+
+        public KeyValuePair<TKey, ImmutableFrugalList<TValue>> Current => _current;
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                if (_index == 0 || _index == _count + 1)
+                    throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+                return _current;
+            }
+        }
+
+        public bool MoveNext()
+        {
+            if ((uint)_index < (uint)_count)
+            {
+                var key = _keys[_index];
+                _current = new KeyValuePair<TKey, ImmutableFrugalList<TValue>>(
+                    key,
+                    ImmutableFrugalList.Create(_dictionary.GetValues(key)));
+                _index++;
+                return true;
+            }
+
+            _index = _count + 1;
+            _current = default;
+            return false;
+        }
+
+        public void Reset()
+        {
+            _index = 0;
+            _current = default;
+        }
+
+        public void Dispose() { }
     }
 }
 
@@ -115,7 +180,10 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> : IReadOnlyV
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetEnumerator() => Dictionary.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)Dictionary).GetEnumerator();
+    }
 
     /// <summary>
     /// Represents a read-only collection of the keys of a <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> object.

@@ -13,13 +13,14 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     where TKey : notnull
 {
     protected abstract bool DefaultValueAllowed { get; }
-    
+
     protected virtual bool IsReadOnly => true;
+    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
+    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
     
-    protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
-
+    //protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
     protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
-
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
     protected abstract TKey CreateTKey(int seed);
@@ -391,6 +392,45 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         foreach (var pair in dictionary)
             Assert.Equal(pair.Value, dictionary.GetValues(pair.Key));
     }
+
+    //[Theory]
+    //[MemberData(nameof(ValidCollectionSizes))]
+    //public void GetValues_ReturnsTrueCopy(int count)
+    //{
+    //    if (count == 0)
+    //        return;
+
+    //    if (IsReadOnly)
+    //    {
+    //        var valueListDictionary = new ValueListDictionary<TKey, TValue>();
+    //        IReadOnlyValueListDictionaryFactory()
+    //    }
+    //    else
+    //    {
+            
+    //    }
+
+       
+
+
+        
+    //    if (!IsReadOnly && count > 0)
+    //    {
+    //        var dict = IReadOnlyValueListDictionaryFactory(count);
+    //        var key = dict.Keys.First();
+
+    //        var values = dict.GetValues(key);
+
+    //        var seed = 1234;
+    //        var newValue = CreateTValue(seed);
+    //        while (values.Contains(newValue)) 
+    //            newValue = CreateTValue(++seed);
+
+    //        AddValue(dict, key, newValue);
+
+    //        Assert.Contains(newValue, values);
+    //    }
+    //}
 
     #endregion
 

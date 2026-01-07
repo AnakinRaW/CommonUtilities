@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 
@@ -23,7 +24,9 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// </remarks>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
 [DebuggerDisplay("Count = {Count}")]
-public class ValueListDictionary<TKey, TValue> : ValueListDictionaryBase<TKey, TValue, List<TValue>>  where TKey : notnull
+public class ValueListDictionary<TKey, TValue> 
+    : ValueListDictionaryBase<TKey, TValue, IList<TValue>>  
+    where TKey : notnull
 {
     public ValueListDictionary()
     {
@@ -34,8 +37,34 @@ public class ValueListDictionary<TKey, TValue> : ValueListDictionaryBase<TKey, T
         
     }
     
-    protected override List<TValue> CreateValueStore()
+    protected override IList<TValue> CreateValueStore()
     {
-        return [];
+        return new ReadOnlyCachingList();
+    }
+
+    protected override IReadOnlyList<TValue> CreateSnapshot(IList<TValue> list)
+    {
+        return ((ReadOnlyCachingList)list).GetReadOnlyView();
+    }
+
+    protected override void OnAfterValueListModified(TKey key, IList<TValue> list)
+    {
+        ((ReadOnlyCachingList)list).InvalidateCache();
+    }
+    
+    internal sealed class ReadOnlyCachingList : List<TValue>
+    {
+        private ReadOnlyCollection<TValue>? _cachedReadOnly;
+
+        internal ReadOnlyCollection<TValue> GetReadOnlyView()
+        {
+            return _cachedReadOnly ??= new ReadOnlyCollection<TValue>(this);
+        }
+
+        internal void InvalidateCache()
+        {
+            _cachedReadOnly = null;
+        }
     }
 }
+

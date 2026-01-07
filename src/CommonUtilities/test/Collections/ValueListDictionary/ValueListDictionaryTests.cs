@@ -1,10 +1,13 @@
 ﻿using System;
+
 // ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 
 public class ValueListDictionaryTest_string_string : ValueListDictionaryTestBase<string, string>
 {
+    protected override bool DefaultValueAllowed => false;
+
     protected override string CreateTKey(int seed)
     {
         var stringLength = seed % 10 + 5;
@@ -23,7 +26,7 @@ public class ValueListDictionaryTest_string_string : ValueListDictionaryTestBase
 public class ValueListDictionaryTest_int_int : ValueListDictionaryTestBase<int, int>
 {
     protected override bool DefaultValueAllowed => true;
-
+    
     protected override int CreateTKey(int seed)
     {
         var rand = new Random(seed);

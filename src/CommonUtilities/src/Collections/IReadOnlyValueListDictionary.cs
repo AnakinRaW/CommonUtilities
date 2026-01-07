@@ -24,8 +24,20 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     /// <summary>
     /// Gets the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key of the values to get.</param>
-    /// <returns>A <see cref="IReadOnlyList{TValue}"/> containing all values for the specified key.</returns>
+    /// <param name="key">The key whose values to get.</param>
+    /// <returns>
+    /// An <see cref="IReadOnlyList{T}"/> containing all values for the specified key.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
     IReadOnlyList<TValue> this[TKey key] { get; }
@@ -85,10 +97,22 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     bool ContainsKey(TKey key);
 
     /// <summary>
-    /// Get a list of values stored with the specified key.
+    /// Gets the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key to get the list of values for.</param>
-    /// <returns>The list of values of the specified <paramref name="key"/>.</returns>
+    /// <param name="key">The key whose values to get.</param>
+    /// <returns>
+    /// An <see cref="IReadOnlyList{T}"/> containing all values for the specified key.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
     IReadOnlyList<TValue> GetValues(TKey key);
@@ -134,13 +158,28 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value);
 
     /// <summary>
-    /// Gets the list of values associated with the specified key.
+    /// Attempts to get the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key whose value to get.</param>
+    /// <param name="key">The key whose values to get.</param>
     /// <param name="values">
-    /// When this method returns, a list of values associated with the specified key, if the key is found;
-    /// otherwise, an empty list. This parameter is passed uninitialized.</param>
-    /// <returns><see langword="true"/> if the dictionary contains at least one value with the specified key; otherwise, <see langword="false"/>.</returns>
+    /// When this method returns, contains an <see cref="IReadOnlyList{T}"/> of values associated
+    /// with the specified key, if the key is found; otherwise, an empty read-only list.
+    /// This parameter is passed uninitialized.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the dictionary contains at least one value with the specified key;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     bool TryGetValues(TKey key, out IReadOnlyList<TValue> values);
 }

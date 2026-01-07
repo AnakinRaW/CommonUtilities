@@ -56,4 +56,28 @@ public interface IValueListDictionary<TKey, TValue> : IReadOnlyValueListDictiona
     /// <see cref="IReadOnlyValueListDictionary{TKey, TValue}.KeyCount"/> are set to zero.
     /// </remarks>
     void Clear();
+
+    ///// <summary>
+    ///// Adds multiple values to the dictionary under the specified key.
+    ///// </summary>
+    ///// <param name="key">The key under which to add the values.</param>
+    ///// <param name="values">The values to add.</param>
+    ///// <remarks>
+    ///// If <paramref name="values"/> is empty, the key is not created.
+    ///// Values are appended in enumeration order.
+    ///// </remarks>
+    ///// <exception cref="ArgumentNullException"><paramref name="key"/> or <paramref name="values"/> is <see langword="null"/>.</exception>
+    //void AddRange(TKey key, IEnumerable<TValue> values);
+
+    ///// <summary>
+    ///// Removes all values matching the predicate for the specified key.
+    ///// </summary>
+    ///// <param name="key">The key whose values to filter.</param>
+    ///// <param name="match">The predicate that defines the conditions for removal.</param>
+    ///// <returns>The number of values removed.</returns>
+    ///// <remarks>
+    ///// If all values for the key are removed, the key itself is also removed.
+    ///// </remarks>
+    ///// <exception cref="ArgumentNullException"><paramref name="key"/> or <paramref name="match"/> is <see langword="null"/>.</exception>
+    //int RemoveAll(TKey key, Predicate<TValue> match);
 }

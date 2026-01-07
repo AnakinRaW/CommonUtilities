@@ -17,7 +17,7 @@ public class ValueListDictionary_Values : ICollectionTestSuite<string>
     protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
     protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
-
+    
     protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
 
     protected override ICollection<string> GenericICollectionFactory()
