@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing.Collections;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
@@ -10,13 +9,11 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 /// <summary>
 /// Contains tests that ensure the correctness of the <see cref=" FrugalList{T}"/> class.
 /// </summary>
-public abstract class FrugalListTestBase<T> : IListTestSuite<T>
+public abstract class FrugalListTestBase<T> : FrugalListTestSuite<T>
 {
     protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
+    
     protected override bool Enumerator_Empty_UsesSingletonInstance => true;
-    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
-    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
-    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
     protected override IList<T> GenericIListFactory()
     {

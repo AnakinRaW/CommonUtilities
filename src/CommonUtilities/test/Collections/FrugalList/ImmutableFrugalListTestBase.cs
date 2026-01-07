@@ -1,5 +1,4 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing.Collections;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,17 +8,12 @@ using Xunit;
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
 /// <summary>
-/// Contains tests that ensure the correctness of the <see cref="ReadOnlyFrugalList{T}"/> class.
+/// Contains tests that ensure the correctness of the <see cref="ImmutableFrugalList{T}"/> class.
 /// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
+public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 {
-    //protected virtual Type ICollection_Generic_CopyTo_IndexLargerThanArrayCount_ThrowType => typeof(ArgumentException);
-
     protected override bool IsReadOnly => true;
-    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
-    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
-    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
 
     /// <inheritdoc />
     protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
@@ -27,13 +21,12 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
         yield break;
     }
 
-
-    protected virtual ReadOnlyFrugalList<T> GenericReadOnlyListFrugalListFactory(IEnumerable<T> enumerable)
+    protected virtual ImmutableFrugalList<T> GenericReadOnlyListFrugalListFactory(IEnumerable<T> enumerable)
     {
-        return new ReadOnlyFrugalList<T>(enumerable);
+        return ImmutableFrugalList.Create(enumerable);
     }
 
-    protected virtual ReadOnlyFrugalList<T> GenericReadOnlyListFrugalListFactory(int count)
+    protected virtual ImmutableFrugalList<T> GenericReadOnlyListFrugalListFactory(int count)
     {
         var baseCollection = CreateEnumerable(null, count, 0, 0);
         return GenericReadOnlyListFrugalListFactory(baseCollection);
@@ -49,23 +42,49 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
         return GenericReadOnlyListFrugalListFactory(count);
     }
 
-    //protected override IReadOnlyList<T> GenericIReadOnlyListFactory(IEnumerable<T> enumerable)
-    //{
-    //    return GenericReadOnlyListFrugalListFactory(enumerable);
-    //}
-    
+    #region Create{T}
+
+    [Theory]
+    [MemberData(nameof(GetEnumerableTestData))]
+    public void Create(int _, int enumerableLength, int __, int ___)
+    {
+        var list = CreateEnumerable(null, enumerableLength, 0, 0).ToList();
+
+        var listAsFrugal = new FrugalList<T>(list);
+        var listAsImmutable = listAsFrugal.ToImmutableList();
+        var listAsSet = list.ToHashSet();
+        var listAsEnumerable = list.Where(_ => true);
+
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsFrugal));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsImmutable));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsSet));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsEnumerable));
+
+        var mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
+
+        foreach (var modifyEnumerable in GetModifyEnumerables(mods, CreateT))
+        {
+            var listCopy = new List<T>(list);
+            var immutable = ImmutableFrugalList.Create(listCopy);
+            if (modifyEnumerable(listCopy))
+                Assert.NotEqual(listCopy, immutable.ToList());
+        }
+    }
+
+    #endregion
+
     #region Empty
 
     [Fact]
     public void Empty_Idempotent()
     {
  #pragma warning disable xUnit2002
-        Assert.NotNull(ReadOnlyFrugalList<T>.Empty);
+        Assert.NotNull(ImmutableFrugalList<T>.Empty);
  #pragma warning restore xUnit2002
 #pragma warning disable xUnit2013
-        Assert.Equal(0, ReadOnlyFrugalList<T>.Empty.Count);
+        Assert.Equal(0, ImmutableFrugalList<T>.Empty.Count);
 #pragma warning restore xUnit2013
-        Assert.Equal(ReadOnlyFrugalList<T>.Empty, ReadOnlyFrugalList<T>.Empty);
+        Assert.Equal(ImmutableFrugalList<T>.Empty, ImmutableFrugalList<T>.Empty);
     }
 
     #endregion
@@ -73,21 +92,26 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
     #region Ctors
 
     [Fact]
-    public void Ctor_NullList_ThrowsArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() => new ReadOnlyFrugalList<int>(null!));
-    }
-
-    [Fact]
     public void Ctor_Single()
     {
         var t = CreateT(0);
         // ReSharper disable once CollectionNeverUpdated.Local
-        var list = new ReadOnlyFrugalList<T>(t);
+        var list = new ImmutableFrugalList<T>(t);
 #pragma warning disable xUnit2013
         Assert.Equal(1, list.Count);
 #pragma warning restore xUnit2013
         Assert.Equal(t, list[0]);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetEnumerableTestData))]
+    public void Ctor_FrugalListIn(int _, int enumerableLength, int __, int numberOfDuplicateElements)
+    {
+        var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
+        var frugal = new FrugalList<T>(enumerable);
+        var immutable = new ImmutableFrugalList<T>(in frugal);
+
+        Assert.Equal(frugal, immutable);
     }
 
     [Theory]
@@ -101,9 +125,9 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
         var frugal = new FrugalList<T>(enumerable);
         ref var refFrugal = ref frugal;
 
-        var roFrugal = new ReadOnlyFrugalList<T>(in frugal);
+        var immutable = new ImmutableFrugalList<T>(in frugal);
 
-        Assert.Equal(refFrugal.ToList(), roFrugal.ToList());
+        Assert.Equal(refFrugal.ToList(), immutable.ToList());
 
         if (enumerableLength == 0)
             return;
@@ -113,8 +137,11 @@ public abstract class ReadOnlyFrugalListTestBase<T> : IListTestSuite<T>
         var mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
 
         foreach (var modifyEnumerable in GetModifyEnumerables(mods, CreateT))
-            if (modifyEnumerable(asEnumerable))
-                Assert.NotEqual(asEnumerable.ToList(), roFrugal.ToList());
+        {
+            var listCopy = new List<T>(asEnumerable);
+            if (modifyEnumerable(listCopy))
+                Assert.NotEqual(listCopy, immutable.ToList());
+        }
     }
 
     #endregion

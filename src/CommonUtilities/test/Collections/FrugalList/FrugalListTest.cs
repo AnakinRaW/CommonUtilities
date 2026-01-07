@@ -17,18 +17,18 @@ public class FrugalListTest_String : FrugalListTestBase<string>
     }
 }
 
-public class List_Generic_Tests_string_ReadOnly : FrugalListTest_String
+public class List_Generic_Tests_string_Immutable : FrugalListTest_String
 {
     protected override bool IsReadOnly => true;
 
     protected override IList<string> GenericIListFactory(int setLength)
     {
-        return GenericFrugalListFactory(setLength).AsReadOnly();
+        return GenericFrugalListFactory(setLength).ToImmutableList();
     }
 
     protected override IList<string> GenericIListFactory()
     {
-        return GenericFrugalListFactory().AsReadOnly();
+        return GenericFrugalListFactory().ToImmutableList();
     }
 
     protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
@@ -46,18 +46,18 @@ public class FrugalListTest_Int : FrugalListTestBase<int>
     }
 }
 
-public class List_Generic_Tests_int_ReadOnly : FrugalListTest_Int
+public class List_Generic_Tests_int_Immutable : FrugalListTest_Int
 {
     protected override bool IsReadOnly => true;
   
     protected override IList<int> GenericIListFactory(int setLength)
     {
-        return GenericFrugalListFactory(setLength).AsReadOnly();
+        return GenericFrugalListFactory(setLength).ToImmutableList();
     }
 
     protected override IList<int> GenericIListFactory()
     {
-        return GenericFrugalListFactory().AsReadOnly();
+        return GenericFrugalListFactory().ToImmutableList();
     }
 
     protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)

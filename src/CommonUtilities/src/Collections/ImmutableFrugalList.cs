@@ -11,12 +11,12 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 [DebuggerTypeProxy(typeof(IReadOnlyCollectionDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
+public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
 {
     /// <summary>
-    /// Returns an empty <see cref="ReadOnlyFrugalList{T}"/> that has the specified type argument.
+    /// Returns an empty <see cref="ImmutableFrugalList{T}"/> that has the specified type argument.
     /// </summary>
-    public static readonly ReadOnlyFrugalList<T> Empty = default;
+    public static readonly ImmutableFrugalList<T> Empty = default;
 
     private readonly FrugalList<T> _list;
 
@@ -27,38 +27,25 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
     public T this[int index] => _list[index];
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure to one item.
+    /// Initializes a new instance of the <see cref="ImmutableFrugalList{T}"/> structure to one item.
     /// </summary>
     /// <param name="item">The item of the list.</param>
-    public ReadOnlyFrugalList(T item)
+    internal ImmutableFrugalList(T item)
     {
         _list = new FrugalList<T>(item);
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure with the given enumerable.
-    /// </summary>
-    /// <param name="items">The items of this list.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="items"/> is <see langword="null"/>.</exception>
-    public ReadOnlyFrugalList(IEnumerable<T> items)
-    {
-        if (items == null)
-            throw new ArgumentNullException(nameof(items));
-        _list = new FrugalList<T>(items);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ReadOnlyFrugalList{T}"/> structure from a <see cref="FrugalList{T}"/>.
+    /// Initializes a new instance of the <see cref="ImmutableFrugalList{T}"/> structure from a <see cref="FrugalList{T}"/>.
     /// </summary>
     /// <param name="items">The items of this list.</param>
     /// <remarks>
     /// Modifications to <paramref name="items"/> will not be reflected to this instance.
     /// </remarks>
-    internal ReadOnlyFrugalList(in FrugalList<T> items)
+    internal ImmutableFrugalList(in FrugalList<T> items)
     {
         _list = new FrugalList<T>(in items);
     }
-
 
     /// <inheritdoc cref="ICollection{T}.CopyTo"/>
     public void CopyTo(T[] array, int index)
@@ -149,20 +136,20 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
     }
 
     /// <summary>
-    /// Determines whether the <see cref="ReadOnlyFrugalList{T}"/> contains a specific value.
+    /// Determines whether the <see cref="ImmutableFrugalList{T}"/> contains a specific value.
     /// </summary>
-    /// <param name="item">The object to locate in the <see cref="ReadOnlyFrugalList{T}"/>.</param>
-    /// <returns><see langword="true"/> if <paramref name="item"/> is found in the <see cref="ReadOnlyFrugalList{T}"/>; otherwise, <see langword="false"/>.</returns>
+    /// <param name="item">The object to locate in the <see cref="ImmutableFrugalList{T}"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="item"/> is found in the <see cref="ImmutableFrugalList{T}"/>; otherwise, <see langword="false"/>.</returns>
     public bool Contains(T item)
     { 
         return _list.Contains(item);
     }
 
     /// <summary>
-    /// Searches for the specified object and returns the zero-based index of the first occurrence within the entire <see cref="ReadOnlyFrugalList{T}"/>.
+    /// Searches for the specified object and returns the zero-based index of the first occurrence within the entire <see cref="ImmutableFrugalList{T}"/>.
     /// </summary>
-    /// <param name="item">The object to locate in the <see cref="ReadOnlyFrugalList{T}"/>. The value can be <see langword="null"/> for reference types.</param>
-    /// <returns>The zero-based index of the first occurrence of <paramref name="item"/> within the entire <see cref="ReadOnlyFrugalList{T}"/>, if found; otherwise, -1.</returns>
+    /// <param name="item">The object to locate in the <see cref="ImmutableFrugalList{T}"/>. The value can be <see langword="null"/> for reference types.</param>
+    /// <returns>The zero-based index of the first occurrence of <paramref name="item"/> within the entire <see cref="ImmutableFrugalList{T}"/>, if found; otherwise, -1.</returns>
     public int IndexOf(T item)
     {
         return _list.IndexOf(item);
@@ -170,12 +157,22 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
 
     #endregion
 
+    /// <summary>
+    /// Returns an enumerator that iterates through the immutable list.
+    /// </summary>
+    /// <returns>An enumerator that can be used to iterate through the immutable list.</returns>
     public FrugalList<T>.Enumerator GetEnumerator()
     {
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
         return _list.GetEnumerator();
     }
 
+    /// <summary>
+    /// Returns an enumerator that iterates through the collection.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="IEnumerator{T}"/> that can be used to iterate through the collection.
+    /// </returns>
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
         // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
@@ -184,23 +181,30 @@ public readonly struct ReadOnlyFrugalList<T> : IList<T>, IReadOnlyList<T>
             : _list.GetEnumerator();
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    /// <summary>
+    /// Returns an enumerator that iterates through a collection.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerator"/> object that can be used to iterate through the collection.
+    /// </returns>
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 }
 
-internal sealed class EmptyEnumerator<T> : IEnumerator<T>
+public static class ImmutableFrugalList
 {
-    public static readonly EmptyEnumerator<T> Instance = new();
+    public static ImmutableFrugalList<T> Create<T>(IEnumerable<T> items)
+    {
+        if (items == null)
+            throw new ArgumentNullException(nameof(items));
 
-    public void Dispose() { }
-
-    public bool MoveNext() => false;
-
-    public void Reset() { }
-
-    public T Current => throw new InvalidOperationException("Enumeration has not started. Call MoveNext.");
-
-    object? IEnumerator.Current => Current;
+        if (items is ImmutableFrugalList<T> immutable)
+            return immutable;
+        if (items is FrugalList<T> frugal)
+            return new ImmutableFrugalList<T>(in frugal);
+        if (items is ICollection<T> { Count: 0 })
+            return ImmutableFrugalList<T>.Empty;
+        if (items is IList<T> { Count: 1 } list)
+            return new ImmutableFrugalList<T>(list[0]);
+        return new FrugalList<T>(items).ToImmutableList();
+    }
 }

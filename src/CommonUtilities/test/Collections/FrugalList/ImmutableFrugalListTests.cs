@@ -1,16 +1,12 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
 using System;
-using System.Collections.Generic;
 using Xunit;
 // ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 
-public class ReadOnlyFrugalListTest_String : ReadOnlyFrugalListTestBase<string>
+public class ImmutableFrugalListTestString : ImmutableFrugalListTestBase<string>
 {
-    //public class CollectionTests()
-    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_String>(new ReadOnlyFrugalListTest_String());
-
     protected override string CreateT(int seed)
     {
         var stringLength = seed % 10 + 5;
@@ -21,14 +17,10 @@ public class ReadOnlyFrugalListTest_String : ReadOnlyFrugalListTestBase<string>
     }
 }
 
-
-public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
+public class ImmutableFrugalListTestInt : ImmutableFrugalListTestBase<int>
 {
     private static readonly int[] _intArray = [-4, 5, -2, 3, 1, 2, -1, -3, 0, 4, -5, 3, 3];
     private static readonly int[] _excludedFromIntArray = [100, -34, 42, int.MaxValue, int.MinValue];
-
-    //public class CollectionTests()
-    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_Int>(new ReadOnlyFrugalListTest_Int());
 
     protected override int CreateT(int seed)
     {
@@ -39,7 +31,7 @@ public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
     [Fact]
     public static void Contains()
     {
-        var collection = new ReadOnlyFrugalList<int>(_intArray);
+        var collection = ImmutableFrugalList.Create(_intArray);
         foreach (var item in _intArray)
             Assert.True(collection.Contains(item));
 
@@ -50,31 +42,12 @@ public class ReadOnlyFrugalListTest_Int : ReadOnlyFrugalListTestBase<int>
     [Fact]
     public static void IndexOf()
     {
-        var collection = new ReadOnlyFrugalList<int>(_intArray);
+        var collection = ImmutableFrugalList.Create(_intArray);
 
         foreach (var item in _intArray)
             Assert.Equal(Array.IndexOf(_intArray, item), collection.IndexOf(item));
 
         foreach (var excluded in _excludedFromIntArray)
             Assert.Equal(-1, collection.IndexOf(excluded));
-    }
-}
-
-
-public class ReadOnlyFrugalListTest_Int_FromFrugal : ReadOnlyFrugalListTestBase<int>
-{
-    //public class CollectionTests()
-    //    : ICollectionFromReadOnlyTestSuite<ReadOnlyFrugalListTest_Int_FromFrugal>(new ReadOnlyFrugalListTest_Int_FromFrugal());
-
-    protected override int CreateT(int seed)
-    {
-        var rand = new Random(seed);
-        return rand.Next();
-    }
-
-    protected override ReadOnlyFrugalList<int> GenericReadOnlyListFrugalListFactory(IEnumerable<int> enumerable)
-    {
-        var frugal = new FrugalList<int>(enumerable);
-        return frugal.AsReadOnly();
     }
 }
