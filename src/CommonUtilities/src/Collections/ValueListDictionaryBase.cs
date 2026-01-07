@@ -509,9 +509,11 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         /// <returns>A <see cref="List{T}.Enumerator"/> for the <see cref="KeyCollection"/>.</returns>
         public List<TKey>.Enumerator GetEnumerator() => _dictionary.KeyOrderStore.GetEnumerator();
 
-        IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => GetEnumerator();
+        IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => Count == 0 
+                ? EmptyEnumerator<TKey>.Instance 
+                : GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<TKey>)this).GetEnumerator();
 
         /// <summary>
         /// This operation is not supported on a read-only collection.
@@ -637,6 +639,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         public struct Enumerator : IEnumerator<TValue>
         {
             private readonly ValueListDictionaryBase<TKey, TValue, TList> _dictionary;
+            private readonly int _version;
             private TList? _currentList;
             private int _keyIndex;
             private int _valueIndex;
@@ -649,6 +652,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
                 _keyIndex = 0;
                 _valueIndex = -1;
                 _current = default!;
+                _version = dictionary._version;
             }
 
             /// <inheritdoc cref="IEnumerator{T}.Current"/>
@@ -668,6 +672,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             /// <inheritdoc />
             public bool MoveNext()
             {
+                if (_version != _dictionary._version)
+                    throw new InvalidOperationException("Collection was modified; enumeration operation may not execute.");
                 // Try to advance within current cached list
                 if (_valueIndex >= 0)
                 {
@@ -710,6 +716,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             /// <inheritdoc />
             public void Reset()
             {
+                if (_version != _dictionary._version)
+                    throw new InvalidOperationException("Collection was modified; enumeration operation may not execute.");
                 _currentList = default;
                 _keyIndex = 0;
                 _valueIndex = -1;

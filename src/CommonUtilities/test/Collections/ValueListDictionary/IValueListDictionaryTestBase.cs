@@ -12,6 +12,8 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 {
     protected override bool IsReadOnly => false;
 
+    protected bool Keys_Values_Enumeration_ThrowsInvalidOperation_WhenParentModified => true;
+
     protected abstract IValueListDictionary<TKey, TValue> IValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null);
 
     protected virtual IValueListDictionary<TKey, TValue> IValueListDictionaryFactory(int count)
@@ -40,18 +42,31 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         Assert.Empty(keys);
        
     }
-
+    
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
     public void Keys_Enumeration_ParentDictionaryModifiedInvalidates(int count)
     {
-        var dictionary = IValueListDictionaryFactory(count);
-        var keys = dictionary.Keys;
-        using var keysEnum = keys.GetEnumerator();
-        dictionary.Add(GetNewKey(dictionary), CreateTValue(3432));
-
-        Assert.Throws<InvalidOperationException>(() => keysEnum.MoveNext());
-        Assert.Throws<InvalidOperationException>(() => keysEnum.Reset());
+        if (!IsReadOnly)
+        {
+            var dictionary = IValueListDictionaryFactory(count);
+            var keys = dictionary.Keys;
+            using var keysEnum = keys.GetEnumerator();
+            dictionary.Add(GetNewKey(dictionary), CreateTValue(3432));
+            if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Keys_Values_Enumeration_ThrowsInvalidOperation_WhenParentModified)
+            {
+                Assert.Throws<InvalidOperationException>(() => keysEnum.MoveNext());
+                Assert.Throws<InvalidOperationException>(() => keysEnum.Reset());
+            }
+            else
+            {
+                if (keysEnum.MoveNext())
+                {
+                    _ = keysEnum.Current;
+                }
+                keysEnum.Reset();
+            }
+        }
     }
 
     #endregion
@@ -62,16 +77,28 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     [MemberData(nameof(ValidCollectionSizes))]
     public void Values_Enumeration_ParentDictionaryModifiedInvalidates(int count)
     {
-        var dictionary = IValueListDictionaryFactory(count);
-        var values = dictionary.Values;
-        using var valuesEnum = values.GetEnumerator();
-        dictionary.Add(GetNewKey(dictionary), CreateTValue(3432));
-        if (valuesEnum.MoveNext())
+        if (!IsReadOnly)
         {
-            _ = valuesEnum.Current;
+            var dictionary = IValueListDictionaryFactory(count);
+            var values = dictionary.Values;
+            using var valuesEnum = values.GetEnumerator();
+            dictionary.Add(GetNewKey(dictionary), CreateTValue(3432));
+            if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Keys_Values_Enumeration_ThrowsInvalidOperation_WhenParentModified)
+            {
+                Assert.Throws<InvalidOperationException>(() => valuesEnum.MoveNext());
+                Assert.Throws<InvalidOperationException>(() => valuesEnum.Reset());
+            }
+            else
+            {
+                if (valuesEnum.MoveNext())
+                {
+                    _ = valuesEnum.Current;
+                }
+                valuesEnum.Reset();
+            }
         }
-        valuesEnum.Reset();
     }
+
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]

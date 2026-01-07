@@ -9,11 +9,10 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 // ReSharper disable once InconsistentNaming
 public class ValueListDictionary_Keys : ICollectionTestSuite<string>
 {
-    protected override bool Enumerator_Empty_UsesSingletonInstance => false;
-    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => false;
+    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
+    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
     protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
-    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
     protected override bool DefaultValueAllowed => false;
     protected override bool DuplicateValuesAllowed => false;
     protected override bool IsReadOnly => true;
@@ -33,7 +32,7 @@ public class ValueListDictionary_Keys : ICollectionTestSuite<string>
         {
             var key = CreateT(seed++);
             list.Add(key, CreateT(seed++));
-            while (random.Next() % 2 == 0) 
+            while (random.Next() % 2 == 0)
                 list.Add(key, CreateT(seed++));
         }
         return list.Keys;
