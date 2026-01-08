@@ -1,7 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
@@ -67,7 +66,19 @@ public abstract class ReadOnlyFrugalValueListDictionaryTestBase<TKey, TValue>
         var ro = new ReadOnlyFrugalValueListDictionary<TKey, TValue>(l);
 
         using var e1 = ro.GetEnumerator();
+
+        using var k = l.GetEnumerator();
+
+        l.Add(GetNewKey(l), CreateTValue(123));
+
+        e1.MoveNext();
+        k.MoveNext();
+
+
+
         using var e2 = ((IReadOnlyFrugalValueListDictionary<TKey, TValue>)ro).GetEnumerator();
+        using var e3 = ((IReadOnlyValueListDictionary<TKey, TValue>)ro).GetEnumerator();
+        var e4 = ((IEnumerable)ro).GetEnumerator();
 
         for (var i = 0; i < 3; i++)
         {
@@ -75,15 +86,34 @@ public abstract class ReadOnlyFrugalValueListDictionaryTestBase<TKey, TValue>
             {
                 Assert.True(e1.MoveNext());
                 Assert.True(e2.MoveNext());
+                Assert.True(e3.MoveNext());
+                Assert.True(e4.MoveNext());
 
-                _ = e1.Current;
-                _ = e2.Current;
+                var kvp1 = e1.Current;
+                var kvp1o = ((IEnumerator)e1).Current;
+                var kvp2 = e2.Current;
+                var kvp3 = e3.Current;
+                var kvp4 = e4.Current;
+
+                Assert.Equal(kvp1.Key, kvp2.Key);
+                Assert.Equal(kvp2.Key, kvp3.Key);
+
+                Assert.Equal(kvp1.GetType(), kvp1o.GetType());
+                Assert.Equal(kvp1, kvp1o);
+
+                Assert.Equal(kvp3.GetType(), kvp4.GetType());
+                Assert.Equal(kvp3, kvp4);
             }
+
             Assert.False(e1.MoveNext());
             Assert.False(e2.MoveNext());
+            Assert.False(e3.MoveNext());
+            Assert.False(e4.MoveNext());
 
             e1.Reset();
             e2.Reset();
+            e3.Reset();
+            e4.Reset();
         }
     }
 }
