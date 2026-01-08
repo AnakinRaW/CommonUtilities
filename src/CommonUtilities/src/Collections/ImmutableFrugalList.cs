@@ -194,7 +194,7 @@ public static class ImmutableFrugalList
 {
     public static ImmutableFrugalList<T> Create<T>(IEnumerable<T> items)
     {
-        if (items == null)
+        if (items is null)
             throw new ArgumentNullException(nameof(items));
 
         if (items is ImmutableFrugalList<T> immutable)
