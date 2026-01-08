@@ -8,7 +8,7 @@ using Xunit;
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.Frugal;
 
 public abstract class FrugalValueListDictionaryTestBase<TKey, TValue> 
-    : ValueListDictionaryBaseTestBase<TKey, TValue, FrugalList<TValue>> 
+    : ValueListDictionaryBaseTestSuite<TKey, TValue, FrugalList<TValue>> 
     where TKey : notnull
 {
     protected override bool ValueList_IsReadOnlyView => false;

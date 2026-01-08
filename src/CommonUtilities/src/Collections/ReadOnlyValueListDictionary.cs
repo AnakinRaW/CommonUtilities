@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
-public class ReadOnlyValueListDictionary<TKey, TValue>(IValueListDictionary<TKey, TValue> dictionary)
+public class ReadOnlyValueListDictionary<TKey, TValue>(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
     : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary)
     where TKey : notnull
 {
@@ -17,7 +17,7 @@ public class ReadOnlyValueListDictionary<TKey, TValue>(IValueListDictionary<TKey
     public static ReadOnlyValueListDictionary<TKey, TValue> Empty { get; } = new(new ValueListDictionary<TKey, TValue>());
 }
 
-public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionary<TKey, TValue> dictionary)
+public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
     : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary), IReadOnlyFrugalValueListDictionary<TKey, TValue>
     where TKey : notnull
 {
@@ -44,7 +44,9 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionar
         return result;
     }
 
-    public new IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> GetEnumerator()
+    public new Enumerator GetEnumerator() => new(this);
+
+    IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> IReadOnlyFrugalValueListDictionary<TKey, TValue>.GetEnumerator()
     {
         if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
             return frugalDict.GetEnumerator();
@@ -53,15 +55,15 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionar
         return new Enumerator(Dictionary);
     }
 
-    internal struct Enumerator : IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>
+    public struct Enumerator : IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>
     {
-        private readonly IValueListDictionary<TKey, TValue> _dictionary;
+        private readonly IReadOnlyValueListDictionary<TKey, TValue> _dictionary;
         private readonly IReadOnlyList<TKey> _keys;
         private readonly int _count;
         private int _index;
         private KeyValuePair<TKey, ImmutableFrugalList<TValue>> _current;
 
-        internal Enumerator(IValueListDictionary<TKey, TValue> dictionary)
+        internal Enumerator(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
         {
             _dictionary = dictionary;
             var keys = dictionary.Keys; 
@@ -119,9 +121,10 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IValueListDictionar
 /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
 [DebuggerDisplay("Count = {Count}")]
-public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> : IReadOnlyValueListDictionary<TKey, TValue> where TKey : notnull
+public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> 
+    : IReadOnlyValueListDictionary<TKey, TValue> where TKey : notnull
 {
-    protected readonly IValueListDictionary<TKey, TValue> Dictionary;
+    protected readonly IReadOnlyValueListDictionary<TKey, TValue> Dictionary;
     
     /// <inheritdoc />
     public IReadOnlyList<TValue> this[TKey key] => Dictionary[key];
@@ -151,7 +154,7 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> : IReadOnlyV
     /// </summary>
     /// <param name="dictionary">The dictionary to wrap.</param>
     /// <exception cref="ArgumentNullException"><paramref name="dictionary"/> is <see langword="null"/>.</exception>
-    protected ReadOnlyValueListDictionaryBase(IValueListDictionary<TKey, TValue> dictionary)
+    protected ReadOnlyValueListDictionaryBase(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
     {
         Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
     }

@@ -5,7 +5,7 @@ using Xunit;
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
 
 public abstract class ValueListDictionaryTestBase<TKey, TValue> 
-    : ValueListDictionaryBaseTestBase<TKey, TValue, IList<TValue>> where TKey : notnull
+    : ValueListDictionaryBaseTestSuite<TKey, TValue, IList<TValue>> where TKey : notnull
 {
     protected override ValueListDictionaryBase<TKey, TValue, IList<TValue>> 
         ValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null)

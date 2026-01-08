@@ -18,55 +18,29 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     protected virtual bool ValueList_IsReadOnlyView => true;
     protected virtual bool IsReadOnly => true;
 
-    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
-    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
-    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
-    protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
-    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
+    protected sealed override bool Enumerator_Empty_UsesSingletonInstance => true;
+    protected sealed override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+    protected sealed override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
+    protected sealed override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
+    protected sealed override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
     protected abstract TKey CreateTKey(int seed);
 
     protected abstract TValue CreateTValue(int seed);
-
+    
     protected abstract IReadOnlyValueListDictionary<TKey, TValue> IReadOnlyValueListDictionaryFactory(int count);
 
-    protected override IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> GenericIEnumerableFactory(int count)
+    protected sealed override KeyValuePair<TKey, IReadOnlyList<TValue>> CreateT(int seed)
     {
-        return IReadOnlyValueListDictionaryFactory(count);
+        throw new NotSupportedException();
     }
-
-    protected override IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetIEqualityComparer()
+    
+    protected sealed override IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetIEqualityComparer()
     {
         return new KVPComparer();
     }
 
-    protected TKey GetNewKey(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
-    {
-        var seed = 840;
-        var missingKey = CreateTKey(seed++);
-        while (dictionary.ContainsKey(missingKey) || missingKey.Equals(default(TKey)))
-            missingKey = CreateTKey(seed++);
-        return missingKey;
-    }
-
-    protected void AddToCollection(IValueListDictionary<TKey, TValue> dictionary, int numberOfItemsToAdd)
-    {
-        var seed = 12353;
-        var random = new Random();
-        var initialCount = dictionary.KeyCount;
-        while (dictionary.KeyCount - initialCount < numberOfItemsToAdd)
-        {
-            var toAdd = CreateTKey(seed++);
-            while (dictionary.ContainsKey(toAdd))
-                toAdd = CreateTKey(seed++);
-
-            dictionary.Add(toAdd, CreateTValue(seed++));
-            while (random.Next() % 2 == 0)
-                dictionary.Add(toAdd, CreateTValue(seed++));
-        }
-    }
-
-    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    protected sealed override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
     {
         // ReSharper disable UseMethodAny.0
         if (IsReadOnly)
@@ -120,6 +94,38 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         }
         //throw new InvalidOperationException(string.Format("{0:G}", operations));
         // ReSharper restore UseMethodAny.0
+    }
+
+    protected override IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> GenericIEnumerableFactory(
+        int count)
+    {
+        return IReadOnlyValueListDictionaryFactory(count);
+    }
+
+    protected void AddToCollection(IValueListDictionary<TKey, TValue> dictionary, int numberOfItemsToAdd)
+    {
+        var seed = 12353;
+        var random = new Random();
+        var initialCount = dictionary.KeyCount;
+        while (dictionary.KeyCount - initialCount < numberOfItemsToAdd)
+        {
+            var toAdd = CreateTKey(seed++);
+            while (dictionary.ContainsKey(toAdd))
+                toAdd = CreateTKey(seed++);
+
+            dictionary.Add(toAdd, CreateTValue(seed++));
+            while (random.Next() % 2 == 0)
+                dictionary.Add(toAdd, CreateTValue(seed++));
+        }
+    }
+
+    protected TKey GetNewKey(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
+    {
+        var seed = 840;
+        var missingKey = CreateTKey(seed++);
+        while (dictionary.ContainsKey(missingKey) || missingKey.Equals(default(TKey)))
+            missingKey = CreateTKey(seed++);
+        return missingKey;
     }
 
     #region Item Getter

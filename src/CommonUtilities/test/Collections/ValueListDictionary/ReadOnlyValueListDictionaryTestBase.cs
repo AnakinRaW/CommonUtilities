@@ -1,94 +1,146 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing.Extensions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 
-public abstract class ReadOnlyValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValueListDictionaryTestBase<TKey, TValue>
+public abstract class ReadOnlyValueListDictionaryTestBase<TKey, TValue> 
+    : ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> 
     where TKey : notnull
 {
-    protected override bool DefaultValueAllowed => false;
-
-    protected override bool IsReadOnly => true;
-
-    protected override KeyValuePair<TKey, IReadOnlyList<TValue>> CreateT(int seed)
+    protected sealed override ReadOnlyValueListDictionaryBase<TKey, TValue> ReadOnlyValueListDictionaryFactory(
+        IReadOnlyValueListDictionary<TKey, TValue> dictionary)
     {
-        throw new NotSupportedException();
-    }
-
-    protected virtual ReadOnlyValueListDictionary<TKey, TValue> ReadOnlyValueListDictionaryFactory(int count)
-    {
-        var collection = new ValueListDictionary<TKey, TValue>();
-        AddToCollection(collection, count);
-        return new ReadOnlyValueListDictionary<TKey, TValue>(collection);
-    }
-
-    protected override IReadOnlyValueListDictionary<TKey, TValue> IReadOnlyValueListDictionaryFactory(int count)
-    {
-        return ReadOnlyValueListDictionaryFactory(count);
-    }
-
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void CtorTests(int count)
-    {
-        var collection = new ValueListDictionary<TKey, TValue>();
-        AddToCollection(collection, count);
-        var readOnlyDictionary = new ReadOnlyValueListDictionary<TKey, TValue>(collection);
-
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
-    }
-
-    [Fact]
-    public static void CtorTests_Negative()
-    {
-        AssertExtensions.Throws<ArgumentNullException>("dictionary", () => _ = new ReadOnlyValueListDictionary<TKey, TValue>(null!));
+        return new ReadOnlyValueListDictionary<TKey, TValue>(dictionary);
     }
 
     [Fact]
     public static void Empty_Idempotent()
     {
-        Assert.NotNull(ReadOnlyValueListDictionary<string, int>.Empty);
-        Assert.Equal(0, ReadOnlyValueListDictionary<string, int>.Empty.Count);
-        Assert.Same(ReadOnlyValueListDictionary<string, int>.Empty, ReadOnlyValueListDictionary<string, int>.Empty);
+        Assert.NotNull(ReadOnlyValueListDictionary<TKey, TValue>.Empty);
+        Assert.Equal(0, ReadOnlyValueListDictionary<TKey, TValue>.Empty.Count);
+        Assert.Same(ReadOnlyValueListDictionary<TKey, TValue>.Empty, ReadOnlyValueListDictionary<TKey, TValue>.Empty);
+    }
+}
+
+public abstract class ReadOnlyFrugalValueListDictionaryTestBase<TKey, TValue>
+    : ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue>
+    where TKey : notnull
+{
+    protected override bool DefaultValueAllowed => false;
+
+    protected sealed override ReadOnlyValueListDictionaryBase<TKey, TValue> ReadOnlyValueListDictionaryFactory(
+        IReadOnlyValueListDictionary<TKey, TValue> dictionary)
+    {
+        return new ReadOnlyFrugalValueListDictionary<TKey, TValue>(dictionary);
+    }
+
+    protected override IValueListDictionary<TKey, TValue> MutableValueListDictionaryFactory()
+    {
+        return new FrugalValueListDictionary<TKey, TValue>();
+    }
+
+    protected override IEnumerable NonGenericIEnumerableFactory(int count)
+    {
+        var l = MutableValueListDictionaryFactory();
+        AddToCollection(l, count);
+        return new ReadOnlyFrugalValueListDictionary<TKey, TValue>(l);
+    }
+    
+    [Fact]
+    public static void Empty_Idempotent()
+    {
+        Assert.NotNull(ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty);
+        Assert.Equal(0, ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty.Count);
+        Assert.Same(ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty, ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty);
     }
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void EnumeratorTest(int count)
+    public void GetEnumerator(int count)
     {
-        var collection = new ValueListDictionary<TKey, TValue>();
-        AddToCollection(collection, count);
-        var readOnlyDictionary = new ReadOnlyValueListDictionary<TKey, TValue>(collection);
+        var l = MutableValueListDictionaryFactory();
+        AddToCollection(l, count);
 
-        using var enumerator = readOnlyDictionary.GetEnumerator();
-        foreach (var keyValuePair in collection)
+        var ro = new ReadOnlyFrugalValueListDictionary<TKey, TValue>(l);
+
+        using var e1 = ro.GetEnumerator();
+        using var e2 = ((IReadOnlyFrugalValueListDictionary<TKey, TValue>)ro).GetEnumerator();
+
+        for (var i = 0; i < 3; i++)
         {
-            Assert.True(enumerator.MoveNext());
+            for (var j = 0; j < count; j++)
+            {
+                Assert.True(e1.MoveNext());
+                Assert.True(e2.MoveNext());
 
-            Assert.Equal(keyValuePair.Key, enumerator.Current.Key);
-            Assert.Equal(keyValuePair.Value, enumerator.Current.Value);
+                _ = e1.Current;
+                _ = e2.Current;
+            }
+            Assert.False(e1.MoveNext());
+            Assert.False(e2.MoveNext());
+
+            e1.Reset();
+            e2.Reset();
         }
-        Assert.False(enumerator.MoveNext());
+    }
+}
+
+public class ReadOnlyFrugalValueListDictionaryTest_string_string 
+    : ReadOnlyFrugalValueListDictionaryTestBase<string, string>
+{
+    protected override bool DefaultValueAllowed => false;
+
+    protected override string CreateTKey(int seed)
+    {
+        var stringLength = seed % 10 + 5;
+        var rand = new Random(seed);
+        var bytes1 = new byte[stringLength];
+        rand.NextBytes(bytes1);
+        return Convert.ToBase64String(bytes1);
     }
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void SourceModificationsReflectedInReadOnlyDictionary(int count)
+    protected override string CreateTValue(int seed)
     {
-        var collection = new ValueListDictionary<TKey, TValue>();
-        AddToCollection(collection, count);
-        var readOnlyDictionary = new ReadOnlyValueListDictionary<TKey, TValue>(collection);
+        return CreateTKey(seed);
+    }
+}
 
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
+public class ReadOnlyFrugalValueListDictionaryTest_int_int : ReadOnlyFrugalValueListDictionaryTestBase<int, int>
+{
+    protected override bool DefaultValueAllowed => true;
 
-        collection.Add(GetNewKey(collection), CreateTValue(4231));
+    protected override int CreateTKey(int seed)
+    {
+        var rand = new Random(seed);
+        return rand.Next();
+    }
 
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
+    protected override int CreateTValue(int seed)
+    {
+        return CreateTKey(seed);
+    }
+}
+
+public class ReadOnlyFrugalValueListDictionaryTest_FromNonFrugal : ReadOnlyFrugalValueListDictionaryTestBase<int, int>
+{
+    protected override bool DefaultValueAllowed => true;
+
+    protected override IValueListDictionary<int, int> MutableValueListDictionaryFactory()
+    {
+        return new ValueListDictionary<int, int>();
+    }
+
+    protected override int CreateTKey(int seed)
+    {
+        var rand = new Random(seed);
+        return rand.Next();
+    }
+
+    protected override int CreateTValue(int seed)
+    {
+        return CreateTKey(seed);
     }
 }

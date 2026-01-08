@@ -13,6 +13,7 @@ public abstract class ValueListDictionary_Keys_Values_CollectionTestSuite : ICol
         Keys,
         Values
     }
+
     protected abstract CollectionSelector Selector { get; }
 
     protected sealed override bool IsReadOnly => true;

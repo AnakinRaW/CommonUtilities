@@ -1,5 +1,4 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +6,10 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 
-public abstract class ValueListDictionaryBaseTestBase<TKey, TValue, TList> : IValueListDictionaryTestBase<TKey, TValue>
+public abstract class ValueListDictionaryBaseTestSuite<TKey, TValue, TList> : IValueListDictionaryTestBase<TKey, TValue>
     where TKey : notnull 
     where TList : IList<TValue>
-{
-    protected override KeyValuePair<TKey, IReadOnlyList<TValue>> CreateT(int seed)
-    {
-        throw new NotSupportedException();
-    }
-
+{ 
     protected override IValueListDictionary<TKey, TValue> IValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null)
     {
         return ValueListDictionaryFactory(comparer);
