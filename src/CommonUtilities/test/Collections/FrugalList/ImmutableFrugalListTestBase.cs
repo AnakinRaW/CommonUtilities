@@ -42,11 +42,29 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
         return GenericReadOnlyListFrugalListFactory(count);
     }
 
+    #region ICollection{T}.IsReadOnly
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IsReadOnly_ReturnsTrue(int count)
+    {
+        ICollection<T> list = GenericReadOnlyListFrugalListFactory(count);
+        Assert.True(list.IsReadOnly);
+    }
+
+    #endregion
+
     #region Create{T}
+
+    [Fact]
+    public void Create_NullArg_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>("items", () => ImmutableFrugalList.Create<T>(null!));
+    }
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
-    public void Create(int _, int enumerableLength, int __, int ___)
+    public void Create_CreatesCorrectImmutableList(int _, int enumerableLength, int __, int ___)
     {
         var list = CreateEnumerable(null, enumerableLength, 0, 0).ToList();
 

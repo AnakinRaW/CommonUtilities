@@ -14,12 +14,13 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 {
     protected abstract bool DefaultValueAllowed { get; }
 
+    // ReSharper disable once InconsistentNaming
+    protected virtual bool ValueList_IsReadOnlyView => true;
     protected virtual bool IsReadOnly => true;
+
     protected override bool Enumerator_Empty_UsesSingletonInstance => true;
     protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
-    
-    //protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
     protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
     protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
@@ -393,44 +394,46 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             Assert.Equal(pair.Value, dictionary.GetValues(pair.Key));
     }
 
-    //[Theory]
-    //[MemberData(nameof(ValidCollectionSizes))]
-    //public void GetValues_ReturnsTrueCopy(int count)
-    //{
-    //    if (count == 0)
-    //        return;
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void GetValues_ReturnsReadOnlyViewOrSnapshot(int count)
+    {
+        if (IsReadOnly)
+            return;
 
-    //    if (IsReadOnly)
-    //    {
-    //        var valueListDictionary = new ValueListDictionary<TKey, TValue>();
-    //        IReadOnlyValueListDictionaryFactory()
-    //    }
-    //    else
-    //    {
-            
-    //    }
+        var dict = IReadOnlyValueListDictionaryFactory(count);
+        var key = GetNewKey(dict);
+        var seed = 1234;
+        AddValue(dict, key, CreateTValue(seed++));
 
-       
+        var values = dict.GetValues(key);
 
+        var newValue = CreateTValue(seed);
+        while (values.Contains(newValue))
+            newValue = CreateTValue(++seed);
 
-        
-    //    if (!IsReadOnly && count > 0)
-    //    {
-    //        var dict = IReadOnlyValueListDictionaryFactory(count);
-    //        var key = dict.Keys.First();
+        AddValue(dict, key, newValue);
 
-    //        var values = dict.GetValues(key);
+        // View reflects live changes, snapshot doesn't
+        Assert.Equal(ValueList_IsReadOnlyView, values.Contains(newValue));
 
-    //        var seed = 1234;
-    //        var newValue = CreateTValue(seed);
-    //        while (values.Contains(newValue)) 
-    //            newValue = CreateTValue(++seed);
+        // After removal, neither view nor snapshot contains the value
+        RemoveValue(dict, key, newValue);
+        Assert.DoesNotContain(newValue, values);
 
-    //        AddValue(dict, key, newValue);
+        // Removing key doesn't clear underlying list
+        RemoveKey(dict, key);
+        Assert.NotEmpty(values);
 
-    //        Assert.Contains(newValue, values);
-    //    }
-    //}
+        // Clearing dict doesn't clear underlying lists
+        if (count > 0)
+        {
+            var firstKey = dict.Keys.First();
+            var firstValues = dict.GetValues(firstKey);
+            ClearDict(dict);
+            Assert.NotEmpty(firstValues);
+        }
+    }
 
     #endregion
 
@@ -755,6 +758,24 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             throw new InvalidOperationException("Could not cast to mutable version");
 
         mutable.Add(key, value);
+    }
+
+    private void ClearDict(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
+    {
+        if (IsReadOnly)
+            throw new NotSupportedException("Test is read-only.");
+        if (dictionary is not IValueListDictionary<TKey, TValue> mutable)
+            throw new InvalidOperationException("Could not cast to mutable version");
+        mutable.Clear();
+    }
+
+    private void RemoveValue(IReadOnlyValueListDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+    {
+        if (IsReadOnly)
+            throw new NotSupportedException("Test is read-only.");
+        if (dictionary is not IValueListDictionary<TKey, TValue> mutable)
+            throw new InvalidOperationException("Could not cast to mutable version");
+        mutable.Remove(key, value);
     }
 
     // ReSharper disable once InconsistentNaming

@@ -2,7 +2,7 @@
 using AnakinRaW.CommonUtilities.Collections;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
+namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
 
 public abstract class ValueListDictionaryTestBase<TKey, TValue> 
     : ValueListDictionaryBaseTestBase<TKey, TValue, IList<TValue>> where TKey : notnull

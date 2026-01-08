@@ -36,6 +36,8 @@ public abstract class ValueListDictionaryBaseTestBase<TKey, TValue, TList> : IVa
         return collection;
     }
 
+    #region Clear
+
     [Fact]
     public void Clear_OnEmptyCollection_DoesNotInvalidateEnumerator()
     {
@@ -50,13 +52,17 @@ public abstract class ValueListDictionaryBaseTestBase<TKey, TValue, TList> : IVa
         }
     }
 
+    #endregion
+
+    #region Add
+
     [Fact]
     public void Add_ItemAlreadyExists_DoesNotInvalidateEnumerator()
     {
         var dictionary = IValueListDictionaryFactory(0);
         var key = CreateTKey(123);
         var value = CreateTValue(123);
-        
+
         dictionary.Add(key, value);
 
         IEnumerator valuesEnum = dictionary.GetEnumerator();
@@ -64,6 +70,8 @@ public abstract class ValueListDictionaryBaseTestBase<TKey, TValue, TList> : IVa
 
         Assert.True(valuesEnum.MoveNext());
     }
+
+    #endregion
 
     #region IReadOnlyValueListDictionary<TKey, TValue>.Keys & Values
 
@@ -88,32 +96,4 @@ public abstract class ValueListDictionaryBaseTestBase<TKey, TValue, TList> : IVa
     }
 
     #endregion
-}
-
-
-public abstract class Frugal<TKey, TValue> : ValueListDictionaryBaseTestBase<TKey, TValue, FrugalList<TValue>> 
-    where TKey : notnull
-{
-  
-    protected override ValueListDictionaryBase<TKey, TValue, FrugalList<TValue>> 
-        ValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null)
-    {
-        return new FrugalValueListDictionary<TKey, TValue>(comparer);
-    }
-}
-
-public class IntFrugal : Frugal<int, int>
-{
-    protected override bool DefaultValueAllowed => true;
-
-    protected override int CreateTKey(int seed)
-    {
-        var rand = new Random(seed);
-        return rand.Next();
-    }
-
-    protected override int CreateTValue(int seed)
-    {
-        return CreateTKey(seed);
-    }
 }

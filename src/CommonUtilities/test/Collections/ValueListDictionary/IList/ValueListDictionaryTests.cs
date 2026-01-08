@@ -2,7 +2,7 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
+namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
 
 public class ValueListDictionaryTest_string_string : ValueListDictionaryTestBase<string, string>
 {
