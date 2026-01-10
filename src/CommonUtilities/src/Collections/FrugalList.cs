@@ -507,7 +507,6 @@ public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
         {
             _current = default!;
             _position = 0;
-
         }
 
         /// <inheritdoc />

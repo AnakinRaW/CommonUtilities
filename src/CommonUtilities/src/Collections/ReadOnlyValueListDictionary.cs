@@ -3,112 +3,57 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
-public class ReadOnlyValueListDictionary<TKey, TValue>(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
-    : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary)
+public class ReadOnlyValueListDictionary<TKey, TValue> : ReadOnlyValueListDictionaryBase<TKey, TValue>
     where TKey : notnull
 {
+    public ReadOnlyValueListDictionary(IReadOnlyValueListDictionary<TKey, TValue> dictionary) : base(dictionary)
+    {
+    }
+
     /// <summary>Gets an empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</summary>
     /// <value>An empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</value>
     /// <remarks>The returned instance is immutable and will always be empty.</remarks>
     public static ReadOnlyValueListDictionary<TKey, TValue> Empty { get; } = new(new ValueListDictionary<TKey, TValue>());
 }
 
-public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
-    : ReadOnlyValueListDictionaryBase<TKey, TValue>(dictionary), IReadOnlyFrugalValueListDictionary<TKey, TValue>
+public class ReadOnlyFrugalValueListDictionary<TKey, TValue>
+    : ReadOnlyValueListDictionaryBase<TKey, TValue>,
+        IReadOnlyFrugalValueListDictionary<TKey, TValue>
     where TKey : notnull
 {
+    private readonly IReadOnlyFrugalValueListDictionary<TKey, TValue> _frugalValueList;
+
+
+    public ReadOnlyFrugalValueListDictionary(IReadOnlyFrugalValueListDictionary<TKey, TValue> dictionary)
+        : base(dictionary)
+    {
+        _frugalValueList = dictionary;
+    }
+
     /// <summary>Gets an empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</summary>
     /// <value>An empty <see cref="IReadOnlyValueListDictionary{TKey,TValue}"/>.</value>
     /// <remarks>The returned instance is immutable and will always be empty.</remarks>
-    public static ReadOnlyFrugalValueListDictionary<TKey, TValue> Empty { get; } = new(new FrugalValueListDictionary<TKey, TValue>());
+    public static ReadOnlyFrugalValueListDictionary<TKey, TValue> Empty { get; } =
+        new(new FrugalValueListDictionary<TKey, TValue>());
 
     public new ImmutableFrugalList<TValue> this[TKey key] => GetValues(key);
 
     public new ImmutableFrugalList<TValue> GetValues(TKey key)
     {
-        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
-            return frugalDict.GetValues(key);
-        return ImmutableFrugalList.Create(Dictionary.GetValues(key));
+        return _frugalValueList.GetValues(key);
     }
 
     public bool TryGetValues(TKey key, out ImmutableFrugalList<TValue> values)
     {
-        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
-            return frugalDict.TryGetValues(key, out values);
-        var result = Dictionary.TryGetValues(key, out var list);
-        values = ImmutableFrugalList.Create(list);
-        return result;
+        return _frugalValueList.TryGetValues(key, out values);
     }
 
-    public new Enumerator GetEnumerator() => new(this);
-
-    IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> IReadOnlyFrugalValueListDictionary<TKey, TValue>.GetEnumerator()
+    public new IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> GetEnumerator()
     {
-        if (Dictionary is IReadOnlyFrugalValueListDictionary<TKey, TValue> frugalDict)
-            return frugalDict.GetEnumerator();
-        if (Dictionary.Count == 0)
-            return EmptyEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>.Instance;
-        return new Enumerator(Dictionary);
-    }
-
-    public struct Enumerator : IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>
-    {
-        private readonly IReadOnlyValueListDictionary<TKey, TValue> _dictionary;
-        private readonly IReadOnlyList<TKey> _keys;
-        private readonly int _count;
-        private int _index;
-        private KeyValuePair<TKey, ImmutableFrugalList<TValue>> _current;
-
-        internal Enumerator(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
-        {
-            _dictionary = dictionary;
-            var keys = dictionary.Keys; 
-            _keys = keys as IReadOnlyList<TKey> ?? keys.ToArray();
-            _count = _keys.Count;
-            _index = 0;
-            _current = default;
-        }
-
-        public KeyValuePair<TKey, ImmutableFrugalList<TValue>> Current => _current;
-
-        object IEnumerator.Current
-        {
-            get
-            {
-                if (_index == 0 || _index == _count + 1)
-                    throw new InvalidOperationException("Enumeration has either not started or has already finished.");
-                return _current;
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if ((uint)_index < (uint)_count)
-            {
-                var key = _keys[_index];
-                _current = new KeyValuePair<TKey, ImmutableFrugalList<TValue>>(
-                    key,
-                    ImmutableFrugalList.Create(_dictionary.GetValues(key)));
-                _index++;
-                return true;
-            }
-
-            _index = _count + 1;
-            _current = default;
-            return false;
-        }
-
-        public void Reset()
-        {
-            _index = 0;
-            _current = default;
-        }
-
-        public void Dispose() { }
+        return _frugalValueList.GetEnumerator();
     }
 }
 
@@ -122,7 +67,8 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>(IReadOnlyValueListD
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
 [DebuggerDisplay("Count = {Count}")]
 public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> 
-    : IReadOnlyValueListDictionary<TKey, TValue> where TKey : notnull
+    : IReadOnlyValueListDictionary<TKey, TValue>
+    where TKey : notnull
 {
     protected readonly IReadOnlyValueListDictionary<TKey, TValue> Dictionary;
     

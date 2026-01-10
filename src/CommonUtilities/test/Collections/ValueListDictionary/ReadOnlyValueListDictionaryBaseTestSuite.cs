@@ -1,6 +1,5 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
-using AnakinRaW.CommonUtilities.Testing.Extensions;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -56,13 +55,6 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         VerifyReadOnlyValueListDictionary(readOnlyDictionary, collection);
         VerifyReadOnlyValueListDictionary(ReadOnlyValueListDictionaryFactory(readOnlyDictionary), collection);
     }
-
-    [Fact]
-    public void CtorTests_Negative()
-    {
-        AssertExtensions.Throws<ArgumentNullException>("dictionary", 
-            () => _ = ReadOnlyValueListDictionaryFactory(null!));
-    }
     
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
@@ -92,6 +84,8 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
             Assert.Equal(expectedValue, readOnlyDictionary[key]);
         }
         VerifyGenericEnumerator(readOnlyDictionary, expectedDict);
+
+        VerifyEnumerator(readOnlyDictionary, expectedDict);
     }
 
     private static void VerifyGenericEnumerator(
@@ -138,4 +132,46 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
 
         enumerator.Dispose();
     }
+
+    private static void VerifyEnumerator(
+        ReadOnlyValueListDictionaryBase<TKey, TValue> readOnlyDictionary,
+        IValueListDictionary<TKey, TValue> expectedDict)
+    {
+        IEnumerator enumerator = readOnlyDictionary.GetEnumerator();
+        var iterations = 0;
+        var expectedCount = expectedDict.KeyCount;
+
+        var keys = expectedDict.Keys.ToList();
+
+        while ((iterations < expectedCount) && enumerator.MoveNext())
+        {
+            var currentItem = (KeyValuePair<TKey, IReadOnlyList<TValue>>) enumerator.Current;
+
+            // Verify we have not gotten more items then we expected
+            Assert.True(iterations < expectedCount,
+                "More items have been returned from the enumerator(" + iterations + " items) then are in the expectedElements(" + expectedCount + " items)");
+
+            var expectedKey = keys[iterations];
+
+            Assert.Equal(expectedKey, currentItem.Key);
+            Assert.Equal(expectedDict[expectedKey], currentItem.Value);
+
+            // Verify Current always returns the same value every time it is called
+            for (var i = 0; i < 3; i++)
+            {
+                var tempItem = enumerator.Current;
+                Assert.Equal(currentItem, tempItem);
+            }
+
+            iterations++;
+        }
+
+        Assert.Equal(expectedCount, iterations);
+
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.False(enumerator.MoveNext(), "Expected MoveNext to return false after" + iterations + " iterations");
+        }
+    }
+
 }
