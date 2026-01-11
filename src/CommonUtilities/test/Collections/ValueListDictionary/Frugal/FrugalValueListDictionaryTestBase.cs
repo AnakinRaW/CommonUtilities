@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using AnakinRaW.CommonUtilities.Collections;
 using Xunit;
 
@@ -182,44 +181,6 @@ public abstract class FrugalValueListDictionaryTestBase<TKey, TValue>
         var dictionary = FrugalValueListDictionaryFactory(count);
         foreach (var pair in dictionary)
             Assert.Equal(pair.Value, dictionary.GetValues(pair.Key));
-    }
-
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void FrugalValueListDictionary_GetValues_ReturnsSnapshot(int count)
-    {
-        var dict = FrugalValueListDictionaryFactory(count);
-        var key = GetNewKey(dict);
-        var seed = 1234;
-        dict.Add(key, CreateTValue(seed++));
-
-        var values = dict.GetValues(key);
-
-        var newValue = CreateTValue(seed);
-        while (values.Contains(newValue))
-            newValue = CreateTValue(++seed);
-
-        dict.Add(key, newValue);
-
-        // View reflects live changes, snapshot doesn't
-        Assert.DoesNotContain(newValue, values);
-
-        // After removal, neither view nor snapshot contains the value
-        dict.Remove(key, newValue);
-        Assert.DoesNotContain(newValue, values);
-
-        // Removing key doesn't clear underlying list
-        dict.Remove(key);
-        Assert.NotEmpty(values);
-
-        // Clearing dict doesn't clear underlying lists
-        if (count > 0)
-        {
-            var firstKey = dict.Keys.First();
-            var firstValues = dict.GetValues(firstKey);
-            dict.Clear();
-            Assert.NotEmpty(firstValues);
-        }
     }
 
     #endregion

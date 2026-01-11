@@ -23,7 +23,7 @@ public class FrugalValueListDictionary_Keys : ValueListDictionary_Keys_TestSuite
     }
 
     [Fact]
-    public void ValueListDictionary_KeyCollection_Constructor_NullDictionary()
+    public void FrugalValueListDictionary_KeyCollection_Constructor_NullDictionary()
     {
         Assert.Throws<ArgumentNullException>(() => new FrugalValueListDictionary<string, string>.KeyCollection(null!));
     }

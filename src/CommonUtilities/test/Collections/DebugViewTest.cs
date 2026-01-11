@@ -18,7 +18,8 @@ public class DebugViewTests
     {
         yield return [new ValueListDictionary<int, string>(), Array.Empty<KeyValuePair<string,string>>()];
         yield return [new FrugalValueListDictionary<int, string>(), Array.Empty<KeyValuePair<string,string>>()];
-        //yield return [new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>()), Array.Empty<KeyValuePair<string, string>>()];
+        yield return [new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>()), Array.Empty<KeyValuePair<string, string>>()];
+        yield return [new ReadOnlyFrugalValueListDictionary<int, string>(new FrugalValueListDictionary<int, string>()), Array.Empty<KeyValuePair<string, string>>()];
 
         yield return
         [
@@ -38,17 +39,24 @@ public class DebugViewTests
                 new ("[2]", "Count = 1"),
             }
         ];
-
-
-        //yield return
-        //[
-        //    new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
-        //    new KeyValuePair<string, string>[]
-        //    {
-        //        new ("[1]", "Count = 2"),
-        //        new ("[2]", "Count = 1"),
-        //    }
-        //];
+        yield return
+        [
+            new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
+            new KeyValuePair<string, string>[]
+            {
+                new ("[1]", "Count = 2"),
+                new ("[2]", "Count = 1"),
+            }
+        ];
+        yield return
+        [
+            new ReadOnlyFrugalValueListDictionary<int, string>(new FrugalValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
+            new KeyValuePair<string, string>[]
+            {
+                new ("[1]", "Count = 2"),
+                new ("[2]", "Count = 1"),
+            }
+        ];
     }
 
     public static IEnumerable<object[]> TestDebuggerAttributes_FrugalListsInput()

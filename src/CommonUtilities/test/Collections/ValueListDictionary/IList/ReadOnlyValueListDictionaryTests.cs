@@ -3,7 +3,7 @@ using System;
 
 // ReSharper disable InconsistentNaming
 
-namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
+namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
 
 public class ReadOnlyValueListDictionaryTest_string_string : ReadOnlyValueListDictionaryTestBase<string, string>
 {

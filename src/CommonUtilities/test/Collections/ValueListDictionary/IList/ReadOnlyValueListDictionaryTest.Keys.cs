@@ -2,11 +2,10 @@
 using AnakinRaW.CommonUtilities.Collections;
 using Xunit;
 
-namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
+namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
 
 // ReSharper disable once InconsistentNaming
-
-public class ReadOnlyValueListDictionary_Values : ValueListDictionary_Values_TestSuite
+public class ReadOnlyValueListDictionary_Keys : ValueListDictionary_Keys_TestSuite
 {
     protected override IReadOnlyValueListDictionary<string, string> ValueListDictionaryFactory()
     {
@@ -19,9 +18,8 @@ public class ReadOnlyValueListDictionary_Values : ValueListDictionary_Values_Tes
     }
 
     [Fact]
-    public void ValueListDictionary_ValueCollection_Constructor_NullDictionary()
+    public void ReadOnlyValueListDictionary_KeyCollection_Constructor_NullDictionary()
     {
-        Assert.Throws<ArgumentNullException>(() => new ReadOnlyValueListDictionary<string, string>.ValueCollection(null!));
+        Assert.Throws<ArgumentNullException>(() => new ReadOnlyValueListDictionary<string, string>.KeyCollection(null!));
     }
 }
-
