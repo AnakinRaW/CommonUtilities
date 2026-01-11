@@ -10,26 +10,6 @@ using System.Runtime.InteropServices;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
-internal sealed class EmptyEnumerator<T> : IEnumerator<T>
-{
-    public static readonly EmptyEnumerator<T> Instance = new();
-
-    public T Current => throw new InvalidOperationException();
-
-    object? IEnumerator.Current => Current;
-
-    private EmptyEnumerator() { }
-
-    public bool MoveNext()
-    {
-        return false;
-    }
-
-    public void Reset() { }
-
-    public void Dispose() { }
-}
-
 /// <summary>
 /// Provides a base class for a generic collection that maps keys to lists of values.
 /// </summary>
