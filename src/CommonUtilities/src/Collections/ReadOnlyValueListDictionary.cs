@@ -65,7 +65,7 @@ public class ReadOnlyFrugalValueListDictionary<TKey, TValue>
 /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
-[DebuggerDisplay("Count = {Count}")]
+[DebuggerDisplay("ValueCount = {ValueCount}")]
 public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue> 
     : IReadOnlyValueListDictionary<TKey, TValue>
     where TKey : notnull
@@ -90,7 +90,7 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue>
     ICollection<TKey> IReadOnlyValueListDictionary<TKey, TValue>.Keys => Keys;
 
     /// <inheritdoc />
-    public int Count => Dictionary.Count;
+    public int ValueCount => Dictionary.ValueCount;
 
     /// <inheritdoc />
     public int KeyCount => Dictionary.KeyCount;
@@ -138,7 +138,7 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue>
     /// Represents a read-only collection of the keys of a <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> object.
     /// </summary>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerDisplay("ValueCount = {Count}")]
     public sealed class KeyCollection : ICollection<TKey>, IReadOnlyCollection<TKey>
     {
         private readonly ICollection<TKey> _collection;
@@ -175,7 +175,7 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue>
     /// Represents a read-only collection of the values of a <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> object.
     /// </summary>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerDisplay("ValueCount = {Count}")]
     public sealed class ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>
     {
         private readonly ICollection<TValue> _collection;

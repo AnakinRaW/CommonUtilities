@@ -51,10 +51,6 @@ public interface IValueListDictionary<TKey, TValue> : IReadOnlyValueListDictiona
     /// <summary>
     /// Removes all keys and values from the <see cref="IValueListDictionary{TKey,TValue}"/>.
     /// </summary>
-    /// <remarks>
-    /// <see cref="IReadOnlyValueListDictionary{TKey, TValue}.Count"/> and 
-    /// <see cref="IReadOnlyValueListDictionary{TKey, TValue}.KeyCount"/> are set to zero.
-    /// </remarks>
     void Clear();
 
     ///// <summary>

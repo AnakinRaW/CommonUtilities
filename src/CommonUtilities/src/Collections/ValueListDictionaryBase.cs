@@ -20,7 +20,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// This class serves as an abstract base for collections that associate keys with multiple values stored in lists.
 /// It ensures that keys are unique and maintains the order of value insertion within each list.
 /// </remarks>
-[DebuggerDisplay("Count = {Count}, KeyCount = {KeyCount}")]
+[DebuggerDisplay("ValueCount = {ValueCount}, KeyCount = {KeyCount}")]
 public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListDictionary<TKey, TValue>
     where TKey : notnull
     where TList : IList<TValue>
@@ -36,7 +36,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     public IReadOnlyList<TValue> this[TKey key] => GetValues(key);
 
     /// <inheritdoc />
-    public int Count { get; private set; }
+    public int ValueCount { get; private set; }
 
     /// <inheritdoc />
     public int KeyCount => KeyOrderStore.Count;
@@ -57,7 +57,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     /// then all values for the second key, and so on.
     /// </para>
     /// <para>
-    /// The collection count equals <see cref="Count"/>, not <see cref="KeyCount"/>.
+    /// The collection count equals <see cref="ValueCount"/>, not <see cref="KeyCount"/>.
     /// </para>
     /// <para>
     /// The returned <see cref="ValueCollection"/> is not a static copy; instead, it 
@@ -216,7 +216,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         if (key == null)
             throw new ArgumentNullException(nameof(key));
 
-        Count++;
+        ValueCount++;
 
 #if NET6_0_OR_GREATER
         ref var valueList = ref CollectionsMarshal.GetValueRefOrAddDefault(ValueStore, key, out var exists);
@@ -262,7 +262,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             throw new ArgumentNullException(nameof(key));
         if (ValueStore.TryGetValue(key, out var list))
         {
-            Count -= list.Count;
+            ValueCount -= list.Count;
             ValueStore.Remove(key);
             KeyOrderStore.Remove(key);
             _version++;
@@ -285,7 +285,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         if (!list.Remove(value))
             return false;
 
-        Count--;
+        ValueCount--;
         OnAfterValueListModified(key, list);
 
         if (list.Count == 0)
@@ -303,7 +303,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         if (!list.Remove(value))
             return false;
 
-        Count--;
+        ValueCount--;
         OnAfterValueListModified(key, list);
 
         if (list.Count == 0)
@@ -327,7 +327,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         {
             KeyOrderStore.Clear();
             ValueStore.Clear();
-            Count = 0;
+            ValueCount = 0;
             _version++;
         }
     }
@@ -349,7 +349,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     public Enumerator GetEnumerator() => new(this);
 
     IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>.
-        GetEnumerator() => Count == 0
+        GetEnumerator() => ValueCount == 0
             ? EmptyEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>.Instance
             : GetEnumerator();
 
@@ -437,7 +437,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     /// </para>
     /// </remarks>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerDisplay("ValueCount = {Count}")]
     public sealed class KeyCollection : ICollection<TKey>, IReadOnlyCollection<TKey>
     {
         private readonly ValueListDictionaryBase<TKey, TValue, TList> _dictionary;
@@ -530,7 +530,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     /// </para>
     /// </remarks>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerDisplay("ValueCount = {Count}")]
     public sealed class ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>
     {
         private readonly ValueListDictionaryBase<TKey, TValue, TList> _dictionary;
@@ -541,7 +541,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         }
 
         /// <inheritdoc cref="ICollection{T}.Count" />
-        public int Count => _dictionary.Count;
+        public int Count => _dictionary.ValueCount;
 
         /// <summary>
         /// Gets a value indicating whether the <see cref="ValueCollection"/> is read-only.

@@ -50,7 +50,7 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         var readOnlyDictionary = ReadOnlyValueListDictionaryFactory(collection);
 
         Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
+        Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
 
         VerifyReadOnlyValueListDictionary(readOnlyDictionary, collection);
         VerifyReadOnlyValueListDictionary(ReadOnlyValueListDictionaryFactory(readOnlyDictionary), collection);
@@ -65,19 +65,19 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         var readOnlyDictionary = ReadOnlyValueListDictionaryFactory(collection);
 
         Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
+        Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
 
         collection.Add(GetNewKey(collection), CreateTValue(4231));
 
         Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
-        Assert.Equal(collection.Count, readOnlyDictionary.Count);
+        Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
     }
 
     private static void VerifyReadOnlyValueListDictionary(
         ReadOnlyValueListDictionaryBase<TKey, TValue> readOnlyDictionary,
         IValueListDictionary<TKey, TValue> expectedDict)
     {
-        Assert.Equal(expectedDict.Count, readOnlyDictionary.Count);
+        Assert.Equal(expectedDict.ValueCount, readOnlyDictionary.ValueCount);
         foreach (var key in expectedDict.Keys)
         {
             var expectedValue = expectedDict[key];

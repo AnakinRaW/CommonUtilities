@@ -23,7 +23,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// </para>
 /// </remarks>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
-[DebuggerDisplay("Count = {Count}")]
+[DebuggerDisplay("ValueCount = {ValueCount}")]
 public class ValueListDictionary<TKey, TValue> 
     : ValueListDictionaryBase<TKey, TValue, IList<TValue>>  
     where TKey : notnull

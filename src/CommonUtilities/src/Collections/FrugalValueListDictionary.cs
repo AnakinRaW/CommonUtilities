@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace AnakinRaW.CommonUtilities.Collections;
 
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
-[DebuggerDisplay("Count = {Count}")]
+[DebuggerDisplay("ValueCount = {ValueCount}")]
 public class FrugalValueListDictionary<TKey, TValue> 
     : ValueListDictionaryBase<TKey, TValue, FrugalList<TValue>>, IFrugalValueListDictionary<TKey, TValue>
     where TKey : notnull
@@ -57,14 +57,14 @@ public class FrugalValueListDictionary<TKey, TValue>
 
     IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> IReadOnlyFrugalValueListDictionary<TKey, TValue>.GetEnumerator()
     {
-        if (Count == 0)
+        if (ValueCount == 0)
             return EmptyEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>.Instance;
         return GetEnumerator();
     }
 
     IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>.GetEnumerator()
     {
-        if (Count == 0)
+        if (ValueCount == 0)
             return EmptyEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>.Instance;
         return new Enumerator(this, Enumerator.AsReadOnly);
     }

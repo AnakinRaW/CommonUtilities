@@ -68,7 +68,7 @@ public abstract class ReadOnlyFrugalValueListDictionaryTestBase<TKey, TValue>
     public static void Empty_Idempotent()
     {
         Assert.NotNull(ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty);
-        Assert.Equal(0, ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty.Count);
+        Assert.Equal(0, ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty.ValueCount);
         Assert.Same(ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty, ReadOnlyFrugalValueListDictionary<TKey, TValue>.Empty);
     }
 

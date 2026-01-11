@@ -253,7 +253,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     #endregion
 
-    #region Count
+    #region ValueCount
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
@@ -261,7 +261,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         var expectedCount = dictionary.Sum(pair => pair.Value.Count);
-        Assert.Equal(expectedCount, dictionary.Count);
+        Assert.Equal(expectedCount, dictionary.ValueCount);
     }
 
     #endregion

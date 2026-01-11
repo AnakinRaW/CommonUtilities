@@ -71,7 +71,7 @@ public abstract class ValueListDictionary_Keys_Values_CollectionTestSuite : ICol
     {
         var mutable = MutableValueListDictionaryFactory();
         var seed = 13453;
-        while (mutable.Count < count)
+        while (mutable.ValueCount < count)
             mutable.Add(CreateT(seed++), CreateT(seed++));
         var dictionary = ValueListDictionaryFactory(mutable);
         if (Selector is CollectionSelector.Keys)

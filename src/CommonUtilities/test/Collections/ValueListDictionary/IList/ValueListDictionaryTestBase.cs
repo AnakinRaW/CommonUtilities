@@ -19,7 +19,7 @@ public abstract class ValueListDictionaryTestBase<TKey, TValue>
     public void Ctor_InitializesCorrectly()
     {
         var dict = new ValueListDictionary<TKey, TValue>();
-        Assert.Equal(0, dict.Count);
+        Assert.Equal(0, dict.ValueCount);
         Assert.Equal(0, dict.KeyCount);
     }
 

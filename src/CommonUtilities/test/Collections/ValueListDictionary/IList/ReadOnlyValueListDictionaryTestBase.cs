@@ -26,7 +26,7 @@ public abstract class ReadOnlyValueListDictionaryTestBase<TKey, TValue>
     public static void Empty_Idempotent()
     {
         Assert.NotNull(ReadOnlyValueListDictionary<TKey, TValue>.Empty);
-        Assert.Equal(0, ReadOnlyValueListDictionary<TKey, TValue>.Empty.Count);
+        Assert.Equal(0, ReadOnlyValueListDictionary<TKey, TValue>.Empty.ValueCount);
         Assert.Same(ReadOnlyValueListDictionary<TKey, TValue>.Empty, ReadOnlyValueListDictionary<TKey, TValue>.Empty);
     }
 }

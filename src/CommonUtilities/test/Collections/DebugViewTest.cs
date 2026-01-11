@@ -26,8 +26,8 @@ public class DebugViewTests
             new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}},
                 new KeyValuePair<string, string>[]
                 {
-                    new ("[1]", "Count = 2"),
-                    new ("[2]", "Count = 1"),
+                    new ("[1]", "ValueCount = 2"),
+                    new ("[2]", "ValueCount = 1"),
                 }
         ];
         yield return
@@ -35,8 +35,8 @@ public class DebugViewTests
             new FrugalValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}},
             new KeyValuePair<string, string>[]
             {
-                new ("[1]", "Count = 2"),
-                new ("[2]", "Count = 1"),
+                new ("[1]", "ValueCount = 2"),
+                new ("[2]", "ValueCount = 1"),
             }
         ];
         yield return
@@ -44,8 +44,8 @@ public class DebugViewTests
             new ReadOnlyValueListDictionary<int, string>(new ValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
             new KeyValuePair<string, string>[]
             {
-                new ("[1]", "Count = 2"),
-                new ("[2]", "Count = 1"),
+                new ("[1]", "ValueCount = 2"),
+                new ("[2]", "ValueCount = 1"),
             }
         ];
         yield return
@@ -53,8 +53,8 @@ public class DebugViewTests
             new ReadOnlyFrugalValueListDictionary<int, string>(new FrugalValueListDictionary<int, string>{{1, "One"}, {2, "Two"}, {1, " Three"}}),
             new KeyValuePair<string, string>[]
             {
-                new ("[1]", "Count = 2"),
-                new ("[2]", "Count = 1"),
+                new ("[1]", "ValueCount = 2"),
+                new ("[2]", "ValueCount = 1"),
             }
         ];
     }

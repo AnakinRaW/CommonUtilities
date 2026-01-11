@@ -41,7 +41,7 @@ public abstract class FrugalValueListDictionaryTestBase<TKey, TValue>
     public void Ctor_InitializesCorrectly()
     {
         var dict = new FrugalValueListDictionary<TKey, TValue>();
-        Assert.Equal(0, dict.Count);
+        Assert.Equal(0, dict.ValueCount);
         Assert.Equal(0, dict.KeyCount);
     }
 
