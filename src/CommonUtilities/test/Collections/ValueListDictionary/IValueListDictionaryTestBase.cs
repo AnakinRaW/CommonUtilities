@@ -12,6 +12,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 {
     protected override bool IsReadOnly => false;
 
+    // ReSharper disable once InconsistentNaming
     protected bool Keys_Values_Enumeration_ThrowsInvalidOperation_WhenParentModified => true;
 
     protected abstract IValueListDictionary<TKey, TValue> IValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null);
@@ -32,7 +33,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Keys_ModifyingTheDictionaryUpdatesTheCollection(int count)
+    public void IValueListDictionary_Keys_ModifyingTheDictionaryUpdatesTheCollection(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var keys = dictionary.Keys;
@@ -45,7 +46,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Keys_Enumeration_ParentDictionaryModifiedInvalidates(int count)
+    public void IValueListDictionary_Keys_Enumeration_ParentDictionaryModifiedInvalidates(int count)
     {
         if (!IsReadOnly)
         {
@@ -75,7 +76,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Values_Enumeration_ParentDictionaryModifiedInvalidates(int count)
+    public void IValueListDictionary_Values_Enumeration_ParentDictionaryModifiedInvalidates(int count)
     {
         if (!IsReadOnly)
         {
@@ -102,7 +103,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Values_IncludeDuplicatesMultipleTimes(int count)
+    public void IValueListDictionary_Values_IncludeDuplicatesMultipleTimes(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var oldValueCount = dictionary.ValueCount;
@@ -120,7 +121,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Values_ModifyingTheDictionaryUpdatesTheCollection(int count)
+    public void IValueListDictionary_Values_ModifyingTheDictionaryUpdatesTheCollection(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var values = dictionary.Values;
@@ -137,7 +138,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_DefaultKey_DefaultValue(int count)
+    public void IValueListDictionary_Add_DefaultKey_DefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.ValueCount;
@@ -159,7 +160,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_DefaultKey_NonDefaultValue(int count)
+    public void IValueListDictionary_Add_DefaultKey_NonDefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.ValueCount;
@@ -181,7 +182,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_NonDefaultKey_DefaultValue(int count)
+    public void IValueListDictionary_Add_NonDefaultKey_DefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.ValueCount;
@@ -196,7 +197,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_NonDefaultKey_NonDefaultValue(int count)
+    public void IValueListDictionary_Add_NonDefaultKey_NonDefaultValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var valueCoutBeforeAdd = dictionary.ValueCount;
@@ -211,7 +212,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_DuplicateValue(int count)
+    public void IValueListDictionary_Add_DuplicateValue(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var seed = 321;
@@ -225,7 +226,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_DuplicateKey_AddsToList(int count)
+    public void IValueListDictionary_Add_DuplicateKey_AddsToList(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var duplicateKey = GetNewKey(dictionary);
@@ -242,7 +243,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Add_DistinctValuesWithHashCollisions(int count)
+    public void IValueListDictionary_Add_DistinctValuesWithHashCollisions(int count)
     {
         var dictionary = IValueListDictionaryFactory(new ConstantHashCodeEqualityComparer<TKey>(EqualityComparer<TKey>.Default));
         AddToCollection(dictionary, count);
@@ -255,7 +256,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Remove_EveryKey(int count)
+    public void IValueListDictionary_Remove_EveryKey(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         Assert.All(dictionary.Keys.ToList(), key =>
@@ -267,7 +268,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Remove_ValidKeyNotContainedInDictionary(int count)
+    public void IValueListDictionary_Remove_ValidKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -277,7 +278,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Remove_ValidKeyContainedInDictionary(int count)
+    public void IValueList_Dictionary_Remove_ValidKeyContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -288,7 +289,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Remove_DefaultKeyNotContainedInDictionary(int count)
+    public void IValueListDictionary_Remove_DefaultKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         if (DefaultValueAllowed)
@@ -306,7 +307,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Remove_DefaultKeyContainedInDictionary(int count)
+    public void IValueListDictionary_Remove_DefaultKeyContainedInDictionary(int count)
     {
         if (DefaultValueAllowed)
         {
@@ -323,7 +324,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_Everything(int count)
+    public void IValueListDictionary_RemoveKeyValue_Everything(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         Assert.All(dictionary.Keys.ToList(), key =>
@@ -336,7 +337,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_ValidKeyNotContainedInDictionary(int count)
+    public void IValueList_Dictionary_RemoveKeyValue_ValidKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -346,7 +347,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_ValidKeyContainedInDictionary(int count)
+    public void IValueListDictionary_RemoveKeyValue_ValidKeyContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -358,7 +359,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_ValidKeyContainedInDictionary_ValueNotContained(int count)
+    public void IValueListDictionary_RemoveKeyValue_ValidKeyContainedInDictionary_ValueNotContained(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -376,7 +377,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_ValidKeyContainedInDictionary_DuplicateValues(int count)
+    public void IValueListDictionary_RemoveKeyValue_ValidKeyContainedInDictionary_DuplicateValues(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
@@ -393,7 +394,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_DefaultKeyNotContainedInDictionary(int count)
+    public void IValueListDictionary_RemoveKeyValue_DefaultKeyNotContainedInDictionary(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         if (DefaultValueAllowed)
@@ -411,7 +412,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void RemoveKeyValue_DefaultKeyContainedInDictionary(int count)
+    public void IValueListDictionary_RemoveKeyValue_DefaultKeyContainedInDictionary(int count)
     {
         if (DefaultValueAllowed)
         {
@@ -429,7 +430,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void ICollection_Generic_Clear(int count)
+    public void IValueListDictionary_Clear(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         dictionary.Clear();
@@ -441,7 +442,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void ICollection_Generic_Clear_Repeatedly(int count)
+    public void IValueListDictionary_Clear_Repeatedly(int count)
     {
         var dictionary = IValueListDictionaryFactory(count);
         dictionary.Clear();
@@ -451,6 +452,259 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         Assert.Equal(0, dictionary.KeyCount);
         Assert.Empty(dictionary.Keys);
         Assert.Empty(dictionary.Values);
+    }
+
+    #endregion
+
+    #region AddRange(TKey, IEnumerable<TValue>)
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_NullKey_ThrowsArgumentNullException(int count)
+    {
+        if (!DefaultValueAllowed)
+        {
+            var dictionary = IValueListDictionaryFactory(count);
+            var values = new[] { CreateTValue(1), CreateTValue(2) };
+            Assert.Throws<ArgumentNullException>(() => dictionary.AddRange(default!, values));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_NullValues_ThrowsArgumentNullException(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        Assert.Throws<ArgumentNullException>(() => dictionary.AddRange(key, null!));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_EmptyEnumerable_DoesNotModifyDictionary(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var valueCountBefore = dictionary.ValueCount;
+        var keyCountBefore = dictionary.KeyCount;
+
+        dictionary.AddRange(key, []);
+
+        Assert.Equal(valueCountBefore, dictionary.ValueCount);
+        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.False(dictionary.ContainsKey(key));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_NewKey_MultipleValues(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var values = new[] { CreateTValue(1), CreateTValue(2), CreateTValue(3) };
+        var valueCountBefore = dictionary.ValueCount;
+
+        dictionary.AddRange(key, values);
+
+        Assert.Equal(valueCountBefore + 3, dictionary.ValueCount);
+        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(values, dictionary.GetValues(key));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_ExistingKey_MultipleValues(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var initialValue = CreateTValue(100);
+        dictionary.Add(key, initialValue);
+
+        var valueCountBefore = dictionary.ValueCount;
+        var keyCountBefore = dictionary.KeyCount;
+        var values = new[] { CreateTValue(1), CreateTValue(2), CreateTValue(3) };
+
+        dictionary.AddRange(key, values);
+
+        Assert.Equal(valueCountBefore + 3, dictionary.ValueCount);
+        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        var expectedValues = new[] { initialValue }.Concat(values).ToArray();
+        Assert.Equal(expectedValues, dictionary.GetValues(key));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_DefaultKey_MultipleValues(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = default(TKey)!;
+        var values = new[] { CreateTValue(1), CreateTValue(2) };
+
+        if (DefaultValueAllowed)
+        {
+            var valueCountBefore = dictionary.ValueCount;
+            dictionary.AddRange(key, values);
+            Assert.Equal(valueCountBefore + 2, dictionary.ValueCount);
+            Assert.Equal(values, dictionary.GetValues(key));
+        }
+        else
+        {
+            Assert.Throws<ArgumentNullException>(() => dictionary.AddRange(key, values));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_AddRange_SingleValue(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var values = new[] { CreateTValue(1) };
+        var valueCountBefore = dictionary.ValueCount;
+
+        dictionary.AddRange(key, values);
+
+        Assert.Equal(valueCountBefore + 1, dictionary.ValueCount);
+        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(values, dictionary.GetValues(key));
+    }
+
+    #endregion
+
+    #region RemoveAll(TKey, Predicate<TValue>)
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_NullKey_ThrowsArgumentNullException(int count)
+    {
+        if (!DefaultValueAllowed)
+        {
+            var dictionary = IValueListDictionaryFactory(count);
+            Assert.Throws<ArgumentNullException>(() => dictionary.RemoveAll(default!, _ => true));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_NullPredicate_ThrowsArgumentNullException(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        Assert.Throws<ArgumentNullException>(() => dictionary.RemoveAll(key, null!));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_KeyNotInDictionary_ReturnsZero(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var removed = dictionary.RemoveAll(key, _ => true);
+        Assert.Equal(0, removed);
+        Assert.Equal(count, dictionary.KeyCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_RemoveSomeValues(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        dictionary.Add(key, CreateTValue(1));
+        dictionary.Add(key, CreateTValue(2));
+        dictionary.Add(key, CreateTValue(3));
+        dictionary.Add(key, CreateTValue(4));
+
+        var valueCountBefore = dictionary.ValueCount;
+        var keyCountBefore = dictionary.KeyCount;
+
+        var removed = dictionary.RemoveAll(key, v => v!.Equals(CreateTValue(2)) || v.Equals(CreateTValue(4)));
+
+        Assert.Equal(2, removed);
+        Assert.Equal(valueCountBefore - 2, dictionary.ValueCount);
+        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(2, dictionary.GetValues(key).Count);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_RemoveAllValues_RemovesKey(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        dictionary.Add(key, CreateTValue(1));
+        dictionary.Add(key, CreateTValue(2));
+        dictionary.Add(key, CreateTValue(3));
+
+        var valueCountBefore = dictionary.ValueCount;
+        var keyCountBefore = dictionary.KeyCount;
+
+        var removed = dictionary.RemoveAll(key, _ => true);
+
+        Assert.Equal(3, removed);
+        Assert.Equal(valueCountBefore - 3, dictionary.ValueCount);
+        Assert.Equal(keyCountBefore - 1, dictionary.KeyCount);
+        Assert.False(dictionary.ContainsKey(key));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_PredicateMatchesNothing_ReturnsZero(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        dictionary.Add(key, CreateTValue(1));
+        dictionary.Add(key, CreateTValue(2));
+
+        var valueCountBefore = dictionary.ValueCount;
+        var keyCountBefore = dictionary.KeyCount;
+
+        var removed = dictionary.RemoveAll(key, _ => false);
+
+        Assert.Equal(0, removed);
+        Assert.Equal(valueCountBefore, dictionary.ValueCount);
+        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(2, dictionary.GetValues(key).Count);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_DefaultKey(int count)
+    {
+        if (DefaultValueAllowed)
+        {
+            var dictionary = IValueListDictionaryFactory(count);
+            var key = default(TKey)!;
+            dictionary.Add(key, CreateTValue(1));
+            dictionary.Add(key, CreateTValue(2));
+
+            var removed = dictionary.RemoveAll(key, v => v!.Equals(CreateTValue(1)));
+
+            Assert.Equal(1, removed);
+            Assert.Single(dictionary.GetValues(key));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void IValueListDictionary_RemoveAll_RemovesOnlyMatchingValues(int count)
+    {
+        var dictionary = IValueListDictionaryFactory(count);
+        var key = GetNewKey(dictionary);
+        var value1 = CreateTValue(1);
+        var value2 = CreateTValue(2);
+        var value3 = CreateTValue(3);
+
+        dictionary.Add(key, value1);
+        dictionary.Add(key, value2);
+        dictionary.Add(key, value3);
+        dictionary.Add(key, value1);
+
+        var removed = dictionary.RemoveAll(key, v => v!.Equals(value1));
+
+        Assert.Equal(2, removed);
+        Assert.Equal(2, dictionary.GetValues(key).Count);
+        Assert.All(dictionary.GetValues(key), v => Assert.NotEqual(value1, v));
     }
 
     #endregion

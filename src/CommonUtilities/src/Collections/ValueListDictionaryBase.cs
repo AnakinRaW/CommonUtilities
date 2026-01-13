@@ -332,6 +332,135 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         }
     }
 
+    public void AddRange(TKey key, IEnumerable<TValue> values)
+    {
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+        if (values == null)
+            throw new ArgumentNullException(nameof(values));
+
+        using var enumerator = values.GetEnumerator();
+        if (!enumerator.MoveNext())
+            return; // Empty collection, nothing to add
+
+#if NET6_0_OR_GREATER
+    ref var valueList = ref CollectionsMarshal.GetValueRefOrAddDefault(ValueStore, key, out var exists);
+    if (!exists)
+    {
+        valueList = CreateValueStoreInternal();
+        KeyOrderStore.Add(key);
+        _version++;
+    }
+    Debug.Assert(valueList is not null);
+    
+    var countBefore = valueList.Count;
+    
+    valueList.Add(enumerator.Current);
+    while (enumerator.MoveNext())
+    {
+        valueList.Add(enumerator.Current);
+    }
+    
+    var added = valueList.Count - countBefore;
+    ValueCount += added;
+    OnAfterValueListModified(key, valueList);
+#else
+        var exists = ValueStore.TryGetValue(key, out var valueList);
+        if (!exists)
+        {
+            valueList = CreateValueStoreInternal();
+            KeyOrderStore.Add(key);
+            _version++;
+        }
+
+        var countBefore = valueList!.Count;
+
+        valueList.Add(enumerator.Current);
+        while (enumerator.MoveNext())
+        {
+            valueList.Add(enumerator.Current);
+        }
+
+        var added = valueList.Count - countBefore;
+        ValueCount += added;
+        OnAfterValueListModified(key, valueList);
+
+        if (typeof(TList).IsValueType || !exists)
+            ValueStore[key] = valueList;
+#endif
+    }
+
+    public int RemoveAll(TKey key, Predicate<TValue> match)
+    {
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+        if (match == null)
+            throw new ArgumentNullException(nameof(match));
+
+#if NET6_0_OR_GREATER
+    ref var list = ref CollectionsMarshal.GetValueRefOrNullRef(ValueStore, key);
+    if (Unsafe.IsNullRef(ref list))
+        return 0;
+
+    var removed = 0;
+    for (var i = list.Count - 1; i >= 0; i--)
+    {
+        if (match(list[i]))
+        {
+            list.RemoveAt(i);
+            removed++;
+        }
+    }
+
+    if (removed > 0)
+    {
+        ValueCount -= removed;
+        OnAfterValueListModified(key, list);
+
+        if (list.Count == 0)
+        {
+            ValueStore.Remove(key);
+            KeyOrderStore.Remove(key);
+            _version++;
+        }
+    }
+
+    return removed;
+#else
+        if (!ValueStore.TryGetValue(key, out var list))
+            return 0;
+
+        var removed = 0;
+        for (var i = list.Count - 1; i >= 0; i--)
+        {
+            if (match(list[i]))
+            {
+                list.RemoveAt(i);
+                removed++;
+            }
+        }
+
+        if (removed > 0)
+        {
+            ValueCount -= removed;
+            OnAfterValueListModified(key, list);
+
+            if (list.Count == 0)
+            {
+                ValueStore.Remove(key);
+                KeyOrderStore.Remove(key);
+                _version++;
+            }
+            else if (typeof(TList).IsValueType)
+            {
+                ValueStore[key] = list;
+            }
+        }
+
+        return removed;
+#endif
+    }
+
     /// <summary>
     /// Returns an enumerator that iterates through the <see cref="ValueListDictionaryBase{TKey, TValue, TList}"/>.
     /// </summary>
