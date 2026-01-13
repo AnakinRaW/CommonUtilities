@@ -45,7 +45,7 @@ public abstract class StepRunnerPipeline(IServiceProvider serviceProvider) : Ste
     /// is fully completed before the execution phase begins.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if the step runner is not properly initialized before adding steps.
+    /// The step runner is not properly initialized before adding steps.
     /// </exception>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     protected sealed override async Task PrepareCoreAsync(CancellationToken token)

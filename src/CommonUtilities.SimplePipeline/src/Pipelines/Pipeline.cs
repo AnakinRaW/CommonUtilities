@@ -92,9 +92,9 @@ public abstract class Pipeline : DisposableObject, IPipeline
     /// </summary>
     /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the preparation to complete.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous preparation operation.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the pipeline already is prepared or preparation has been started.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown if the pipeline has been disposed.</exception>
-    /// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
+    /// <exception cref="InvalidOperationException">The pipeline already is prepared or preparation has been started.</exception>
+    /// <exception cref="ObjectDisposedException">The pipeline has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">The operation is canceled.</exception>
     public Task PrepareAsync(CancellationToken token = default)
     {
         ThrowIfDisposed();

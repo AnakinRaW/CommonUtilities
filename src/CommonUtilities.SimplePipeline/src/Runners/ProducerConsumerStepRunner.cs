@@ -79,7 +79,7 @@ public class ProducerConsumerStepRunner(int workerCount, IServiceProvider servic
     /// This method waits for a step to become available in the queue. If the queue is empty and no more steps will be added,
     /// it returns <see langword="null"/>. The operation can be cancelled by the provided <paramref name="cancellationToken"/>.
     /// </remarks>
-    /// <exception cref="OperationCanceledException">Thrown if the operation is cancelled via the <paramref name="cancellationToken"/>.</exception>
+    /// <exception cref="OperationCanceledException">The operation is cancelled via the <paramref name="cancellationToken"/>.</exception>
     protected override async ValueTask<IStep?> TakeNextStepAsync(CancellationToken cancellationToken)
     {
         while (await _stepChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))

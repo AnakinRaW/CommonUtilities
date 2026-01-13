@@ -132,9 +132,7 @@ public static class RandomExtensions
         /// <returns>
         /// A randomly selected value from the enumeration type <typeparamref name="T"/>.
         /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown if <typeparamref name="T"/> is not an enumeration type.
-        /// </exception>
+        /// <exception cref="ArgumentException"><typeparamref name="T"/> is not an enumeration type.</exception>
         public static T Enum<T>() where T : struct, Enum
         {
             var values =
@@ -154,7 +152,7 @@ public static class RandomExtensions
         /// <typeparam name="T">The type of the elements in the sequence.</typeparam>
         /// <param name="items">The sequence of items to select from.</param>
         /// <returns>A randomly selected item from the sequence.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the sequence is empty.</exception>
+        /// <exception cref="InvalidOperationException">The sequence is empty.</exception>
         public static T Item<T>(IEnumerable<T> items)
         {
             T current = default!;

@@ -38,7 +38,7 @@ public sealed class RunPipelineStep : PipelineStep
     /// </remarks>
     /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    /// <exception cref="Exception">Thrown if the pipeline execution encounters an error.</exception>
+    /// <exception cref="Exception">The pipeline execution encounters an error.</exception>
     protected override async Task RunCoreAsync(CancellationToken token)
     {
         Logger?.LogTrace("Running {Pipeline}...", _pipeline);
