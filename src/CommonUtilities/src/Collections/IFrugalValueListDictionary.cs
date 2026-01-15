@@ -19,7 +19,7 @@
 /// </para>
 /// </remarks>
 /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
-/// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
+/// <typeparam name="TValue">The type of the values in the lists associated with the keys.</typeparam>
 /// <seealso cref="IReadOnlyFrugalValueListDictionary{TKey, TValue}"/>
 /// <seealso cref="IValueListDictionary{TKey, TValue}"/>
 /// <seealso cref="ImmutableFrugalList{T}"/>

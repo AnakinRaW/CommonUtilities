@@ -78,7 +78,7 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
         Assert.Equal(list, ImmutableFrugalList.Create(listAsSet));
         Assert.Equal(list, ImmutableFrugalList.Create(listAsEnumerable));
 
-        var mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
+        const ModifyOperation mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
 
         foreach (var modifyEnumerable in GetModifyEnumerables(mods, CreateT))
         {

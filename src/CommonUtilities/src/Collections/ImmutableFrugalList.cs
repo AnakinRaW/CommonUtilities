@@ -190,8 +190,20 @@ public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 }
 
+/// <summary>
+/// Provides static methods for immutable frugal lists.
+/// </summary>
 public static class ImmutableFrugalList
 {
+    /// <summary>
+    /// Creates a new instance of <see cref="ImmutableFrugalList{T}"/> from the specified collection of items.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
+    /// <param name="items">The collection of items to initialize the list with.</param>
+    /// <returns>
+    /// An <see cref="ImmutableFrugalList{T}"/> containing the elements from the specified collection.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="items"/> is <see langword="null"/>.</exception>
     public static ImmutableFrugalList<T> Create<T>(IEnumerable<T> items)
     {
         if (items is null)

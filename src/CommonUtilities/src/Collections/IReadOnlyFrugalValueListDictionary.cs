@@ -19,7 +19,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// </para>
 /// </remarks>
 /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
-/// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
+/// <typeparam name="TValue">The type of the values in the lists associated with the keys.</typeparam>
 public interface IReadOnlyFrugalValueListDictionary<TKey, TValue> : 
     IReadOnlyValueListDictionary<TKey, TValue>
     where TKey : notnull

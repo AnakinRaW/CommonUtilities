@@ -9,23 +9,57 @@ using System.Runtime.InteropServices;
 
 namespace AnakinRaW.CommonUtilities.Collections;
 
+/// <summary>
+/// Represents a specialized dictionary that maps keys to lists of values, optimized for scenarios 
+/// where the number of values per key is expected to be one.
+/// </summary>
+/// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+/// <typeparam name="TValue">The type of the values in the lists associated with the keys.</typeparam>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
 [DebuggerDisplay("ValueCount = {ValueCount}")]
 public class FrugalValueListDictionary<TKey, TValue> 
     : ValueListDictionaryBase<TKey, TValue, FrugalList<TValue>>, IFrugalValueListDictionary<TKey, TValue>
     where TKey : notnull
 {
-    public FrugalValueListDictionary(IEqualityComparer<TKey>? comparer = null) : base(comparer)
+    /// <inheritdoc/>
+    public new ImmutableFrugalList<TValue> this[TKey key] => GetValues(key);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FrugalValueListDictionary{TKey, TValue}"/> class
+    /// that is empty and uses the specified <see cref="IEqualityComparer{T}"/>.
+    /// </summary>
+    public FrugalValueListDictionary()
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FrugalValueListDictionary{TKey, TValue}"/> class
+    /// that is empty and uses the specified <see cref="IEqualityComparer{T}"/>
+    /// </summary>
+    /// <param name="equalityComparer">
+    /// The <see cref="IEqualityComparer{T}"/> implementation to use when comparing keys,
+    /// or <see langword="null"/> to use the default <see cref="IEqualityComparer{T}"/> for the type of the key.
+    /// </param>
+    /// <remarks>
+    /// This constructor allows customization of how keys are compared in the dictionary. 
+    /// If no equality comparer is provided, the default comparer for the key type is used.
+    /// </remarks>
+    public FrugalValueListDictionary(IEqualityComparer<TKey>? equalityComparer) : base(equalityComparer)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of the value store specific to the implementation of the dictionary.
+    /// </summary>
+    /// <returns>
+    /// A new <see cref="FrugalList{TValue}"/> instance to be used as the value store for the dictionary.
+    /// </returns>
     protected override FrugalList<TValue> CreateValueStore()
     {
         return default;
     }
 
-    public new ImmutableFrugalList<TValue> this[TKey key] => GetValues(key);
-
+    /// <inheritdoc/>
     public new ImmutableFrugalList<TValue> GetValues(TKey key)
     {
         if (key == null)
@@ -35,6 +69,7 @@ public class FrugalValueListDictionary<TKey, TValue>
         throw new KeyNotFoundException($"The key '{key}' was not found.");
     }
 
+    /// <inheritdoc/>
     public bool TryGetValues(TKey key, out ImmutableFrugalList<TValue> values)
     {
         if (key == null)
@@ -48,13 +83,35 @@ public class FrugalValueListDictionary<TKey, TValue>
         return false;
     }
 
+    /// <summary>
+    /// Creates a snapshot of the specified <see cref="FrugalList{TValue}"/>.
+    /// </summary>
+    /// <param name="list">The <see cref="FrugalList{TValue}"/> to create a snapshot from.</param>
+    /// <returns>
+    /// An immutable, read-only list containing the elements of the specified <see cref="FrugalList{TValue}"/>.
+    /// </returns>
     protected override IReadOnlyList<TValue> CreateSnapshot(FrugalList<TValue> list)
     {
         return list.ToImmutableList();
     }
 
+    /// <summary>
+    /// Returns an enumerator that iterates through the <see cref="ValueListDictionaryBase{TKey, TValue, TList}"/>.
+    /// </summary>
+    /// <returns>An <see cref="Enumerator"/> for the <see cref="ValueListDictionaryBase{TKey, TValue, TList}"/>.</returns>
+    /// <remarks>
+    /// <para>
+    /// The enumerator returns each key exactly once, paired with a <see cref="ImmutableFrugalList{T}"/> 
+    /// containing all values associated with that key.
+    /// </para>
+    /// <para>
+    /// Enumerators can be used to read the data in the collection, but they cannot be used to modify 
+    /// the underlying collection.
+    /// </para>
+    /// </remarks>
     public new Enumerator GetEnumerator() => new(this, Enumerator.Frugal);
 
+    /// <inheritdoc/>
     IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>> IReadOnlyFrugalValueListDictionary<TKey, TValue>.GetEnumerator()
     {
         if (ValueCount == 0)
@@ -62,6 +119,7 @@ public class FrugalValueListDictionary<TKey, TValue>
         return GetEnumerator();
     }
 
+    /// <inheritdoc/>
     IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>> IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>>.GetEnumerator()
     {
         if (ValueCount == 0)
@@ -74,6 +132,23 @@ public class FrugalValueListDictionary<TKey, TValue>
         return ((IReadOnlyValueListDictionary<TKey, TValue>)this).GetEnumerator();
     }
     
+    /// <summary>
+    /// Enumerates the elements of a <see cref="FrugalValueListDictionary{TKey, TValue}"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The enumerator provides a way to iterate through the key-value pairs in the dictionary, where each key is associated
+    /// with an <see cref="ImmutableFrugalList{T}"/> containing all the values for that key.
+    /// </para>
+    /// <para>
+    /// The enumerator is a value type and does not allocate additional memory during enumeration. It is designed to be
+    /// efficient for scenarios where performance is critical.
+    /// </para>
+    /// <para>
+    /// Modifying the dictionary while enumerating through it will invalidate the enumerator, and any subsequent operation
+    /// on the enumerator will throw an <see cref="InvalidOperationException"/>.
+    /// </para>
+    /// </remarks>
     public new struct Enumerator : 
         IEnumerator<KeyValuePair<TKey, ImmutableFrugalList<TValue>>>,
         IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>
@@ -100,6 +175,7 @@ public class FrugalValueListDictionary<TKey, TValue>
             _version = dictionary.Version;
         }
 
+        /// <inheritdoc/>
         public KeyValuePair<TKey, ImmutableFrugalList<TValue>> Current => _currentEntry.AsFrugal();
 
         KeyValuePair<TKey, IReadOnlyList<TValue>> IEnumerator<KeyValuePair<TKey, IReadOnlyList<TValue>>>.Current
@@ -117,6 +193,7 @@ public class FrugalValueListDictionary<TKey, TValue>
             }
         }
 
+        /// <inheritdoc/>
         public bool MoveNext()
         {
             if (_version != _dictionary.Version)
@@ -141,6 +218,7 @@ public class FrugalValueListDictionary<TKey, TValue>
             return false;
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             if (_version != _dictionary.Version)
@@ -150,6 +228,7 @@ public class FrugalValueListDictionary<TKey, TValue>
             _currentEntry = default;
         }
 
+        /// <inheritdoc/>
         public void Dispose() { }
     }
 

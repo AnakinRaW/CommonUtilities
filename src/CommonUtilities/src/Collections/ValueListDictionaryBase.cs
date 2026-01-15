@@ -11,25 +11,38 @@ using System.Runtime.InteropServices;
 namespace AnakinRaW.CommonUtilities.Collections;
 
 /// <summary>
-/// Provides a base class for a generic collection that maps keys to lists of values.
+/// Provides a base class for a generic collection that maps keys to lists of values,
+/// while maintaining the order of key insertion.
 /// </summary>
-/// <typeparam name="TKey">The type of the keys in the dictionary. Keys must not be <see langword="null"/>.</typeparam>
+/// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of the values stored in the lists associated with each key.</typeparam>
 /// <typeparam name="TList">The type of the list used to store values for each key.</typeparam>
 /// <remarks>
 /// This class serves as an abstract base for collections that associate keys with multiple values stored in lists.
 /// It ensures that keys are unique and maintains the order of value insertion within each list.
 /// </remarks>
-[DebuggerDisplay("ValueCount = {ValueCount}, KeyCount = {KeyCount}")]
 public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListDictionary<TKey, TValue>
     where TKey : notnull
     where TList : IList<TValue>
 {
     private int _version;
 
+    /// <summary>
+    /// Gets the list of Keys present in the <see cref="ValueListDictionaryBase{TKey,TValue,TList}"/>
+    /// with their insertion order.
+    /// </summary>
     protected readonly List<TKey> KeyOrderStore = [];
+    
+    /// <summary>
+    /// Gets the dictionary that stores the mutable value lists associated lists mapped to their associated keys.
+    /// </summary>
     protected readonly Dictionary<TKey, TList> ValueStore;
 
+    /// <summary>
+    /// Gets the version of the dictionary that is used for recognizing dictionary modifications.
+    /// </summary>
+    // ReSharper disable once ConvertToAutoPropertyWhenPossible
+    // Do not convert to auto-property, so we still can benefit from direct field access when writing the value
     protected int Version => _version;
 
     /// <inheritdoc />
@@ -117,10 +130,31 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         ValueStore = new Dictionary<TKey, TList>(comparer ?? EqualityComparer<TKey>.Default);
     }
 
+    /// <summary>
+    /// Creates a new instance of the value store specific to the derived dictionary implementation.
+    /// </summary>
+    /// <returns>
+    /// A new instance of <typeparamref name="TList"/>, which represents the collection of values 
+    /// associated with a key in the dictionary.
+    /// </returns>
+    /// <remarks>
+    /// This method is abstract and must be implemented by derived classes to provide the specific 
+    /// type of value store used by the dictionary.
+    /// </remarks>
     protected abstract TList CreateValueStore();
 
+    /// <summary>
+    /// Creates a snapshot of the specified list, providing a read-only view of its current state.
+    /// </summary>
+    /// <param name="list">The list from which to create the snapshot.</param>
+    /// <returns>A read-only list containing the current elements of the specified list.</returns>
     protected abstract IReadOnlyList<TValue> CreateSnapshot(TList list);
 
+    /// <summary>
+    /// Invoked after a value list associated with a specific key has been modified.
+    /// </summary>
+    /// <param name="key">The key associated with the modified value list.</param>
+    /// <param name="list">The value list that has been modified.</param>
     protected virtual void OnAfterValueListModified(TKey key, TList list)
     {
     }
@@ -133,6 +167,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return ValueStore.ContainsKey(key);
     }
 
+    /// <inheritdoc />
     public IReadOnlyList<TValue> GetValues(TKey key)
     {
         if (key == null)
@@ -142,6 +177,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         throw new KeyNotFoundException($"The key '{key}' was not found.");
     }
 
+    /// <inheritdoc />
     public TValue GetLastValue(TKey key)
     {
         if (key == null) 
@@ -156,6 +192,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         throw new KeyNotFoundException($"The key '{key}' was not found.");
     }
 
+    /// <inheritdoc />
     public TValue GetFirstValue(TKey key)
     {
         if (key == null) 
@@ -165,6 +202,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         throw new KeyNotFoundException($"The key '{key}' was not found.");
     }
 
+    /// <inheritdoc />
     public bool TryGetFirstValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         if (key == null) 
@@ -179,6 +217,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return false;
     }
 
+    /// <inheritdoc />
     public bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         if (key == null)
@@ -197,6 +236,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return false;
     }
 
+    /// <inheritdoc />
     public bool TryGetValues(TKey key, out IReadOnlyList<TValue> values)
     {
         if (key == null)
@@ -211,6 +251,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return false;
     }
 
+    /// <inheritdoc />
     public bool Add(TKey key, TValue value)
     {
         if (key == null)
@@ -256,6 +297,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return CreateValueStore() ?? throw new InvalidOperationException("value store cannot be null");
     }
 
+    /// <inheritdoc />
     public bool Remove(TKey key)
     {
         if (key == null) 
@@ -272,6 +314,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         return false;
     }
 
+    /// <inheritdoc />
     public bool Remove(TKey key, TValue value)
     {
         if (key == null)
@@ -321,6 +364,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 #endif
     }
 
+    /// <inheritdoc />
     public void Clear()
     {
         if (KeyOrderStore.Count > 0)
@@ -332,6 +376,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         }
     }
 
+    /// <inheritdoc />
     public void AddRange(TKey key, IEnumerable<TValue> values)
     {
         if (key == null)
@@ -390,6 +435,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 #endif
     }
 
+    /// <inheritdoc />
     public int RemoveAll(TKey key, Predicate<TValue> match)
     {
         if (key == null)
@@ -506,6 +552,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             _current = default;
         }
 
+        /// <inheritdoc />
         public KeyValuePair<TKey, IReadOnlyList<TValue>> Current => _current;
 
         object IEnumerator.Current
@@ -518,14 +565,15 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             }
         }
 
+        /// <inheritdoc />
         public bool MoveNext()
         {
             if (_version != _dictionary._version)
                 throw new InvalidOperationException("Collection was modified; enumeration operation may not execute.");
 
             var keyOrder = _dictionary.KeyOrderStore;
-
-            while ((uint)_index < (uint)keyOrder.Count)
+            
+            if ((uint)_index < (uint)keyOrder.Count)
             {
                 var key = keyOrder[_index++];
                 var snapshot = _dictionary.CreateSnapshot(_dictionary.ValueStore[key]);
@@ -538,6 +586,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             return false;
         }
 
+        /// <inheritdoc />
         public void Reset()
         {
             if (_version != _dictionary._version)
@@ -547,6 +596,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
             _current = default;
         }
 
+        /// <inheritdoc />
         public void Dispose() { }
     }
 
