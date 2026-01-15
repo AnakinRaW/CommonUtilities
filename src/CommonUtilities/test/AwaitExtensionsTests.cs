@@ -58,15 +58,7 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task WaitForExitAsync_DoesNotCompleteTillKilled()
     {
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
-            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-        };
-        var p = System.Diagnostics.Process.Start(processStartInfo)!;
+        var p = System.Diagnostics.Process.Start(CreateBlockingProcessStartInfo())!;
         var expectedExitCode =
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? -1 : 128 + 9; // https://stackoverflow.com/a/1041309
         try
@@ -95,15 +87,7 @@ public class AwaitExtensionsTests
     [Fact]
     public async Task WaitForExitAsync_Canceled()
     {
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
-            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "/c pause" : "-c read",
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-        };
-        var p = System.Diagnostics.Process.Start(processStartInfo)!;
+        var p = System.Diagnostics.Process.Start(CreateBlockingProcessStartInfo())!;
         try
         {
             var cts = new CancellationTokenSource();
@@ -116,5 +100,27 @@ public class AwaitExtensionsTests
         {
             p.Kill();
         }
+    }
+
+    private static ProcessStartInfo CreateBlockingProcessStartInfo()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = "/c ping -n 300 127.0.0.1 > nul",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+            };
+        }
+
+        return new ProcessStartInfo
+        {
+            FileName = "/bin/bash",
+            Arguments = "-c sleep 300",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+        };
     }
 }

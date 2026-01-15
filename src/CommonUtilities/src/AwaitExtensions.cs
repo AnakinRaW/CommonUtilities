@@ -48,7 +48,7 @@ public static class AwaitExtensions
             throw;
         }
 
-        var tcs = new TaskCompletionSource<EmptyStruct>();
+        var tcs = new TaskCompletionSource<EmptyStruct>(TaskCreationOptions.RunContinuationsAsynchronously);
         try
         {
             process.Exited += Handler;
