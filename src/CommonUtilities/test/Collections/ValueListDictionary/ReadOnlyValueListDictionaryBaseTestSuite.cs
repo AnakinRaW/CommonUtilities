@@ -1,4 +1,5 @@
-﻿using AnakinRaW.CommonUtilities.Collections;
+﻿using System;
+using AnakinRaW.CommonUtilities.Collections;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +50,7 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         AddToCollection(collection, count);
         var readOnlyDictionary = ReadOnlyValueListDictionaryFactory(collection);
 
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
+        Assert.Equal(collection.Count, readOnlyDictionary.Count);
         Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
 
         VerifyReadOnlyValueListDictionary(readOnlyDictionary, collection);
@@ -64,12 +65,12 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         AddToCollection(collection, count);
         var readOnlyDictionary = ReadOnlyValueListDictionaryFactory(collection);
 
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
+        Assert.Equal(collection.Count, readOnlyDictionary.Count);
         Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
 
         collection.Add(GetNewKey(collection), CreateTValue(4231));
 
-        Assert.Equal(collection.KeyCount, readOnlyDictionary.KeyCount);
+        Assert.Equal(collection.Count, readOnlyDictionary.Count);
         Assert.Equal(collection.ValueCount, readOnlyDictionary.ValueCount);
     }
 
@@ -94,7 +95,7 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
     {
         var enumerator = readOnlyDictionary.GetEnumerator();
         var iterations = 0;
-        var expectedCount = expectedDict.KeyCount;
+        var expectedCount = expectedDict.Count;
 
         var keys = expectedDict.Keys.ToList();
 
@@ -139,7 +140,7 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
     {
         IEnumerator enumerator = readOnlyDictionary.GetEnumerator();
         var iterations = 0;
-        var expectedCount = expectedDict.KeyCount;
+        var expectedCount = expectedDict.Count;
 
         var keys = expectedDict.Keys.ToList();
 
@@ -172,6 +173,9 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         {
             Assert.False(enumerator.MoveNext(), "Expected MoveNext to return false after" + iterations + " iterations");
         }
+        
+        if (enumerator is IDisposable disposable)
+            disposable.Dispose();
     }
 
 }

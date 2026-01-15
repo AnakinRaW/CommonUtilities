@@ -57,7 +57,7 @@ public interface IReadOnlyValueListDictionary<TKey, TValue>
     /// then all values for the second key, and so on.
     /// </para>
     /// <para>
-    /// The collection count equals <see cref="ValueCount"/>, not <see cref="KeyCount"/>.
+    /// The collection count equals <see cref="ValueCount"/>, not <see cref="Count"/>.
     /// Modifications to the returned collection are not reflected in the dictionary.
     /// </para>
     /// <para>
@@ -79,14 +79,14 @@ public interface IReadOnlyValueListDictionary<TKey, TValue>
     /// <summary>
     /// Gets the number of distinct keys in the dictionary.
     /// </summary>
-    int KeyCount { get; }
+    int Count { get; }
 
     /// <summary>
     /// Gets the total number of values across all keys in the dictionary.
     /// </summary>
     /// <remarks>
     /// This is the sum of all values for all keys, not the number of distinct keys.
-    /// Use <see cref="KeyCount"/> to get the number of distinct keys.
+    /// Use <see cref="Count"/> to get the number of distinct keys.
     /// </remarks>
     int ValueCount { get; }
 

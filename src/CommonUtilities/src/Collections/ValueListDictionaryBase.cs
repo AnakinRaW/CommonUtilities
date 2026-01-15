@@ -52,7 +52,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     public int ValueCount { get; private set; }
 
     /// <inheritdoc />
-    public int KeyCount => KeyOrderStore.Count;
+    public int Count => KeyOrderStore.Count;
 
     /// <summary>
     /// Gets a collection containing all values in the <see cref="ValueListDictionaryBase{TKey, TValue, TList}"/>.
@@ -70,7 +70,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     /// then all values for the second key, and so on.
     /// </para>
     /// <para>
-    /// The collection count equals <see cref="ValueCount"/>, not <see cref="KeyCount"/>.
+    /// The collection count equals <see cref="ValueCount"/>, not <see cref="Count"/>.
     /// </para>
     /// <para>
     /// The returned <see cref="ValueCollection"/> is not a static copy; instead, it 
@@ -559,7 +559,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         {
             get
             {
-                if (_index == 0 || _index == _dictionary.KeyCount + 1)
+                if (_index == 0 || _index == _dictionary.Count + 1)
                     throw new InvalidOperationException("Enumeration has not started. Call MoveNext.");
                 return Current;
             }

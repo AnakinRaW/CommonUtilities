@@ -42,7 +42,7 @@ public abstract class FrugalValueListDictionaryTestBase<TKey, TValue>
     {
         var dict = new FrugalValueListDictionary<TKey, TValue>();
         Assert.Equal(0, dict.ValueCount);
-        Assert.Equal(0, dict.KeyCount);
+        Assert.Equal(0, dict.Count);
     }
 
     #endregion

@@ -38,7 +38,7 @@ public abstract class ReadOnlyValueListDictionaryBase<TKey, TValue>
     public int ValueCount => _dictionary.ValueCount;
 
     /// <inheritdoc />
-    public int KeyCount => _dictionary.KeyCount;
+    public int Count => _dictionary.Count;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReadOnlyValueListDictionaryBase{TKey,TValue}"/> class that is a wrapper around the specified value list dictionary.

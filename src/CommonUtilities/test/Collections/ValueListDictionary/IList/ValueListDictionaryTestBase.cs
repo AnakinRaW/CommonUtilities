@@ -20,7 +20,7 @@ public abstract class ValueListDictionaryTestBase<TKey, TValue>
     {
         var dict = new ValueListDictionary<TKey, TValue>();
         Assert.Equal(0, dict.ValueCount);
-        Assert.Equal(0, dict.KeyCount);
+        Assert.Equal(0, dict.Count);
     }
 
     #endregion

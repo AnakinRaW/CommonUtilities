@@ -106,8 +106,8 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     {
         var seed = 12353;
         var random = new Random();
-        var initialCount = dictionary.KeyCount;
-        while (dictionary.KeyCount - initialCount < numberOfItemsToAdd)
+        var initialCount = dictionary.Count;
+        while (dictionary.Count - initialCount < numberOfItemsToAdd)
         {
             var toAdd = CreateTKey(seed++);
             while (dictionary.ContainsKey(toAdd))
@@ -257,7 +257,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void Count_Validity(int count)
+    public void ValueCount_Validity(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         var expectedCount = dictionary.Sum(pair => pair.Value.Count);
@@ -266,14 +266,14 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     #endregion
 
-    #region KeyCount
+    #region Count
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
-    public void KeyCount_Validity(int count)
+    public void Count_Validity(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     #endregion

@@ -107,7 +107,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     {
         var dictionary = IValueListDictionaryFactory(count);
         var oldValueCount = dictionary.ValueCount;
-        var oldKeyCount = dictionary.KeyCount;
+        var oldCount = dictionary.Count;
         var seed = 431;
         foreach (var pair in dictionary.ToList())
         {
@@ -116,7 +116,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
                 missingKey = CreateTKey(seed++);
             dictionary.Add(missingKey, pair.Value.First());
         }
-        Assert.Equal(oldValueCount + oldKeyCount, dictionary.Values.Count);
+        Assert.Equal(oldValueCount + oldCount, dictionary.Values.Count);
     }
 
     [Theory]
@@ -148,7 +148,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         {
             Assert.False(dictionary.Add(missingKey, value));
             Assert.Equal(valueCoutBeforeAdd + 1, dictionary.ValueCount);
-            Assert.Equal(count + 1, dictionary.KeyCount);
+            Assert.Equal(count + 1, dictionary.Count);
             Assert.Equal(value, dictionary[missingKey].First());
             Assert.Equal(value, dictionary[missingKey].Last());
         }
@@ -170,7 +170,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         {
             Assert.False(dictionary.Add(missingKey, value));
             Assert.Equal(valueCoutBeforeAdd + 1, dictionary.ValueCount);
-            Assert.Equal(count + 1, dictionary.KeyCount);
+            Assert.Equal(count + 1, dictionary.Count);
             Assert.Equal(value, dictionary[missingKey].First());
             Assert.Equal(value, dictionary[missingKey].Last());
         }
@@ -190,7 +190,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var value = default(TValue)!;
         Assert.False(dictionary.Add(missingKey, value));
         Assert.Equal(valueCoutBeforeAdd + 1, dictionary.ValueCount);
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
         Assert.Equal(value, dictionary[missingKey].First());
         Assert.Equal(value, dictionary[missingKey].Last());
     }
@@ -205,7 +205,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var value = CreateTValue(1342);
         Assert.False(dictionary.Add(missingKey, value));
         Assert.Equal(valueCoutBeforeAdd + 1, dictionary.ValueCount);
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
         Assert.Equal(value, dictionary[missingKey].First());
         Assert.Equal(value, dictionary[missingKey].Last());
     }
@@ -233,11 +233,11 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         Assert.False(dictionary.Add(duplicateKey, CreateTValue(34251)));
         Assert.Single(dictionary[duplicateKey]);
         var valueCountBeforeSecondAdd = dictionary.ValueCount;
-        var keyCountBeforeSecondAdd = dictionary.KeyCount;
+        var countBeforeSecondAdd = dictionary.Count;
 
         Assert.True(dictionary.Add(duplicateKey, CreateTValue(134)));
         Assert.Equal(2, dictionary[duplicateKey].Count);
-        Assert.Equal(keyCountBeforeSecondAdd, dictionary.KeyCount);
+        Assert.Equal(countBeforeSecondAdd, dictionary.Count);
         Assert.Equal(valueCountBeforeSecondAdd + 1, dictionary.ValueCount);
     }
 
@@ -247,7 +247,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
     {
         var dictionary = IValueListDictionaryFactory(new ConstantHashCodeEqualityComparer<TKey>(EqualityComparer<TKey>.Default));
         AddToCollection(dictionary, count);
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     #endregion
@@ -273,7 +273,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
         Assert.False(dictionary.Remove(missingKey));
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     [Theory]
@@ -284,7 +284,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var missingKey = GetNewKey(dictionary);
         dictionary.Add(missingKey, CreateTValue(34251));
         Assert.True(dictionary.Remove(missingKey));
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     [Theory]
@@ -342,7 +342,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var dictionary = IValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
         Assert.False(dictionary.Remove(missingKey, default!));
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     [Theory]
@@ -354,7 +354,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var value = CreateTValue(34251);
         dictionary.Add(missingKey, value);
         Assert.True(dictionary.Remove(missingKey, value));
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     [Theory]
@@ -372,7 +372,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
         dictionary.Add(missingKey, value);
         Assert.False(dictionary.Remove(missingKey, missingValue));
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
     }
 
     [Theory]
@@ -388,7 +388,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
 
         Assert.True(dictionary.Remove(missingKey, value));
         Assert.Equal([value], dictionary.GetValues(missingKey));
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
     }
 
 
@@ -435,7 +435,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var dictionary = IValueListDictionaryFactory(count);
         dictionary.Clear();
         Assert.Equal(0, dictionary.ValueCount);
-        Assert.Equal(0, dictionary.KeyCount);
+        Assert.Equal(0, dictionary.Count);
         Assert.Empty(dictionary.Keys);
         Assert.Empty(dictionary.Values);
     }
@@ -449,7 +449,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.Clear();
         dictionary.Clear();
         Assert.Equal(0, dictionary.ValueCount);
-        Assert.Equal(0, dictionary.KeyCount);
+        Assert.Equal(0, dictionary.Count);
         Assert.Empty(dictionary.Keys);
         Assert.Empty(dictionary.Values);
     }
@@ -486,12 +486,12 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var dictionary = IValueListDictionaryFactory(count);
         var key = GetNewKey(dictionary);
         var valueCountBefore = dictionary.ValueCount;
-        var keyCountBefore = dictionary.KeyCount;
+        var countBefore = dictionary.Count;
 
         dictionary.AddRange(key, []);
 
         Assert.Equal(valueCountBefore, dictionary.ValueCount);
-        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(countBefore, dictionary.Count);
         Assert.False(dictionary.ContainsKey(key));
     }
 
@@ -507,7 +507,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.AddRange(key, values);
 
         Assert.Equal(valueCountBefore + 3, dictionary.ValueCount);
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
         Assert.Equal(values, dictionary.GetValues(key));
     }
 
@@ -521,13 +521,13 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.Add(key, initialValue);
 
         var valueCountBefore = dictionary.ValueCount;
-        var keyCountBefore = dictionary.KeyCount;
+        var countBefore = dictionary.Count;
         var values = new[] { CreateTValue(1), CreateTValue(2), CreateTValue(3) };
 
         dictionary.AddRange(key, values);
 
         Assert.Equal(valueCountBefore + 3, dictionary.ValueCount);
-        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(countBefore, dictionary.Count);
         var expectedValues = new[] { initialValue }.Concat(values).ToArray();
         Assert.Equal(expectedValues, dictionary.GetValues(key));
     }
@@ -565,7 +565,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.AddRange(key, values);
 
         Assert.Equal(valueCountBefore + 1, dictionary.ValueCount);
-        Assert.Equal(count + 1, dictionary.KeyCount);
+        Assert.Equal(count + 1, dictionary.Count);
         Assert.Equal(values, dictionary.GetValues(key));
     }
 
@@ -601,7 +601,7 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         var key = GetNewKey(dictionary);
         var removed = dictionary.RemoveAll(key, _ => true);
         Assert.Equal(0, removed);
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     [Theory]
@@ -616,13 +616,13 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.Add(key, CreateTValue(4));
 
         var valueCountBefore = dictionary.ValueCount;
-        var keyCountBefore = dictionary.KeyCount;
+        var countBefore = dictionary.Count;
 
         var removed = dictionary.RemoveAll(key, v => v!.Equals(CreateTValue(2)) || v.Equals(CreateTValue(4)));
 
         Assert.Equal(2, removed);
         Assert.Equal(valueCountBefore - 2, dictionary.ValueCount);
-        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(countBefore, dictionary.Count);
         Assert.Equal(2, dictionary.GetValues(key).Count);
     }
 
@@ -637,13 +637,13 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.Add(key, CreateTValue(3));
 
         var valueCountBefore = dictionary.ValueCount;
-        var keyCountBefore = dictionary.KeyCount;
+        var countBefore = dictionary.Count;
 
         var removed = dictionary.RemoveAll(key, _ => true);
 
         Assert.Equal(3, removed);
         Assert.Equal(valueCountBefore - 3, dictionary.ValueCount);
-        Assert.Equal(keyCountBefore - 1, dictionary.KeyCount);
+        Assert.Equal(countBefore - 1, dictionary.Count);
         Assert.False(dictionary.ContainsKey(key));
     }
 
@@ -657,13 +657,13 @@ public abstract class IValueListDictionaryTestBase<TKey, TValue> : IReadOnlyValu
         dictionary.Add(key, CreateTValue(2));
 
         var valueCountBefore = dictionary.ValueCount;
-        var keyCountBefore = dictionary.KeyCount;
+        var countBefore = dictionary.Count;
 
         var removed = dictionary.RemoveAll(key, _ => false);
 
         Assert.Equal(0, removed);
         Assert.Equal(valueCountBefore, dictionary.ValueCount);
-        Assert.Equal(keyCountBefore, dictionary.KeyCount);
+        Assert.Equal(countBefore, dictionary.Count);
         Assert.Equal(2, dictionary.GetValues(key).Count);
     }
 
