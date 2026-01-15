@@ -19,8 +19,8 @@ public interface IValueListDictionary<TKey, TValue> : IReadOnlyValueListDictiona
     /// <param name="key">The key under which to add the value.</param>
     /// <param name="value">The value to add.</param>
     /// <returns>
-    /// <see langword="true"/> if the key already existed and the value was added 
-    /// to an existing key; <see langword="false"/> if a new key was created.
+    /// <see langword="true"/> if a new key is created;
+    /// otherwise, <see langword="false"/> if the key already exists.
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     bool Add(TKey key, TValue value);
@@ -63,8 +63,12 @@ public interface IValueListDictionary<TKey, TValue> : IReadOnlyValueListDictiona
     /// </remarks>
     /// <param name="key">The key under which to add the values.</param>
     /// <param name="values">The values to add.</param>
+    /// <returns>
+    /// <see langword="true"/> if a new key is created;
+    /// otherwise, <see langword="false"/> if the key already exists, or <paramref name="values"/> is empty.
+    /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> or <paramref name="values"/> is <see langword="null"/>.</exception>
-    void AddRange(TKey key, IEnumerable<TValue> values);
+    bool AddRange(TKey key, IEnumerable<TValue> values);
 
     /// <summary>
     /// Removes all values that match the predicate from the specified key.

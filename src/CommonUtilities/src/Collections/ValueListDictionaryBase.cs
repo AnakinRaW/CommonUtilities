@@ -272,7 +272,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
         valueList.Add(value);
         OnAfterValueListModified(key, valueList);
         
-        return exists;
+        return !exists;
 #else
         var exists = ValueStore.TryGetValue(key, out var valueList);
         if (!exists)
@@ -287,7 +287,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
         if (typeof(TList).IsValueType || !exists)
             ValueStore[key] = valueList;
-        return exists;
+        return !exists;
 #endif
     }
 
@@ -377,7 +377,7 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
     }
 
     /// <inheritdoc />
-    public void AddRange(TKey key, IEnumerable<TValue> values)
+    public bool AddRange(TKey key, IEnumerable<TValue> values)
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
@@ -386,29 +386,31 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
         using var enumerator = values.GetEnumerator();
         if (!enumerator.MoveNext())
-            return; // Empty collection, nothing to add
+            return false; // Empty collection, nothing to add
 
 #if NET6_0_OR_GREATER
-    ref var valueList = ref CollectionsMarshal.GetValueRefOrAddDefault(ValueStore, key, out var exists);
-    if (!exists)
-    {
-        valueList = CreateValueStoreInternal();
-        KeyOrderStore.Add(key);
-        _version++;
-    }
-    Debug.Assert(valueList is not null);
-    
-    var countBefore = valueList.Count;
-    
-    valueList.Add(enumerator.Current);
-    while (enumerator.MoveNext())
-    {
+        ref var valueList = ref CollectionsMarshal.GetValueRefOrAddDefault(ValueStore, key, out var exists);
+        if (!exists)
+        {
+            valueList = CreateValueStoreInternal();
+            KeyOrderStore.Add(key);
+            _version++;
+        }
+
+        Debug.Assert(valueList is not null);
+
+        var countBefore = valueList.Count;
+
         valueList.Add(enumerator.Current);
-    }
-    
-    var added = valueList.Count - countBefore;
-    ValueCount += added;
-    OnAfterValueListModified(key, valueList);
+        while (enumerator.MoveNext())
+        {
+            valueList.Add(enumerator.Current);
+        }
+
+        var added = valueList.Count - countBefore;
+        ValueCount += added;
+        OnAfterValueListModified(key, valueList);
+        return !exists;
 #else
         var exists = ValueStore.TryGetValue(key, out var valueList);
         if (!exists)
@@ -432,6 +434,8 @@ public abstract class ValueListDictionaryBase<TKey, TValue, TList> : IValueListD
 
         if (typeof(TList).IsValueType || !exists)
             ValueStore[key] = valueList;
+        
+        return !exists;
 #endif
     }
 
