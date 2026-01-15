@@ -117,8 +117,8 @@ public class AwaitExtensionsTests
 
         return new ProcessStartInfo
         {
-            FileName = "/bin/bash",
-            Arguments = "-c sleep 300",
+            FileName = "sleep",
+            Arguments = "300",
             CreateNoWindow = true,
             UseShellExecute = false,
         };
