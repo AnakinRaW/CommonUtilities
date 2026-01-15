@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Collections;
@@ -50,7 +49,12 @@ public abstract class CollectionsTestSuite
     /// </summary>
     /// <remarks>This data is intended for use with xUnit's Theory tests to verify behavior across different
     /// collection sizes, including empty, single-item, and larger collections.</remarks>
-    public static readonly TheoryData<int> ValidCollectionSizes = [0, 1, 75];
+    public static IEnumerable<object[]> ValidCollectionSizes()
+    {
+        yield return [0];
+        yield return [1];
+        yield return [75];
+    }
     
     /// <summary>
     /// Provides test data for enumerable-related test cases.
@@ -68,8 +72,9 @@ public abstract class CollectionsTestSuite
     /// </returns>
     public static IEnumerable<object[]> GetEnumerableTestData()
     {
-        foreach (var count in ValidCollectionSizes.Select(x => x.Data))
+        foreach (var sizeArray in ValidCollectionSizes())
         {
+            var count = (int)sizeArray[0];
             yield return [count, 0, 0, 0];                       // Empty Enumerable
             yield return [count, count + 1, 0, 0];               // Enumerable that is 1 larger
 
