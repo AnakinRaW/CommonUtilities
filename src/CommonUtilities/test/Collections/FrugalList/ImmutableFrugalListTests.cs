@@ -31,12 +31,14 @@ public class ImmutableFrugalListTestInt : ImmutableFrugalListTestBase<int>
     [Fact]
     public static void Contains()
     {
+#pragma warning disable xUnit2017
         var collection = ImmutableFrugalList.Create(_intArray);
         foreach (var item in _intArray)
             Assert.True(collection.Contains(item));
 
         foreach (var excluded in _excludedFromIntArray)
             Assert.False(collection.Contains(excluded));
+#pragma warning restore xUnit2017
     }
 
     [Fact]

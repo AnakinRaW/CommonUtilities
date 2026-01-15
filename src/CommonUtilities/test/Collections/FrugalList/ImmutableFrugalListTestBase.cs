@@ -1,7 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
@@ -10,7 +9,6 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
 /// <summary>
 /// Contains tests that ensure the correctness of the <see cref="ImmutableFrugalList{T}"/> class.
 /// </summary>
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 {
     protected override bool IsReadOnly => true;
@@ -64,6 +62,7 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+#pragma warning disable xUnit1026
     public void Create_CreatesCorrectImmutableList(int _, int enumerableLength, int __, int ___)
     {
         var list = CreateEnumerable(null, enumerableLength, 0, 0).ToList();
@@ -88,6 +87,7 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
                 Assert.NotEqual(listCopy, immutable.ToList());
         }
     }
+#pragma warning restore xUnit1026
 
     #endregion
 
@@ -123,6 +123,7 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
+#pragma warning disable xUnit1026
     public void Ctor_FrugalListIn(int _, int enumerableLength, int __, int numberOfDuplicateElements)
     {
         var enumerable = CreateEnumerable(null, enumerableLength, 0, numberOfDuplicateElements);
@@ -131,6 +132,7 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 
         Assert.Equal(frugal, immutable);
     }
+#pragma warning restore xUnit1026
 
     [Theory]
     [MemberData(nameof(GetEnumerableTestData))]
@@ -250,25 +252,31 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
         var item = CreateT(seed++);
         while (collection.Contains(item))
             item = CreateT(seed++);
+#pragma warning disable xUnit2017
         Assert.False(collection.Contains(item));
+#pragma warning restore xUnit2017
     }
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
     public void Contains_ValidValueOnCollectionContainingThatValue(int count)
     {
+#pragma warning disable xUnit2017
         var collection = GenericReadOnlyListFrugalListFactory(count);
         foreach (var item in collection)
             Assert.True(collection.Contains(item));
+#pragma warning restore xUnit2017
     }
 
     [Theory]
     [MemberData(nameof(ValidCollectionSizes))]
     public void Contains_DefaultValueOnCollectionNotContainingDefaultValue(int count)
     {
+#pragma warning disable xUnit2017
         var collection = GenericReadOnlyListFrugalListFactory(count);
         if (default(T) is null)
             Assert.False(collection.Contains(default!));
+#pragma warning restore xUnit2017
     }
 
     #endregion

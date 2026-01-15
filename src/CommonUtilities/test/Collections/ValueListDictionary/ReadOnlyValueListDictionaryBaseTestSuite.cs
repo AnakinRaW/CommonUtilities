@@ -177,5 +177,4 @@ public abstract class ReadOnlyValueListDictionaryBaseTestSuite<TKey, TValue> : I
         if (enumerator is IDisposable disposable)
             disposable.Dispose();
     }
-
 }
