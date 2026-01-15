@@ -21,5 +21,6 @@ public abstract class FileNameValidator
     /// Checks whether a string represent a valid file name
     /// </summary>
     /// <param name="fileName">The string to validate.</param>
+    /// <returns>The result of the validation.</returns>
     public abstract FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName);
 }

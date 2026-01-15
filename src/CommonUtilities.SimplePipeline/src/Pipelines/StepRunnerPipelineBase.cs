@@ -152,9 +152,7 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
     protected override void DisposeResources()
     {
         base.DisposeResources();
-        if (IsStepRunnerInitialized)
-        {
+        if (IsStepRunnerInitialized) 
             StepRunner.Error -= OnRunnerExecutionError!;
-        }
     }
 }

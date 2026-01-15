@@ -6,7 +6,7 @@ using AnakinRaW.CommonUtilities.FileSystem.Utilities;
 namespace AnakinRaW.CommonUtilities.FileSystem.Normalization;
 
 /// <summary>
-/// Enables customized path normalization.
+/// Provides methods for normalizing file system paths according to specified rules.
 /// </summary>
 public static class PathNormalizer
 {

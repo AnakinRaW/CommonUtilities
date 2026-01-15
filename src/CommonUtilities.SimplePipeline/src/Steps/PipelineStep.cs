@@ -58,7 +58,6 @@ public abstract class PipelineStep : DisposableObject, IStep
         return task;
     }
 
-
     /// <inheritdoc />
     public TaskAwaiter GetAwaiter()
     {

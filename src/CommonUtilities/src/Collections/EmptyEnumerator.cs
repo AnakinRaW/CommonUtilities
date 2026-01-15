@@ -8,7 +8,7 @@ internal sealed class EmptyEnumerator<T> : IEnumerator<T>
 {
     public static readonly EmptyEnumerator<T> Instance = new();
 
-    public T Current => throw new InvalidOperationException("Enmeration has not started.");
+    public T Current => throw new InvalidOperationException("Enumeration has not started.");
 
     object? IEnumerator.Current => Current;
 

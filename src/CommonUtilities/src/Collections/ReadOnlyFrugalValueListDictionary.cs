@@ -10,7 +10,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
 [DebuggerTypeProxy(typeof(IValueListDictionaryDebugView<,>))]
-[DebuggerDisplay("ValueCount = {ValueCount}")]
+[DebuggerDisplay("Count = {Count}")]
 public class ReadOnlyFrugalValueListDictionary<TKey, TValue>
     : ReadOnlyValueListDictionaryBase<TKey, TValue>, IReadOnlyFrugalValueListDictionary<TKey, TValue>
     where TKey : notnull
