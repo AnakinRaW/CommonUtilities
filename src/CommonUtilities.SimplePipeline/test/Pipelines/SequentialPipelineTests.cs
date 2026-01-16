@@ -25,6 +25,13 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
         return new TestSequentialPipeline(ServiceProvider, [testStep], prepare, failFast: false);
     }
 
+    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    {
+        if (runnerBehavior is RunnerBehavior.Concurrent)
+            throw new NotSupportedException("Concurrent runs are not supported");
+        return new TrackingSequentialPipeline(ServiceProvider, steps, failFast, callOrder, throwOnMethod);
+    }
+
     private SequentialPipeline CreateSequentialPipeline(IList<IStep> steps, bool failFast)
     {
         return new TestSequentialPipeline(ServiceProvider, steps, null, failFast);
@@ -63,5 +70,33 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
                 await _prepareAction(token);
             return _steps;
         }
+    }
+
+    private class TrackingSequentialPipeline : SequentialPipeline
+    {
+        private readonly IList<IStep> _steps;
+        private readonly TrackingPipelineHelper _helper;
+
+        public TrackingSequentialPipeline(
+            IServiceProvider serviceProvider,
+            IList<IStep> steps,
+            bool failFast,
+            List<string> callOrder,
+            string? throwOnMethod)
+            : base(serviceProvider)
+        {
+            _steps = steps;
+            _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
+            FailFast = failFast;
+        }
+
+        protected override Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
+        {
+            return Task.FromResult(_steps);
+        }
+
+        protected override void OnExecuteStarted() => _helper.OnExecuteStarted();
+        protected override void OnRunnerExecuted() => _helper.OnRunnerExecuted();
+        protected override void OnExecuteCompleted() => _helper.OnExecuteCompleted();
     }
 }

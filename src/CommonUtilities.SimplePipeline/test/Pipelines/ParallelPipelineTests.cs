@@ -22,6 +22,11 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
         return new TestParallelPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
     }
 
+    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    {
+        return new TrackingParallelPipeline(ServiceProvider, steps, GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
+    }
+
     #region Constructor Tests
 
     [Fact]
@@ -63,5 +68,41 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
                 await _prepareAction(token);
             return _steps;
         }
+    }
+
+    private class TrackingParallelPipeline : StepRunnerPipeline
+    {
+        private readonly IList<IStep> _steps;
+        private readonly int _workerCount;
+        private readonly TrackingPipelineHelper _helper;
+
+        public TrackingParallelPipeline(
+            IServiceProvider serviceProvider,
+            IList<IStep> steps,
+            int workerCount,
+            bool failFast,
+            List<string> callOrder,
+            string? throwOnMethod)
+            : base(serviceProvider)
+        {
+            _steps = steps;
+            _workerCount = workerCount;
+            _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
+            FailFast = failFast;
+        }
+
+        protected override IStepRunner CreateRunner()
+        {
+            return new AsyncStepRunner(_workerCount, ServiceProvider);
+        }
+
+        protected override Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
+        {
+            return Task.FromResult(_steps);
+        }
+
+        protected override void OnExecuteStarted() => _helper.OnExecuteStarted();
+        protected override void OnRunnerExecuted() => _helper.OnRunnerExecuted();
+        protected override void OnExecuteCompleted() => _helper.OnExecuteCompleted();
     }
 }

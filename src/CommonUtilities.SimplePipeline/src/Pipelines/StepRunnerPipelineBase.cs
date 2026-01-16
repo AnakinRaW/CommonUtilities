@@ -106,6 +106,7 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
     /// </exception>
     protected sealed override async Task ExecuteAsync(CancellationToken token)
     {
+        OnExecuteStarted();
         try
         {
             StepRunner.Error += OnRunnerExecutionError!;
@@ -115,9 +116,42 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
         {
             StepRunner.Error -= OnRunnerExecutionError!;
         }
+        OnRunnerExecuted();
         StepRunner.ExecutedSteps.ThrowStepFailureExceptionForFailedSteps();
+        OnExecuteCompleted();
     }
 
+    /// <summary>
+    /// Called when the execution of the pipeline starts, before the step runner begins processing steps.
+    /// </summary>
+    /// <remarks>
+    /// Override this method to perform custom logic at the start of execution.
+    /// </remarks>
+    protected virtual void OnExecuteStarted()
+    {
+    }
+
+    /// <summary>
+    /// Called after the step runner has completed executing all steps, before checking for step failures.
+    /// </summary>
+    /// <remarks>
+    /// Override this method to perform custom logic after the runner has executed but before failure validation.
+    /// </remarks>
+    protected virtual void OnRunnerExecuted()
+    {
+    }
+
+    /// <summary>
+    /// Called when the execution of the pipeline has completed successfully.
+    /// </summary>
+    /// <remarks>
+    /// This method is only called if no <see cref="StepFailureException"/> is thrown.
+    /// Override this method to perform custom logic upon successful completion.
+    /// </remarks>
+    protected virtual void OnExecuteCompleted()
+    {
+    }
+    
     /// <summary>
     /// Handles errors that occur during the execution of the <see cref="IStepRunner"/>.
     /// </summary>

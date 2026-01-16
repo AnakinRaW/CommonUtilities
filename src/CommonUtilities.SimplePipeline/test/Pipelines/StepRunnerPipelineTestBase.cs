@@ -15,6 +15,13 @@ public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestBas
         return CreateStepRunnerPipeline(steps, failFast, runnerBehavior);
     }
 
+    protected abstract StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null);
+
+    protected override StepRunnerPipelineBase<IStepRunner> CreateTrackingPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    {
+        return CreateTrackingStepRunnerPipeline(steps, failFast, runnerBehavior, callOrder, throwOnMethod);
+    }
+
     #region CreateRunner
 
     [Fact]

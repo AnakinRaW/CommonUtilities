@@ -21,6 +21,13 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         IList<IStep> steps, 
         bool failFast, 
         RunnerBehavior runnerBehavior);
+    
+    protected abstract StepRunnerPipelineBase<TRunner> CreateTrackingPipeline(
+        IList<IStep> steps,
+        bool failFast,
+        RunnerBehavior runnerBehavior,
+        List<string> callOrder,
+        string? throwOnMethod = null);
 
     protected StepRunnerPipelineBase<TRunner> CreateStepRunnerPipelineBase(IList<IStep> steps)
     {
@@ -549,5 +556,57 @@ public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase
         }
     }
 
+    #endregion
+
+    #region Lifecycle Hooks
+
+    [Theory]
+    [InlineData(false, "OnExecuteStarted,StepExecuted,OnRunnerExecuted,OnExecuteCompleted")]
+    [InlineData(true, "OnExecuteStarted,OnRunnerExecuted")]
+    public async Task ExecuteAsync_LifecycleMethods(bool stepFails, string expectedCalls)
+    {
+        var callOrder = new List<string>();
+        var expected = expectedCalls.Split([','], StringSplitOptions.RemoveEmptyEntries);
+
+        var step = new TestStep(_ =>
+        {
+            if (stepFails)
+                throw new InvalidOperationException("Test error");
+            callOrder.Add("StepExecuted");
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        var pipeline = CreateTrackingPipeline([step], false, GetRandomRunBehavior(), callOrder);
+
+        if (stepFails)
+            await Assert.ThrowsAsync<StepFailureException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
+        else
+            await pipeline.RunAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(expected, callOrder);
+    }
+
+    [Theory]
+    [InlineData("OnExecuteStarted", "OnExecuteStarted")]
+    [InlineData("OnRunnerExecuted", "OnExecuteStarted,StepExecuted,OnRunnerExecuted")]
+    [InlineData("OnExecuteCompleted", "OnExecuteStarted,StepExecuted,OnRunnerExecuted,OnExecuteCompleted")]
+    public async Task ExecuteAsync_LifecycleMethodThrows_ExceptionPropagates(string methodToThrow, string expectedCalls)
+    {
+        var callOrder = new List<string>();
+        var expected = expectedCalls.Split([','], StringSplitOptions.RemoveEmptyEntries);
+
+        var step = new TestStep(_ =>
+        {
+            callOrder.Add("StepExecuted");
+            return Task.CompletedTask;
+        }, ServiceProvider);
+
+        var pipeline = CreateTrackingPipeline([step], false, GetRandomRunBehavior(), callOrder, methodToThrow);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => pipeline.RunAsync(TestContext.Current.CancellationToken));
+
+        Assert.Equal($"{methodToThrow} threw", ex.Message);
+        Assert.Equal(expected, callOrder);
+    }
     #endregion
 }
