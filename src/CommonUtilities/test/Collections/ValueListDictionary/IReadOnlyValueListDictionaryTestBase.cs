@@ -9,62 +9,38 @@ namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary;
 
 #pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 
-public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnumerableTestSuite<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> 
+public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnumerableTestSuite<KeyValuePair<TKey, IReadOnlyList<TValue>>> 
     where TKey : notnull
 {
     protected abstract bool DefaultValueAllowed { get; }
-    
+
+    // ReSharper disable once InconsistentNaming
+    protected virtual bool ValueList_IsReadOnlyView => true;
     protected virtual bool IsReadOnly => true;
-    
-    protected override bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
 
-    protected override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
-
-    protected override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
+    protected sealed override bool Enumerator_Empty_UsesSingletonInstance => true;
+    protected sealed override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+    protected sealed override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
+    protected sealed override bool NonGenericEnumerator_Current_UndefinedOperation_Throws => true;
+    protected sealed override bool NonGenericEnumerator_Empty_Current_UndefinedOperation_Throw => true;
 
     protected abstract TKey CreateTKey(int seed);
 
     protected abstract TValue CreateTValue(int seed);
-
+    
     protected abstract IReadOnlyValueListDictionary<TKey, TValue> IReadOnlyValueListDictionaryFactory(int count);
 
-    protected override IEnumerable<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GenericIEnumerableFactory(int count)
+    protected sealed override KeyValuePair<TKey, IReadOnlyList<TValue>> CreateT(int seed)
     {
-        return IReadOnlyValueListDictionaryFactory(count);
+        throw new NotSupportedException();
     }
-
-    protected override IEqualityComparer<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> GetIEqualityComparer()
+    
+    protected sealed override IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>> GetIEqualityComparer()
     {
         return new KVPComparer();
     }
 
-    protected TKey GetNewKey(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
-    {
-        var seed = 840;
-        var missingKey = CreateTKey(seed++);
-        while (dictionary.ContainsKey(missingKey) || missingKey.Equals(default(TKey)))
-            missingKey = CreateTKey(seed++);
-        return missingKey;
-    }
-
-    protected void AddToCollection(IValueListDictionary<TKey, TValue> dictionary, int numberOfItemsToAdd)
-    {
-        var seed = 12353;
-        var random = new Random();
-        var initialCount = dictionary.KeyCount;
-        while (dictionary.KeyCount - initialCount < numberOfItemsToAdd)
-        {
-            var toAdd = CreateTKey(seed++);
-            while (dictionary.ContainsKey(toAdd))
-                toAdd = CreateTKey(seed++);
-
-            dictionary.Add(toAdd, CreateTValue(seed++));
-            while (random.Next() % 2 == 0)
-                dictionary.Add(toAdd, CreateTValue(seed++));
-        }
-    }
-
-    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    protected sealed override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
     {
         // ReSharper disable UseMethodAny.0
         if (IsReadOnly)
@@ -118,6 +94,38 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         }
         //throw new InvalidOperationException(string.Format("{0:G}", operations));
         // ReSharper restore UseMethodAny.0
+    }
+
+    protected override IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> GenericIEnumerableFactory(
+        int count)
+    {
+        return IReadOnlyValueListDictionaryFactory(count);
+    }
+
+    protected void AddToCollection(IValueListDictionary<TKey, TValue> dictionary, int numberOfItemsToAdd)
+    {
+        var seed = 12353;
+        var random = new Random();
+        var initialCount = dictionary.Count;
+        while (dictionary.Count - initialCount < numberOfItemsToAdd)
+        {
+            var toAdd = CreateTKey(seed++);
+            while (dictionary.ContainsKey(toAdd))
+                toAdd = CreateTKey(seed++);
+
+            dictionary.Add(toAdd, CreateTValue(seed++));
+            while (random.Next() % 2 == 0)
+                dictionary.Add(toAdd, CreateTValue(seed++));
+        }
+    }
+
+    protected TKey GetNewKey(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
+    {
+        var seed = 840;
+        var missingKey = CreateTKey(seed++);
+        while (dictionary.ContainsKey(missingKey) || missingKey.Equals(default(TKey)))
+            missingKey = CreateTKey(seed++);
+        return missingKey;
     }
 
     #region Item Getter
@@ -245,6 +253,19 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
 
     #endregion
 
+    #region ValueCount
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void ValueCount_Validity(int count)
+    {
+        var dictionary = IReadOnlyValueListDictionaryFactory(count);
+        var expectedCount = dictionary.Sum(pair => pair.Value.Count);
+        Assert.Equal(expectedCount, dictionary.ValueCount);
+    }
+
+    #endregion
+
     #region Count
 
     [Theory]
@@ -252,20 +273,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
     public void Count_Validity(int count)
     {
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
-        var expectedCount = dictionary.Sum(pair => pair.Value.Count);
-        Assert.Equal(expectedCount, dictionary.Count);
-    }
-
-    #endregion
-
-    #region KeyCount
-
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void KeyCount_Validity(int count)
-    {
-        var dictionary = IReadOnlyValueListDictionaryFactory(count);
-        Assert.Equal(count, dictionary.KeyCount);
+        Assert.Equal(count, dictionary.Count);
     }
 
     #endregion
@@ -390,6 +398,47 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         foreach (var pair in dictionary)
             Assert.Equal(pair.Value, dictionary.GetValues(pair.Key));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidCollectionSizes))]
+    public void GetValues_ReturnsReadOnlyViewOrSnapshot(int count)
+    {
+        if (IsReadOnly)
+            return;
+
+        var dict = IReadOnlyValueListDictionaryFactory(count);
+        var key = GetNewKey(dict);
+        var seed = 1234;
+        AddValue(dict, key, CreateTValue(seed++));
+
+        var values = dict.GetValues(key);
+
+        var newValue = CreateTValue(seed);
+        while (values.Contains(newValue))
+            newValue = CreateTValue(++seed);
+
+        AddValue(dict, key, newValue);
+
+        // View reflects live changes, snapshot doesn't
+        Assert.Equal(ValueList_IsReadOnlyView, values.Contains(newValue));
+
+        // After removal, neither view nor snapshot contains the value
+        RemoveValue(dict, key, newValue);
+        Assert.DoesNotContain(newValue, values);
+
+        // Removing key doesn't clear underlying list
+        RemoveKey(dict, key);
+        Assert.NotEmpty(values);
+
+        // Clearing dict doesn't clear underlying lists
+        if (count > 0)
+        {
+            var firstKey = dict.Keys.First();
+            var firstValues = dict.GetValues(firstKey);
+            ClearDict(dict);
+            Assert.NotEmpty(firstValues);
+        }
     }
 
     #endregion
@@ -539,7 +588,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         var dictionary = IReadOnlyValueListDictionaryFactory(count);
         var missingKey = GetNewKey(dictionary);
         Assert.False(dictionary.TryGetValues(missingKey, out var valueList));
-        Assert.Equal(default, valueList);
+        Assert.Equal([], valueList);
     }
 
     [Theory]
@@ -553,7 +602,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             while (dictionary.ContainsKey(missingKey))
                 RemoveKey(dictionary, missingKey);
             Assert.False(dictionary.TryGetValues(missingKey, out var valueList));
-            Assert.Equal(default, valueList);
+            Assert.Equal([], valueList);
         }
     }
 
@@ -717,10 +766,28 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
         mutable.Add(key, value);
     }
 
-    // ReSharper disable once InconsistentNaming
-    public class KVPComparer : IEqualityComparer<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>>
+    private void ClearDict(IReadOnlyValueListDictionary<TKey, TValue> dictionary)
     {
-        public bool Equals(KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> x, KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> y)
+        if (IsReadOnly)
+            throw new NotSupportedException("Test is read-only.");
+        if (dictionary is not IValueListDictionary<TKey, TValue> mutable)
+            throw new InvalidOperationException("Could not cast to mutable version");
+        mutable.Clear();
+    }
+
+    private void RemoveValue(IReadOnlyValueListDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+    {
+        if (IsReadOnly)
+            throw new NotSupportedException("Test is read-only.");
+        if (dictionary is not IValueListDictionary<TKey, TValue> mutable)
+            throw new InvalidOperationException("Could not cast to mutable version");
+        mutable.Remove(key, value);
+    }
+
+    // ReSharper disable once InconsistentNaming
+    public class KVPComparer : IEqualityComparer<KeyValuePair<TKey, IReadOnlyList<TValue>>>
+    {
+        public bool Equals(KeyValuePair<TKey, IReadOnlyList<TValue>> x, KeyValuePair<TKey, IReadOnlyList<TValue>> y)
         {
             if (!Equals(x.Key, y.Key))
                 return false;
@@ -730,7 +797,7 @@ public abstract class IReadOnlyValueListDictionaryTestBase<TKey, TValue> : IEnum
             return !x.Value.Where((t, i) => !Equals(t, y.Value[i])).Any();
         }
 
-        public int GetHashCode(KeyValuePair<TKey, ReadOnlyFrugalList<TValue>> obj)
+        public int GetHashCode(KeyValuePair<TKey, IReadOnlyList<TValue>> obj)
         {
             var hashCode = new HashCode();
 

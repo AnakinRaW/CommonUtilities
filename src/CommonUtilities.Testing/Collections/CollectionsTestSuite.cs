@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Testing.Collections;
@@ -48,10 +47,8 @@ public abstract class CollectionsTestSuite
     /// <summary>
     /// Provides a collection of valid sizes for testing collections.
     /// </summary>
-    /// <returns>
-    /// An <see cref="IEnumerable{T}"/> of object arrays, where each array contains 
-    /// a single integer representing a valid collection size.
-    /// </returns>
+    /// <remarks>This data is intended for use with xUnit's Theory tests to verify behavior across different
+    /// collection sizes, including empty, single-item, and larger collections.</remarks>
     public static IEnumerable<object[]> ValidCollectionSizes()
     {
         yield return [0];
@@ -75,9 +72,9 @@ public abstract class CollectionsTestSuite
     /// </returns>
     public static IEnumerable<object[]> GetEnumerableTestData()
     {
-        foreach (var collectionSizeArray in ValidCollectionSizes())
+        foreach (var sizeArray in ValidCollectionSizes())
         {
-            var count = (int)collectionSizeArray[0];
+            var count = (int)sizeArray[0];
             yield return [count, 0, 0, 0];                       // Empty Enumerable
             yield return [count, count + 1, 0, 0];               // Enumerable that is 1 larger
 
@@ -157,7 +154,7 @@ public abstract class CollectionsTestSuite<T> : CollectionsTestSuite
         // Add Matching elements
         if (enumerableToMatchTo != null)
         {
-            match = enumerableToMatchTo.ToList();
+            match = [.. enumerableToMatchTo];
             for (var i = 0; i < numberOfMatchingElements; i++)
             {
                 list.Add(match[i]);

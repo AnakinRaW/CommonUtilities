@@ -36,7 +36,7 @@ public sealed class WindowsFileNameValidator : FileNameValidator
     /// </summary>
     /// <param name="fileName">The string to validate.</param>
     /// <param name="checkWindowsReservedNames">Determines whether the check shall include Windows reserved file names (e.g, AUX, LPT1, etc.).</param>
-    /// <returns></returns>
+    /// <returns><see langword="true"/> if the file name is valid; otherwise, <see langword="false"/>.</returns>
     public FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName, bool checkWindowsReservedNames)
     {
         if (fileName.Length == 0)

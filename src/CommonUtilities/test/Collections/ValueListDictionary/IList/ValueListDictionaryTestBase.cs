@@ -1,0 +1,27 @@
+﻿using System.Collections.Generic;
+using AnakinRaW.CommonUtilities.Collections;
+using Xunit;
+
+namespace AnakinRaW.CommonUtilities.Test.Collections.ValueListDictionary.IList;
+
+public abstract class ValueListDictionaryTestBase<TKey, TValue> 
+    : ValueListDictionaryBaseTestSuite<TKey, TValue, IList<TValue>> where TKey : notnull
+{
+    protected override ValueListDictionaryBase<TKey, TValue, IList<TValue>> 
+        ValueListDictionaryFactory(IEqualityComparer<TKey>? comparer = null)
+    {
+        return new ValueListDictionary<TKey, TValue>(comparer);
+    }
+    
+    #region Constructors
+
+    [Fact]
+    public void Ctor_InitializesCorrectly()
+    {
+        var dict = new ValueListDictionary<TKey, TValue>();
+        Assert.Equal(0, dict.ValueCount);
+        Assert.Equal(0, dict.Count);
+    }
+
+    #endregion
+}

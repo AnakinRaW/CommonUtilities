@@ -15,9 +15,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1"/>
+		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-		<PackageReference Include="xunit.v3.mtp-v2" Version="3.2.1" />
+		<PackageReference Include="xunit.v3.mtp-v2" Version="3.2.2" />
 		<PackageReference Include="Microsoft.Testing.Platform" Version="2.0.2" />
 	</ItemGroup>
 
@@ -39,6 +39,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\CommonUtilities.Testing\CommonUtilities.Testing.csproj" />
 		<ProjectReference Include="..\src\CommonUtilities.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.102" />
 	</ItemGroup>
 
 </Project>

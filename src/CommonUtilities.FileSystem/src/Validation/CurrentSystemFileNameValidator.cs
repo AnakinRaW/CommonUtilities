@@ -12,6 +12,10 @@ public sealed class CurrentSystemFileNameValidator : FileNameValidator
     /// Returns a singleton instance of the <see cref="CurrentSystemFileNameValidator"/> class.
     /// </summary>
     public static readonly CurrentSystemFileNameValidator Instance = new();
+    
+    private readonly FileNameValidator _innerValidator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? WindowsFileNameValidator.Instance
+        : LinuxFileNameValidator.Instance;
 
     private CurrentSystemFileNameValidator()
     {
@@ -20,8 +24,6 @@ public sealed class CurrentSystemFileNameValidator : FileNameValidator
     /// <inheritdoc />
     public override FileNameValidationResult IsValidFileName(ReadOnlySpan<char> fileName)
     {
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? WindowsFileNameValidator.Instance.IsValidFileName(fileName)
-            : LinuxFileNameValidator.Instance.IsValidFileName(fileName);
+        return _innerValidator.IsValidFileName(fileName);
     }
 }

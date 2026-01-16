@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AnakinRaW.CommonUtilities.Testing;
+namespace AnakinRaW.CommonUtilities.Testing.EqualityComparers;
 
 /// <summary>
 /// Provides an equality comparer for objects of type <typeparamref name="T"/> that always returns a constant hash code.

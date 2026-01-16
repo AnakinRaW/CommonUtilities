@@ -38,7 +38,7 @@ public sealed class DownloadFailedException : Exception
     /// Initializes a new instance of the <see cref="DownloadFailedException"/> class from the specified download failures.
     /// </summary>
     /// <param name="downloadFailures">The failures which occurred during a file download.</param>
-    public DownloadFailedException(IEnumerable<DownloadFailureInformation> downloadFailures)
+    internal DownloadFailedException(IEnumerable<DownloadFailureInformation> downloadFailures)
     {
         DownloadFailures = downloadFailures;
     }

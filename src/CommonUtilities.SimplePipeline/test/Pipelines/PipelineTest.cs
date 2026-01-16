@@ -2,168 +2,45 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Testing;
-using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class PipelineTest : TestBaseWithServiceProvider
+public class PipelineTest : PipelineTestBase
 {
-    protected abstract Pipeline CreatePipeline(IList<IStep> steps);
-
-    [Fact]
-    public async Task Prepare()
+    protected override Pipeline CreatePipeline(IList<IStep> steps)
     {
-        var s = new TestStep(_ => { }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        await pipeline.PrepareAsync();
-        await pipeline.PrepareAsync();
+        return new TestPipeline(
+            _ => Task.CompletedTask,
+            async ct =>
+            {
+                foreach (var step in steps)
+                {
+                    await step.RunAsync(ct);
+                }
+            }, 
+            ServiceProvider);
     }
 
-    [Fact]
-    public async Task Dispose()
+    protected override ITrackingPipeline CreateTrackingPipeline(
+        Func<CancellationToken, Task> prepare, 
+        Func<CancellationToken, Task> run)
     {
-        var pipeline = CreatePipeline([]);
-
-        pipeline.Dispose();
-
-        Assert.True(pipeline.IsDisposed);
-        await Assert.ThrowsAsync<ObjectDisposedException>(pipeline.PrepareAsync);
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
+        return new TestPipeline(prepare, run, ServiceProvider);
     }
 
-    [Fact]
-    public async Task Run_RunMultipleTimesDoesNotPrepareAgain_StepRunOnlyOnce()
+    private class TestPipeline(
+        Func<CancellationToken, Task> prepare, 
+        Func<CancellationToken, Task> run, 
+        IServiceProvider serviceProvider) : Pipeline(serviceProvider), ITrackingPipeline
     {
-        var counter = 0;
-        var s = new TestStep(_ => { counter++; }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        await pipeline.RunAsync(TestContext.Current.CancellationToken);
-        await pipeline.RunAsync(TestContext.Current.CancellationToken);
-        
-        Assert.Equal(1, counter);
-    }
-
-    [Fact]
-    public async Task PrepareThenRun()
-    {
-        var counter = 0;
-        var s = new TestStep(_ => { counter++; }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        await pipeline.PrepareAsync();
-        await pipeline.RunAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(1, counter);
-    }
-
-    [Fact]
-    public async Task Run_Cancelled_ThrowsOperationCanceledException()
-    {
-        var counter = 0;
-        var s = new TestStep(_ => { counter++; }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
-        await Assert.ThrowsAsync<OperationCanceledException>(async () => await pipeline.RunAsync(cts.Token));
-        Assert.Equal(0, counter);
-    }
-
-    [Fact]
-    public async Task Prepare_Disposed_ThrowsObjectDisposedException()
-    {
-        var counter = 0;
-        var s = new TestStep(_ => { counter++; }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        pipeline.Dispose();
-        pipeline.Dispose();
-
-        await Assert.ThrowsAsync<ObjectDisposedException>(pipeline.PrepareAsync);
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
-
-        Assert.Equal(0, counter);
-        Assert.False(pipeline.PipelineFailed);
-    }
-
-    [Fact]
-    public async Task Run_Disposed_ThrowsObjectDisposedException()
-    {
-        var counter = 0;
-        var s = new TestStep(_ => { counter++; }, ServiceProvider);
-        var pipeline = CreatePipeline([s]);
-
-        await pipeline.PrepareAsync();
-        pipeline.Dispose();
-
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(0, counter);
-        Assert.False(pipeline.PipelineFailed);
-    }
-
-    [Fact]
-    public async Task Cancel()
-    {
-        var waitToCancel = new TaskCompletionSource<int>();
-        var waitUntilCanceled = new ManualResetEvent(false);
-
-        var token = CancellationToken.None;
-
-        var step = new TestStep(ct =>
+        protected override Task PrepareCoreAsync(CancellationToken token)
         {
-            token = ct;
-            waitToCancel.SetResult(0);
-            waitUntilCanceled.WaitOne();
+            return prepare(token);
+        }
 
-        }, ServiceProvider);
-
-        var pipeline = CreatePipeline([step]);
-
-        await pipeline.PrepareAsync();
-
-        var pipelineTask = pipeline.RunAsync(CancellationToken.None);
-        await waitToCancel.Task;
-        pipeline.Cancel();
-        waitUntilCanceled.Set();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(async () => await pipelineTask);
-
-        Assert.True(pipeline.PipelineFailed);
-
-        Assert.True(token.IsCancellationRequested);
-    }
-
-    [Fact]
-    public async Task Cancel_BeforeRun_HasNoEffect()
-    {
-        var ran = false;
-        var step = new TestStep(_ => ran = true, ServiceProvider);
-
-        var pipeline = CreatePipeline([step]);
-
-        await pipeline.PrepareAsync();
-        pipeline.Cancel();
-
-        await pipeline.RunAsync(CancellationToken.None);
-        Assert.False(pipeline.PipelineFailed);
-        Assert.True(ran);
-    }
-
-    [Fact]
-    public async Task RunAsync_TokenCancelledBeforeRun()
-    {
-        var ran = false;
-        var step = new TestStep(_ => ran = true, ServiceProvider);
-
-        var pipeline = CreatePipeline([step]);
-
-        await pipeline.PrepareAsync();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(async () => await pipeline.RunAsync(new CancellationToken(true)));
-
-        Assert.True(pipeline.PipelineFailed);
-        Assert.False(ran);
+        protected override Task ExecuteAsync(CancellationToken token)
+        {
+            return Task.Run(() => run(token), CancellationToken.None);
+        }
     }
 }

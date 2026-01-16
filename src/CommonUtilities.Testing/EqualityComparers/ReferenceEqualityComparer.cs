@@ -1,9 +1,9 @@
-﻿#if !NET5_0_OR_GREATER
+﻿#if !NET10_0_OR_GREATER
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace AnakinRaW.CommonUtilities.Testing;
+namespace AnakinRaW.CommonUtilities.Testing.EqualityComparers;
 
 /// <summary>
 /// An <see cref="IEqualityComparer{T}"/> that uses reference equality (<see cref="object.ReferenceEquals"/>)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AnakinRaW.CommonUtilities.Extensions;
+namespace AnakinRaW.CommonUtilities.Testing.Extensions;
 
 /// <summary>
 /// Provides extension methods for string manipulation and testing.
@@ -16,7 +16,7 @@ public static class StringExtensions
         /// </summary>
         /// <param name="input">The input string whose character casing will be shuffled.</param>
         /// <returns>A new string with randomly shuffled character casing.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="input"/> is <see langword="null"/>.</exception>
         public static unsafe string ShuffleCasing(string input)
         {
             if (input is null)

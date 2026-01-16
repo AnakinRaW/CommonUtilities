@@ -1,5 +1,6 @@
 ﻿using System;
 using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Progress;

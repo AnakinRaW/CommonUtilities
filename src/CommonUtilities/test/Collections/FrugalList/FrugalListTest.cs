@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 // ReSharper disable InconsistentNaming
 
 namespace AnakinRaW.CommonUtilities.Test.Collections.FrugalList;
@@ -15,6 +17,26 @@ public class FrugalListTest_String : FrugalListTestBase<string>
     }
 }
 
+public class List_Generic_Tests_string_Immutable : FrugalListTest_String
+{
+    protected override bool IsReadOnly => true;
+
+    protected override IList<string> GenericIListFactory(int setLength)
+    {
+        return GenericFrugalListFactory(setLength).ToImmutableList();
+    }
+
+    protected override IList<string> GenericIListFactory()
+    {
+        return GenericFrugalListFactory().ToImmutableList();
+    }
+
+    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    {
+        return new List<ModifyEnumerable>();
+    }
+}
+
 public class FrugalListTest_Int : FrugalListTestBase<int>
 {
     protected override int CreateT(int seed)
@@ -23,3 +45,24 @@ public class FrugalListTest_Int : FrugalListTestBase<int>
         return rand.Next();
     }
 }
+
+public class List_Generic_Tests_int_Immutable : FrugalListTest_Int
+{
+    protected override bool IsReadOnly => true;
+  
+    protected override IList<int> GenericIListFactory(int setLength)
+    {
+        return GenericFrugalListFactory(setLength).ToImmutableList();
+    }
+
+    protected override IList<int> GenericIListFactory()
+    {
+        return GenericFrugalListFactory().ToImmutableList();
+    }
+
+    protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
+    {
+        return new List<ModifyEnumerable>();
+    }
+}
+

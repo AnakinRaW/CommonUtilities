@@ -57,7 +57,7 @@ namespace AnakinRaW.CommonUtilities.Collections;
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
 [DebuggerDisplay("Count = {Count}")]
-public struct FrugalList<T> : IList<T>
+public struct FrugalList<T> : IList<T>, IReadOnlyList<T>
 {
     private static readonly EqualityComparer<T> ItemComparer = EqualityComparer<T>.Default;
     private static readonly EmptyList EmptyDummyList = EmptyList.Instance;
@@ -65,13 +65,13 @@ public struct FrugalList<T> : IList<T>
     private T _firstItem = default!;
     private List<T>? _tailList;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IList{T}"/>
     public readonly int Count => _tailList is null ? 0 : 1 + _tailList.Count;
 
     /// <inheritdoc />
-    public readonly bool IsReadOnly => false;
+    readonly bool ICollection<T>.IsReadOnly => false;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IList{T}"/>
     public T this[int index]
     {
         readonly get
@@ -106,6 +106,9 @@ public struct FrugalList<T> : IList<T>
     /// </summary>
     /// <param name="collection">The list whose elements are copied to the new list.</param>
     /// <exception cref="ArgumentNullException"><paramref name="collection"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// Modifications to <paramref name="collection"/> will not be reflected to this instance.
+    /// </remarks>
     public FrugalList(IEnumerable<T> collection)
     {
         if (collection == null)
@@ -115,7 +118,7 @@ public struct FrugalList<T> : IList<T>
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FrugalList{T}"/> structure that copies all elements from the given list.
+    /// Initializes a new instance of the <see cref="FrugalList{T}"/> structure that contains elements copied from the specified list.
     /// </summary>
     /// <param name="list">The list whose elements are copied to the new list.</param>
     /// <remarks>
@@ -136,9 +139,9 @@ public struct FrugalList<T> : IList<T>
     /// Modifications to this instance will not be reflected to the newly create readonly list.
     /// </remarks>
     /// <returns>The read-only list.</returns>
-    public readonly ReadOnlyFrugalList<T> AsReadOnly()
+    public readonly ImmutableFrugalList<T> ToImmutableList()
     {
-        return new ReadOnlyFrugalList<T>(in this);
+        return new ImmutableFrugalList<T>(in this);
     }
 
     /// <inheritdoc />
@@ -329,7 +332,7 @@ public struct FrugalList<T> : IList<T>
     public readonly T First()
     {
         if (Count == 0)
-            throw new InvalidOperationException("The list contains no elements");
+            throw new InvalidOperationException("The sequence contains no elements");
         return _firstItem;
     }
 
@@ -342,7 +345,7 @@ public struct FrugalList<T> : IList<T>
     {
         var count = Count;
         if (count == 0)
-            throw new InvalidOperationException("The list contains no elements");
+            throw new InvalidOperationException("The sequence contains no elements");
         return count switch
         {
             1 => _firstItem,
@@ -378,12 +381,40 @@ public struct FrugalList<T> : IList<T>
     /// <summary>
     /// Returns an enumerator that iterates through the <see cref="FrugalList{T}"/>
     /// </summary>
-    /// <returns>A <see cref="FrugalEnumerator"/> for the <see cref="FrugalList{T}"/>.</returns>
-    public FrugalEnumerator GetEnumerator() => new(ref this);
+    /// <returns>A <see cref="Enumerator"/> for the <see cref="FrugalList{T}"/>.</returns>
+    /// <remarks>
+    /// <para>
+    /// <b>Important:</b> Unlike standard .NET collection enumerators (e.g., <see cref="List{T}.Enumerator"/>),
+    /// this enumerator does <b>NOT</b> detect modifications to the source collection and will <b>NOT</b> throw
+    /// <see cref="InvalidOperationException"/> when the collection is modified during enumeration.
+    /// </para>
+    /// <para>
+    /// Instead, the enumerator operates on a snapshot of the <see cref="FrugalList{T}"/> taken at the time
+    /// <see cref="GetEnumerator"/> is called. Because <see cref="FrugalList{T}"/> is a <see langword="struct"/>,
+    /// the enumerator stores a copy of the list's state by value.
+    /// </para>
+    /// <para>
+    /// For predictable behavior, avoid modifying a <see cref="FrugalList{T}"/> while enumerating it.
+    /// If you need to modify the list during iteration, consider using a <see langword="for"/> loop with an index,
+    /// or copy the list first using <see cref="FrugalList{T}(in FrugalList{T})"/> or <see cref="ToList"/>.
+    /// </para>
+    /// <para>
+    /// The enumerator does not have exclusive access to the collection; therefore, enumerating through a collection is
+    /// intrinsically not a thread-safe procedure. To guarantee thread safety during enumeration, you can lock the collection
+    /// during the entire enumeration. To allow the collection to be accessed by multiple threads for reading and writing,
+    /// you must implement your own synchronization.
+    /// </para>
+    /// </remarks>
+    public Enumerator GetEnumerator() => new(ref this);
 
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new FrugalEnumerator(ref this);
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        if (Count == 0)
+            return EmptyEnumerator<T>.Instance;
+        return GetEnumerator();
+    }
 
-    IEnumerator IEnumerable.GetEnumerator() => new FrugalEnumerator(ref this);
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 
     /// <summary>
     /// Private type exists so that we can perform type checking on that type rather than reference checking.
@@ -400,14 +431,45 @@ public struct FrugalList<T> : IList<T>
     /// <summary>
     /// Enumerates the elements of a <see cref="FrugalList{T}"/>.
     /// </summary>
-    public struct FrugalEnumerator : IEnumerator<T>
+    /// <remarks>
+    /// <para>
+    /// <b>Important:</b> Unlike standard .NET collection enumerators (e.g., <see cref="List{T}.Enumerator"/>),
+    /// this enumerator does <b>NOT</b> detect modifications to the source collection and will <b>NOT</b> throw
+    /// <see cref="InvalidOperationException"/> when the collection is modified during enumeration.
+    /// </para>
+    /// <para>
+    /// Instead, the enumerator operates on a snapshot of the <see cref="FrugalList{T}"/> taken at the time
+    /// <see cref="GetEnumerator"/> is called. Because <see cref="FrugalList{T}"/> is a <see langword="struct"/>,
+    /// the enumerator stores a copy of the list's state by value.
+    /// </para>
+    /// <para>
+    /// For predictable behavior, avoid modifying a <see cref="FrugalList{T}"/> while enumerating it.
+    /// If you need to modify the list during iteration, consider using a <see langword="for"/> loop with an index,
+    /// or copy the list first using <see cref="FrugalList{T}(in FrugalList{T})"/> or <see cref="ToList"/>.
+    /// </para>
+    /// <para>
+    /// The enumerator does not have exclusive access to the collection; therefore, enumerating through a collection is
+    /// intrinsically not a thread-safe procedure. To guarantee thread safety during enumeration, you can lock the collection
+    /// during the entire enumeration. To allow the collection to be accessed by multiple threads for reading and writing,
+    /// you must implement your own synchronization.
+    /// </para>
+    /// </remarks>
+    public struct Enumerator : IEnumerator<T>
     {
         private readonly FrugalList<T> _list;
 
         private int _position;
         private T _current;
 
-        readonly object IEnumerator.Current => Current!;
+        readonly object? IEnumerator.Current
+        {
+            get
+            {
+                if (_position <= 0)
+                    throw new InvalidOperationException();
+                return _current;
+            }
+        }
 
         /// <inheritdoc />
         public readonly T Current
@@ -417,7 +479,7 @@ public struct FrugalList<T> : IList<T>
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal FrugalEnumerator(ref FrugalList<T> list)
+        internal Enumerator(ref FrugalList<T> list)
         {
             _list = list;
             _position = 0;
@@ -428,13 +490,14 @@ public struct FrugalList<T> : IList<T>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            if (_position < _list.Count)
+            var localList = _list;
+            if ((uint)_position < (uint)localList.Count)
             {
-                _current = _list[_position];
+                _current = localList[_position];
                 ++_position;
                 return true;
             }
-            _position = _list.Count + 1;
+            _position = -1;
             _current = default!;
             return false;
         }
@@ -444,7 +507,6 @@ public struct FrugalList<T> : IList<T>
         {
             _current = default!;
             _position = 0;
-
         }
 
         /// <inheritdoc />

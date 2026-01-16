@@ -5,30 +5,44 @@ using System.Diagnostics.CodeAnalysis;
 namespace AnakinRaW.CommonUtilities.Collections;
 
 /// <summary>
-/// Represents a read-only generic collection that maps keys to list of values.
+/// Represents a generic read-only collection that maps keys to a list of values.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Unlike a standard <see cref="IReadOnlyDictionary{TKey, TValue}"/>, this dictionary
-/// allows multiple values to be associated with a single key.
+/// allows multiple values to be associated with a single key using an <see cref="IReadOnlyList{T}"/>
+/// as the underlying value type.
 /// </para>
 /// <para>
 /// When enumerating, each key appears exactly once with all its associated values
-/// as a <see cref="ReadOnlyFrugalList{T}"/>.
+/// stored to an <see cref="IReadOnlyList{T}"/>.
 /// </para>
 /// </remarks>
 /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
-/// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
-public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, ReadOnlyFrugalList<TValue>>> where TKey : notnull
+/// <typeparam name="TValue">The type of the values in the lists associated with the keys.</typeparam>
+public interface IReadOnlyValueListDictionary<TKey, TValue> 
+    : IEnumerable<KeyValuePair<TKey, IReadOnlyList<TValue>>> where TKey : notnull
 {
     /// <summary>
     /// Gets the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key of the values to get.</param>
-    /// <returns>A <see cref="ReadOnlyFrugalList{TValue}"/> containing all values for the specified key.</returns>
+    /// <param name="key">The key whose values to get.</param>
+    /// <returns>
+    /// An <see cref="IReadOnlyList{T}"/> containing all values for the specified key.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
-    ReadOnlyFrugalList<TValue> this[TKey key] { get; }
+    IReadOnlyList<TValue> this[TKey key] { get; }
 
     /// <summary>
     /// Gets a collection containing all values in the dictionary.
@@ -43,7 +57,7 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     /// then all values for the second key, and so on.
     /// </para>
     /// <para>
-    /// The collection count equals <see cref="Count"/>, not <see cref="KeyCount"/>.
+    /// The collection count equals <see cref="ValueCount"/>, not <see cref="Count"/>.
     /// Modifications to the returned collection are not reflected in the dictionary.
     /// </para>
     /// <para>
@@ -63,18 +77,18 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     ICollection<TKey> Keys { get; }
 
     /// <summary>
+    /// Gets the number of distinct keys in the dictionary.
+    /// </summary>
+    int Count { get; }
+
+    /// <summary>
     /// Gets the total number of values across all keys in the dictionary.
     /// </summary>
     /// <remarks>
     /// This is the sum of all values for all keys, not the number of distinct keys.
-    /// Use <see cref="KeyCount"/> to get the number of distinct keys.
+    /// Use <see cref="Count"/> to get the number of distinct keys.
     /// </remarks>
-    int Count { get; }
-
-    /// <summary>
-    /// Gets the number of distinct keys in the dictionary.
-    /// </summary>
-    int KeyCount { get; }
+    int ValueCount { get; }
 
     /// <summary>
     /// Determines whether the dictionary contains the specified key.
@@ -85,13 +99,25 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     bool ContainsKey(TKey key);
 
     /// <summary>
-    /// Get a list of values stored with the specified key.
+    /// Gets the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key to get the list of values for.</param>
-    /// <returns>The list of values of the specified <paramref name="key"/>.</returns>
+    /// <param name="key">The key whose values to get.</param>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
+    /// <returns>
+    /// An <see cref="IReadOnlyList{T}"/> containing all values for the specified key.
+    /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">The key does not exist in the dictionary.</exception>
-    ReadOnlyFrugalList<TValue> GetValues(TKey key);
+    IReadOnlyList<TValue> GetValues(TKey key);
 
     /// <summary>
     /// Gets the last element with the specified key.
@@ -134,13 +160,28 @@ public interface IReadOnlyValueListDictionary<TKey, TValue> : IEnumerable<KeyVal
     bool TryGetLastValue(TKey key, [MaybeNullWhen(false)] out TValue value);
 
     /// <summary>
-    /// Gets the list of values associated with the specified key.
+    /// Attempts to get the list of values associated with the specified key.
     /// </summary>
-    /// <param name="key">The key whose value to get.</param>
+    /// <param name="key">The key whose values to get.</param>
     /// <param name="values">
-    /// When this method returns, a list of values associated with the specified key, if the key is found;
-    /// otherwise, an empty list. This parameter is passed uninitialized.</param>
-    /// <returns><see langword="true"/> if the dictionary contains at least one value with the specified key; otherwise, <see langword="false"/>.</returns>
+    /// When this method returns, contains an <see cref="IReadOnlyList{T}"/> of values associated
+    /// with the specified key, if the key is found; otherwise, an empty read-only list.
+    /// This parameter is passed uninitialized.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// Whether the returned list is a live view or a snapshot is implementation-defined.
+    /// Do not rely on the returned list reflecting subsequent modifications to the dictionary.
+    /// </para>
+    /// <para>
+    /// For consistent behavior across implementations, treat the returned list as valid
+    /// only until the next modification to the dictionary.
+    /// </para>
+    /// </remarks>
+    /// <returns>
+    /// <see langword="true"/> if the dictionary contains at least one value with the specified key;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
-    bool TryGetValues(TKey key, out ReadOnlyFrugalList<TValue> values);
+    bool TryGetValues(TKey key, out IReadOnlyList<TValue> values);
 }
