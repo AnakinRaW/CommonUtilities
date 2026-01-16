@@ -13,8 +13,14 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// Represents an asynchronous step runner that manages the execution of steps in a pipeline.
 /// </summary>
 /// <remarks>
+/// <para>
 /// This class provides functionality to add steps, execute them asynchronously, and handle errors during execution.
 /// It supports multiple workers for parallel step execution and ensures proper cancellation and error handling.
+/// </para>
+/// <para>
+/// <b>Thread Safety:</b> This class and its derivatives are <b>not</b> thread-safe for concurrent operations
+/// such as adding steps from a different thread while step execution is processing.
+/// </para>
 /// </remarks>
 public class AsyncStepRunner : IStepRunner
 {

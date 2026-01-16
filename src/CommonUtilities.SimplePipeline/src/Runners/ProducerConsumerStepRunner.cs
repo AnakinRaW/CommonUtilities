@@ -16,6 +16,12 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 /// Call <see cref="Finish"/> to signal completion of step additions,
 /// otherwise the runner will block indefinitely unless cancelled via <see cref="CancellationToken"/>.
 /// </para>
+/// <para>
+/// <b>Thread Safety:</b> While this class supports adding steps while the runner is executing, it is <b>not</b> 
+/// thread-safe by design. Adding steps from different threads or concurrently with cancellation/error handling 
+/// may lead to race conditions where the consequence might be that steps added after cancellation or an error
+/// might still get scheduled for execution.
+/// </para>
 /// </remarks>
 public class ProducerConsumerStepRunner(int workerCount, IServiceProvider serviceProvider)
     : AsyncStepRunner(workerCount, serviceProvider)
