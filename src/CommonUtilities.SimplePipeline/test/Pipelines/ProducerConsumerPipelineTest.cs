@@ -25,6 +25,11 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<Produ
         return new TestProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, GetWorkerCount(GetRandomRunBehavior()), false);
     }
 
+    protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateTrackingPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    {
+        return new TrackingProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
+    }
+
     private ProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {
         return new TestProducerConsumerPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
@@ -684,5 +689,34 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<Produ
         : TestProducerConsumerPipeline(serviceProvider, steps, prepareAction, workerCount, failFast)
     {
         public ProducerConsumerStepRunner ExposedStepRunner => StepRunner;
+    }
+
+    private class TrackingProducerConsumerPipeline : ProducerConsumerPipeline
+    {
+        private readonly IAsyncEnumerable<IStep> _steps;
+        private readonly TrackingPipelineHelper _helper;
+
+        public TrackingProducerConsumerPipeline(
+            IServiceProvider serviceProvider,
+            IAsyncEnumerable<IStep> steps,
+            int workerCount,
+            bool failFast,
+            List<string> callOrder,
+            string? throwOnMethod)
+            : base(workerCount, serviceProvider)
+        {
+            _steps = steps;
+            _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
+            FailFast = failFast;
+        }
+
+        protected override IAsyncEnumerable<IStep> BuildStepsAsync(CancellationToken token)
+        {
+            return _steps;
+        }
+
+        protected override void OnExecuteStarted() => _helper.OnExecuteStarted();
+        protected override void OnRunnerExecuted() => _helper.OnRunnerExecuted();
+        protected override void OnExecuteCompleted() => _helper.OnExecuteCompleted();
     }
 }

@@ -62,7 +62,7 @@ public class ImmutableFrugalListTest
     [Fact]
     public void Create_NullArg_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>("items", () => ImmutableFrugalList.Create<T>(null!));
+        Assert.Throws<ArgumentNullException>("items", () => ImmutableFrugalList.Create<int>(null!));
     }
 
     [Fact]
