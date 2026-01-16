@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace AnakinRaW.CommonUtilities.Collections;
 
 /// <summary>
-/// A read-only variant of the <see cref="FrugalList{T}"/>.
+/// Provides an immutable variant of the <see cref="FrugalList{T}"/>.
 /// </summary>
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 [DebuggerTypeProxy(typeof(IReadOnlyCollectionDebugView<>))]
@@ -20,14 +20,14 @@ public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
 
     private readonly FrugalList<T> _list;
 
-    /// <inheritdoc cref="IReadOnlyList{T}"/>
+    /// <inheritdoc cref="IReadOnlyCollection{T}.Count"/>
     public int Count => _list.Count;
 
-    /// <inheritdoc cref="IReadOnlyList{T}"/>
+    /// <inheritdoc cref="IReadOnlyList{T}.this"/>
     public T this[int index] => _list[index];
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="ImmutableFrugalList{T}"/> structure to one item.
+    /// Initializes a new instance of the <see cref="ImmutableFrugalList{T}"/> structure with the specified item.
     /// </summary>
     /// <param name="item">The item of the list.</param>
     internal ImmutableFrugalList(T item)
@@ -55,22 +55,72 @@ public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
 
     #region Explixit IList/ICollection<T> implementations
 
+    /// <summary>
+    /// Gets the element at the specified index. An <see cref="NotSupportedException"/> occurs if you try to set the item at the specified index.
+    /// </summary>
+    /// <remarks>
+    /// Because the collection is immutable, you can only get this item at the specified index.
+    /// An exception will occur if you try to set the item. This member is an explicit interface member implementation.
+    /// It can be used only when the <see cref="ImmutableFrugalList{T}"/> instance is cast to an <see cref="IList{T}"/> interface.
+    /// </remarks>
+    /// <param name="index">The zero-based index of the element to get.</param>
+    /// <value>The element at the specified index.</value>
+    /// <exception cref="NotSupportedException">The element at the specified index.</exception>
     T IList<T>.this[int index]
     {
         get => _list[index];
         set => throw new NotSupportedException("Collection is read-only.");
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the <see cref="ICollection{T}"/> is read-only.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the <see cref="ICollection{T}"/> is read-only; otherwise, <see langword="false"/>.
+    /// In the implementation of <see cref="ImmutableFrugalList{T}"/>, this property always returns <see langword="true"/>.
+    /// </value>
     bool ICollection<T>.IsReadOnly => true;
 
+    /// <summary>
+    /// Adds an item to the <see cref="ICollection{T}"/>. This implementation always throws <see cref="NotSupportedException"/>.
+    /// </summary>
+    /// <param name="item">The object to add to the <see cref="ICollection{T}"/>.</param>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
     void ICollection<T>.Add(T item) => throw new NotSupportedException();
 
+    /// <summary>
+    /// Inserts an item to the <see cref="IList{T}"/> at the specified index.
+    /// This implementation always throws <see cref="NotSupportedException"/>.
+    /// </summary>
+    /// <param name="index">The zero-based index at which the item should be inserted.</param>
+    /// <param name="item">The object to insert into the <see cref="IList{T}"/>.</param>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
     void IList<T>.Insert(int index, T item) => throw new NotSupportedException("Collection is read-only.");
 
+    /// <summary>
+    /// Removes the first occurrence of a specific object from the <see cref="ICollection{T}"/>.
+    /// This implementation always throws <see cref="NotSupportedException"/>.
+    /// </summary>
+    /// <param name="item">The object to remove from the list.</param>
+    /// <returns>
+    /// Always throws a <see cref="NotSupportedException"/> because the collection is read-only.
+    /// </returns>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
     bool ICollection<T>.Remove(T item) => throw new NotSupportedException("Collection is read-only.");
 
+    /// <summary>
+    /// Removes the <see cref="IList{T}"/> item at the specified index. 
+    /// This implementation always throws <see cref="NotSupportedException"/>.
+    /// </summary>
+    /// <param name="index">The zero-based index of the element to remove.</param>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
     void IList<T>.RemoveAt(int index) => throw new NotSupportedException("Collection is read-only.");
 
+    /// <summary>
+    /// Removes all items from the <see cref="ICollection{T}"/>.
+    /// This implementation always throws <see cref="NotSupportedException"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
     void ICollection<T>.Clear() => throw new NotSupportedException("Collection is read-only.");
 
     #endregion
@@ -80,45 +130,45 @@ public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
     // Natively implementing frequent Linq functions avoids boxing. Add more if necessary.
 
     /// <summary>
-    /// Creates a <see cref="List{T}"/> from the <see cref="FrugalList{T}"/>.
+    /// Creates a <see cref="List{T}"/> from the <see cref="ImmutableFrugalList{T}"/>.
     /// </summary>
-    /// <returns>A <see cref="List{T}"/> that contains elements from the <see cref="FrugalList{T}"/>.</returns>
+    /// <returns>A <see cref="List{T}"/> that contains elements from the <see cref="ImmutableFrugalList{T}"/>.</returns>
     public List<T> ToList()
     {
         return _list.ToList();
     }
 
     /// <summary>
-    /// Copies the elements of the <see cref="FrugalList{T}"/> to a new array.
+    /// Copies the elements of the <see cref="ImmutableFrugalList{T}"/> to a new array.
     /// </summary>
-    /// <returns>An array containing copies of the elements of the <see cref="FrugalList{T}"/>.</returns>
+    /// <returns>An array containing copies of the elements of the <see cref="ImmutableFrugalList{T}"/>.</returns>
     public T[] ToArray()
     {
         return _list.ToArray();
     }
 
     /// <summary>
-    /// Returns the first element of the <see cref="FrugalList{T}"/>.
+    /// Returns the first element of the <see cref="ImmutableFrugalList{T}"/>.
     /// </summary>
-    /// <returns>The first element of the specified <see cref="FrugalList{T}"/></returns>
-    /// <exception cref="InvalidOperationException">The <see cref="FrugalList{T}"/> is empty.</exception>
+    /// <returns>The first element of the specified <see cref="ImmutableFrugalList{T}"/></returns>
+    /// <exception cref="InvalidOperationException">The <see cref="ImmutableFrugalList{T}"/> is empty.</exception>
     public T First()
     {
         return _list.First();
     }
 
     /// <summary>
-    /// Returns the last element of the <see cref="FrugalList{T}"/>.
+    /// Returns the last element of the <see cref="ImmutableFrugalList{T}"/>.
     /// </summary>
-    /// <returns>The last element of the specified <see cref="FrugalList{T}"/></returns>
-    /// <exception cref="InvalidOperationException">The <see cref="FrugalList{T}"/> is empty.</exception>
+    /// <returns>The last element of the specified <see cref="ImmutableFrugalList{T}"/></returns>
+    /// <exception cref="InvalidOperationException">The <see cref="ImmutableFrugalList{T}"/> is empty.</exception>
     public T Last()
     {
         return _list.Last();
     }
 
     /// <summary>
-    /// Returns the first element of the <see cref="FrugalList{T}"/>, or a default value if no element is found.
+    /// Returns the first element of the <see cref="ImmutableFrugalList{T}"/>, or a default value if no element is found.
     /// </summary>
     /// <returns><see langword="default(T)"/> if source is empty; otherwise, the first element in source.</returns>
     public T? FirstOrDefault()
@@ -127,7 +177,7 @@ public readonly struct ImmutableFrugalList<T> : IList<T>, IReadOnlyList<T>
     }
 
     /// <summary>
-    /// Returns the last element of the <see cref="FrugalList{T}"/>, or a default value if no element is found.
+    /// Returns the last element of the <see cref="ImmutableFrugalList{T}"/>, or a default value if no element is found.
     /// </summary>
     /// <returns><see langword="default(T)"/> if source is empty; otherwise, the last element in source.</returns>
     public T? LastOrDefault()
@@ -218,5 +268,16 @@ public static class ImmutableFrugalList
         if (items is IList<T> { Count: 1 } list)
             return new ImmutableFrugalList<T>(list[0]);
         return new FrugalList<T>(items).ToImmutableList();
+    }
+    
+    /// <summary>
+    /// Creates a new instance of <see cref="ImmutableFrugalList{T}"/> containing a single specified item.
+    /// </summary>
+    /// <typeparam name="T">The type of the item.</typeparam>
+    /// <param name="item">The single item to include in the list.</param>
+    /// <returns>An <see cref="ImmutableFrugalList{T}"/> containing the specified item.</returns>
+    public static ImmutableFrugalList<T> Single<T>(T item)
+    {
+        return new ImmutableFrugalList<T>(item);
     }
 }

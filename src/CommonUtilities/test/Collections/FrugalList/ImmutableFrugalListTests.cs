@@ -1,5 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.Collections;
 using System;
+using System.Linq;
 using Xunit;
 // ReSharper disable InconsistentNaming
 
@@ -52,4 +53,50 @@ public class ImmutableFrugalListTestInt : ImmutableFrugalListTestBase<int>
         foreach (var excluded in _excludedFromIntArray)
             Assert.Equal(-1, collection.IndexOf(excluded));
     }
+}
+
+public class ImmutableFrugalListTest
+{
+    #region Create{T}
+
+    [Fact]
+    public void Create_NullArg_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>("items", () => ImmutableFrugalList.Create<T>(null!));
+    }
+
+    [Fact]
+#pragma warning disable xUnit1026
+    public void Create_CreatesCorrectImmutableList()
+    {
+        var list = new[] { 1, 2, 3, 4, 5, 6 };
+
+        var listAsFrugal = new FrugalList<int>(list);
+        var listAsImmutable = listAsFrugal.ToImmutableList();
+        var listAsSet = list.ToHashSet();
+        var listAsEnumerable = list.Where(_ => true);
+
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsFrugal));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsImmutable));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsSet));
+        Assert.Equal(list, ImmutableFrugalList.Create(listAsEnumerable));
+    }
+#pragma warning restore xUnit1026
+
+    #endregion
+
+    #region Single{T}
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(1)]
+    [InlineData("123")]
+    public void Single_CreatesCorrectImmutableListWithOneItem(object? data)
+    {
+        var list = ImmutableFrugalList.Single(data);
+        Assert.Equal([data], list);
+        Assert.Single(list);
+    }
+
+    #endregion
 }

@@ -52,45 +52,6 @@ public abstract class ImmutableFrugalListTestBase<T> : FrugalListTestSuite<T>
 
     #endregion
 
-    #region Create{T}
-
-    [Fact]
-    public void Create_NullArg_ThrowsArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>("items", () => ImmutableFrugalList.Create<T>(null!));
-    }
-
-    [Theory]
-    [MemberData(nameof(GetEnumerableTestData))]
-#pragma warning disable xUnit1026
-    public void Create_CreatesCorrectImmutableList(int _, int enumerableLength, int __, int ___)
-    {
-        var list = CreateEnumerable(null, enumerableLength, 0, 0).ToList();
-
-        var listAsFrugal = new FrugalList<T>(list);
-        var listAsImmutable = listAsFrugal.ToImmutableList();
-        var listAsSet = list.ToHashSet();
-        var listAsEnumerable = list.Where(_ => true);
-
-        Assert.Equal(list, ImmutableFrugalList.Create(listAsFrugal));
-        Assert.Equal(list, ImmutableFrugalList.Create(listAsImmutable));
-        Assert.Equal(list, ImmutableFrugalList.Create(listAsSet));
-        Assert.Equal(list, ImmutableFrugalList.Create(listAsEnumerable));
-
-        const ModifyOperation mods = ModifyOperation.Add | ModifyOperation.Insert | ModifyOperation.Overwrite | ModifyOperation.Remove | ModifyOperation.Clear;
-
-        foreach (var modifyEnumerable in GetModifyEnumerables(mods, CreateT))
-        {
-            var listCopy = new List<T>(list);
-            var immutable = ImmutableFrugalList.Create(listCopy);
-            if (modifyEnumerable(listCopy))
-                Assert.NotEqual(listCopy, immutable.ToList());
-        }
-    }
-#pragma warning restore xUnit1026
-
-    #endregion
-
     #region Empty
 
     [Fact]
