@@ -1166,6 +1166,9 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         errorOccurred.Wait(TestContext.Current.CancellationToken);
         
+        // Give the runner time to process the error and cancel
+        await Task.Delay(200, TestContext.Current.CancellationToken);
+        
         var step2 = new TestStep(_ =>
         {
             step2Executed = true;
