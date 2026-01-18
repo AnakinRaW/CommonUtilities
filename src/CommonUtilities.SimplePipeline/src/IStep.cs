@@ -37,4 +37,11 @@ public interface IStep : IDisposable
     /// Gets an awaiter used to await this <see cref="IStep"/>.
     /// </summary>
     TaskAwaiter GetAwaiter();
+
+    /// <summary>
+    /// Configures an awaiter used to await this <see cref="IStep"/>.
+    /// </summary>
+    /// <param name="continueOnCapturedContext"></param>
+    /// <returns>An object used to await this task.</returns>
+    ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext);
 }

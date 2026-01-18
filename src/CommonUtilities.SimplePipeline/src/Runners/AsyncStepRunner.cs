@@ -31,8 +31,7 @@ public class AsyncStepRunner : IStepRunner
     private readonly ConcurrentBag<IStep> _executedSteps = [];
     private readonly ConcurrentBag<Exception> _exceptions = [];
     private readonly TaskCompletionSource<Task> _completionSource = new();
-    
-    private Task? _cachedAwaitableTask;
+    private Task? _exposedTask;
 
     /// <inheritdoc />
     public AggregateException? Exception => _exceptions.IsEmpty ? null : new AggregateException(_exceptions);
@@ -95,10 +94,10 @@ public class AsyncStepRunner : IStepRunner
     {
         if (IsRunning)
             throw new InvalidOperationException("The step runner is already running.");
-        
+
         var task = CreateRunnerTask(token);
         _completionSource.TrySetResult(task);
-        return task;
+        return GetRunnerTask();
     }
 
     /// <inheritdoc/>
@@ -107,14 +106,7 @@ public class AsyncStepRunner : IStepRunner
         return GetRunnerTask().GetAwaiter();
     }
 
-    /// <summary>
-    /// Configures an awaiter used to await this runner.
-    /// </summary>
-    /// <param name="continueOnCapturedContext">
-    /// <see langword="true"/> to attempt to marshal the continuation back to the original context captured;
-    /// otherwise, <see langword="false"/>.
-    /// </param>
-    /// <returns>An object used to await this runner.</returns>
+    /// <inheritdoc/>
     public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
     {
         return GetRunnerTask().ConfigureAwait(continueOnCapturedContext);
@@ -122,17 +114,22 @@ public class AsyncStepRunner : IStepRunner
 
     private Task GetRunnerTask()
     {
+        var existing = Volatile.Read(ref _exposedTask);
+        if (existing is not null)
+            return existing;
+
         var tcsTask = _completionSource.Task;
         if (tcsTask is { IsCompleted: true, Status: TaskStatus.RanToCompletion })
-            return tcsTask.Result;
-
-        if (_cachedAwaitableTask is not null)
-            return _cachedAwaitableTask;
+        {
+            var result = tcsTask.Result;
+            var original = Interlocked.CompareExchange(ref _exposedTask, result, null);
+            return original ?? result;
+        }
 
         var newTask = CreateAwaitableTask();
-        return Interlocked.CompareExchange(ref _cachedAwaitableTask, newTask, null) ?? newTask;
+        var prev = Interlocked.CompareExchange(ref _exposedTask, newTask, null);
+        return prev ?? newTask;
     }
-
 
     private async Task CreateAwaitableTask()
     {
@@ -149,11 +146,11 @@ public class AsyncStepRunner : IStepRunner
     /// <inheritdoc/>
     public void Wait(TimeSpan timeout)
     {
-        var tcsTask = _completionSource.Task;
-        if (!tcsTask.Wait(timeout))
-            throw new TimeoutException();
+        var totalMilliseconds = (long)timeout.TotalMilliseconds;
+        if (totalMilliseconds is < -1 or > int.MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
 
-        var task = tcsTask.Result;
+        var task = GetRunnerTask();
 
         var completed = true;
         try
@@ -178,7 +175,7 @@ public class AsyncStepRunner : IStepRunner
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the next step.</param>
     /// <returns>
-    /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation. 
+    /// A <see cref="ValueTask{TResult}"/> representing the asynchronous operation.
     /// The result contains the next <see cref="IStep"/> to be executed, or <see langword="null"/> if no steps are available.
     /// </returns>
     /// <remarks>
@@ -234,7 +231,7 @@ public class AsyncStepRunner : IStepRunner
                         () => RunWorkerAsync(token),
                         CancellationToken.None,
                         TaskCreationOptions.LongRunning,
-                        TaskScheduler.Default).Unwrap(); 
+                        TaskScheduler.Default).Unwrap();
                 await Task.WhenAll(workers).ConfigureAwait(false);
             }
         }

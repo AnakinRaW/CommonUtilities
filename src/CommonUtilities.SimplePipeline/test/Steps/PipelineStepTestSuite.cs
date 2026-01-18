@@ -1,4 +1,5 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using AnakinRaW.CommonUtilities.Testing;
 using System;
 using System.Threading;
@@ -437,6 +438,69 @@ public abstract class PipelineStepTestSuite : TestBaseWithServiceProvider
             step => step.GetAwaiter(),
             (step, ca) => step.ConfigureAwait(ca),
             step => step.RunAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task RunAsync_GetAwaiter_ConfigureAwait_ShareSameTask()
+    {
+        var stepStarted = new TaskCompletionSource<int>();
+        var canComplete = new TaskCompletionSource<int>();
+
+        var step = new TestStep(async _ =>
+        {
+            stepStarted.SetResult(1);
+            await canComplete.Task;
+        }, ServiceProvider);
+
+        // Get task from RunAsync
+        var runTask = step.RunAsync(CancellationToken.None);
+
+        await stepStarted.Task;
+
+        // All should report same IsCompleted state while running
+        Assert.False(runTask.IsCompleted);
+        Assert.False(step.GetAwaiter().IsCompleted);
+        Assert.False(step.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.False(step.ConfigureAwait(true).GetAwaiter().IsCompleted);
+
+        canComplete.SetResult(1);
+        await runTask;
+
+        // All should now be completed
+        Assert.True(runTask.IsCompleted);
+        Assert.True(step.GetAwaiter().IsCompleted);
+        Assert.True(step.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.True(step.ConfigureAwait(true).GetAwaiter().IsCompleted);
+    }
+
+    [Fact]
+    public async Task RunAsync_GetAwaiter_ConfigureAwait_PropagateExceptionConsistently()
+    {
+        var expectedException = new InvalidOperationException("Test");
+
+        var step = new TestStep(_ => throw expectedException, ServiceProvider);
+
+        var runTask = step.RunAsync(CancellationToken.None);
+
+        // All should throw the same exception
+        var ex1 = await Assert.ThrowsAsync<InvalidOperationException>(async () => await runTask);
+        var ex2 = await Assert.ThrowsAsync<InvalidOperationException>(async () => await step);
+        var ex3 = await Assert.ThrowsAsync<InvalidOperationException>(async () => await step.ConfigureAwait(false));
+        var ex4 = await Assert.ThrowsAsync<InvalidOperationException>(async () => await step.ConfigureAwait(true));
+
+        Assert.Same(expectedException, ex1);
+        Assert.Same(expectedException, ex2);
+        Assert.Same(expectedException, ex3);
+        Assert.Same(expectedException, ex4);
+
+        // All report same completed state
+        Assert.True(runTask.IsCompleted);
+        Assert.True(step.GetAwaiter().IsCompleted);
+        Assert.True(step.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.True(step.ConfigureAwait(true).GetAwaiter().IsCompleted);
+
+        // Step.Error is set
+        Assert.Same(expectedException, step.Error);
     }
 
     #endregion

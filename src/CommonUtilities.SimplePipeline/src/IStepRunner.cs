@@ -75,6 +75,10 @@ public interface IStepRunner
     /// <param name="waitDuration">The time duration to wait.</param>
     /// <exception cref="TimeoutException">If <paramref name="waitDuration"/> expired.</exception>
     /// <exception cref="AggregateException">If any of the steps failed with an exception.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="waitDuration"/> is a negative number other than -1 milliseconds, which represents an infinite time-out.
+    /// or <paramref name="waitDuration"/> is greater than Int32.MaxValue.
+    /// </exception>
     void Wait(TimeSpan waitDuration);
 
     /// <summary>
@@ -98,4 +102,11 @@ public interface IStepRunner
     /// </remarks>
     /// <returns>A <see cref="TaskAwaiter"/> instance that can be used to await the runner's completion.</returns>
     TaskAwaiter GetAwaiter();
+
+    /// <summary>
+    /// Configures an awaiter used to await this <see cref="IStep"/>.
+    /// </summary>
+    /// <param name="continueOnCapturedContext"></param>
+    /// <returns>An object used to await this task.</returns>
+    ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext);
 }

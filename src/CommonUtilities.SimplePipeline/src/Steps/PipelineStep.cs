@@ -13,7 +13,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 public abstract class PipelineStep : DisposableObject, IStep
 {
     private readonly TaskCompletionSource<Task> _completionSource = new();
-    private Task? _cachedAwaitableTask;
+    private Task? _exposedTask;
 
     /// <summary>
     /// Returns the service provider of this step.
@@ -74,16 +74,11 @@ public abstract class PipelineStep : DisposableObject, IStep
         return GetStepTask().GetAwaiter();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="continueOnCapturedContext"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
     {
         return GetStepTask().ConfigureAwait(continueOnCapturedContext);
     }
-
 
     /// <summary>
     /// Returns a string that represents the current <see cref="PipelineStep"/> instance.
@@ -110,15 +105,21 @@ public abstract class PipelineStep : DisposableObject, IStep
 
     private Task GetStepTask()
     {
+        var existing = Volatile.Read(ref _exposedTask);
+        if (existing is not null)
+            return existing;
+
         var tcsTask = _completionSource.Task;
         if (tcsTask is { IsCompleted: true, Status: TaskStatus.RanToCompletion })
-            return tcsTask.Result;
-
-        if (_cachedAwaitableTask is not null)
-            return _cachedAwaitableTask;
+        {
+            var result = tcsTask.Result;
+            var original = Interlocked.CompareExchange(ref _exposedTask, result, null);
+            return original ?? result;
+        }
 
         var newTask = CreateAwaitableTask();
-        return Interlocked.CompareExchange(ref _cachedAwaitableTask, newTask, null) ?? newTask;
+        var prev = Interlocked.CompareExchange(ref _exposedTask, newTask, null);
+        return prev ?? newTask;
     }
 
     private async Task ExecuteStepAsync(CancellationToken token)

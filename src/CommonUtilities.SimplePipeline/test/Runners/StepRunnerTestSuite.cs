@@ -1712,6 +1712,73 @@ public abstract class StepRunnerTestSuite<T> : TestBaseWithServiceProvider where
         Assert.Equal(3, executeCount);
     }
 
+    [Fact]
+    public async Task RunAsync_GetAwaiter_ConfigureAwait_ShareSameTask()
+    {
+        var runner = CreateStepRunner();
+        var stepStarted = new TaskCompletionSource<int>();
+        var canComplete = new TaskCompletionSource<int>();
+
+        var step = new TestStep(async _ =>
+        {
+            stepStarted.SetResult(1);
+            await canComplete.Task;
+        }, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        // Get task from RunAsync
+        var runTask = runner.RunAsync(CancellationToken.None);
+
+        await stepStarted.Task;
+
+        // All should report same IsCompleted state while running
+        Assert.False(runTask.IsCompleted);
+        Assert.False(runner.GetAwaiter().IsCompleted);
+        Assert.False(runner.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.False(runner.ConfigureAwait(true).GetAwaiter().IsCompleted);
+
+        canComplete.SetResult(1);
+        await runTask;
+
+        // All should now be completed
+        Assert.True(runTask.IsCompleted);
+        Assert.True(runner.GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(true).GetAwaiter().IsCompleted);
+    }
+
+    [Fact]
+    public async Task RunAsync_GetAwaiter_ConfigureAwait_PropagateExceptionConsistently()
+    {
+        var runner = CreateStepRunner();
+        var expectedException = new InvalidOperationException("Test");
+
+        var step = new TestStep(_ => throw expectedException, ServiceProvider);
+
+        runner.AddStep(step);
+        FinishAdding(runner);
+
+        var runTask = runner.RunAsync(CancellationToken.None);
+
+        // All should complete without throwing (exceptions are collected in runner.Exception)
+        await runTask;
+        await runner;
+        await runner.ConfigureAwait(false);
+        await runner.ConfigureAwait(true);
+
+        // All report same completed state
+        Assert.True(runTask.IsCompleted);
+        Assert.True(runner.GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(true).GetAwaiter().IsCompleted);
+
+        // Exception is accessible via runner.Exception
+        Assert.NotNull(runner.Exception);
+        Assert.Contains(expectedException, runner.Exception.InnerExceptions);
+    }
+
     #endregion
 
     #region ExecutedSteps Tests
