@@ -25,11 +25,14 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
         return new TestSequentialPipeline(ServiceProvider, [testStep], prepare, failFast: false);
     }
 
-    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(
+        IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder,
+        string? throwOnMethod = null,
+        Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null)
     {
         if (runnerBehavior is RunnerBehavior.Concurrent)
             throw new NotSupportedException("Concurrent runs are not supported");
-        return new TrackingSequentialPipeline(ServiceProvider, steps, failFast, callOrder, throwOnMethod);
+        return new TrackingSequentialPipeline(ServiceProvider, steps, failFast, callOrder, throwOnMethod, filterErrorStepsFunc);
     }
 
     private SequentialPipeline CreateSequentialPipeline(IList<IStep> steps, bool failFast)
@@ -75,6 +78,7 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
     private class TrackingSequentialPipeline : SequentialPipeline
     {
         private readonly IList<IStep> _steps;
+        private readonly Func<IEnumerable<IStep>, IEnumerable<IStep>>? _filterErrorStepsFunc;
         private readonly TrackingPipelineHelper _helper;
 
         public TrackingSequentialPipeline(
@@ -82,10 +86,12 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
             IList<IStep> steps,
             bool failFast,
             List<string> callOrder,
-            string? throwOnMethod)
+            string? throwOnMethod,
+            Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc)
             : base(serviceProvider)
         {
             _steps = steps;
+            _filterErrorStepsFunc = filterErrorStepsFunc;
             _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
             FailFast = failFast;
         }
@@ -93,6 +99,11 @@ public class SequentialPipelineTests : StepRunnerPipelineTestBase
         protected override Task<IList<IStep>> CreateRunnerSteps(CancellationToken token)
         {
             return Task.FromResult(_steps);
+        }
+
+        protected override IEnumerable<IStep> GetFailedSteps(IEnumerable<IStep> steps)
+        {
+            return _filterErrorStepsFunc is null ? base.GetFailedSteps(steps) : _filterErrorStepsFunc(steps);
         }
 
         protected override void OnExecuteStarted() => _helper.OnExecuteStarted();

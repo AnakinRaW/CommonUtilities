@@ -15,11 +15,16 @@ public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestSui
         return CreateStepRunnerPipeline(steps, failFast, runnerBehavior);
     }
 
-    protected abstract StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null);
+    protected abstract StepRunnerPipeline CreateTrackingStepRunnerPipeline(
+        IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null,
+        Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null);
 
-    protected override StepRunnerPipelineBase<IStepRunner> CreateTrackingPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    protected override StepRunnerPipelineBase<IStepRunner> CreateTrackingPipeline(
+        IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder,
+        string? throwOnMethod = null,
+        Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null)
     {
-        return CreateTrackingStepRunnerPipeline(steps, failFast, runnerBehavior, callOrder, throwOnMethod);
+        return CreateTrackingStepRunnerPipeline(steps, failFast, runnerBehavior, callOrder, throwOnMethod, filterErrorStepsFunc);
     }
 
     #region CreateRunner

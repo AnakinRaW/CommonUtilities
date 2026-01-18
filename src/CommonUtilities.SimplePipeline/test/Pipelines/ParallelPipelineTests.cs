@@ -22,9 +22,12 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
         return new TestParallelPipeline(ServiceProvider, steps, null, GetWorkerCount(runnerBehavior), failFast);
     }
 
-    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    protected override StepRunnerPipeline CreateTrackingStepRunnerPipeline(
+        IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder,
+        string? throwOnMethod = null, Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null)
     {
-        return new TrackingParallelPipeline(ServiceProvider, steps, GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
+        return new TrackingParallelPipeline(ServiceProvider, steps, GetWorkerCount(runnerBehavior), failFast, callOrder,
+            throwOnMethod, filterErrorStepsFunc);
     }
 
     #region Constructor Tests
@@ -74,6 +77,7 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
     {
         private readonly IList<IStep> _steps;
         private readonly int _workerCount;
+        private readonly Func<IEnumerable<IStep>, IEnumerable<IStep>>? _filterErrorStepsFunc;
         private readonly TrackingPipelineHelper _helper;
 
         public TrackingParallelPipeline(
@@ -82,13 +86,20 @@ public class ParallelPipelineTests : StepRunnerPipelineTestBase
             int workerCount,
             bool failFast,
             List<string> callOrder,
-            string? throwOnMethod)
+            string? throwOnMethod,
+            Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc)
             : base(serviceProvider)
         {
             _steps = steps;
             _workerCount = workerCount;
+            _filterErrorStepsFunc = filterErrorStepsFunc;
             _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
             FailFast = failFast;
+        }
+
+        protected override IEnumerable<IStep> GetFailedSteps(IEnumerable<IStep> steps)
+        {
+            return _filterErrorStepsFunc is null ? base.GetFailedSteps(steps) : _filterErrorStepsFunc(steps);
         }
 
         protected override IStepRunner CreateRunner()

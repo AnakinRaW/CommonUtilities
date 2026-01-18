@@ -25,9 +25,12 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<Prod
         return new TestProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), prepare, GetWorkerCount(GetRandomRunBehavior()), false);
     }
 
-    protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateTrackingPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder, string? throwOnMethod = null)
+    protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateTrackingPipeline(
+        IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior, List<string> callOrder,
+        string? throwOnMethod = null, Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null)
     {
-        return new TrackingProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(), GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
+        return new TrackingProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(),
+            GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
     }
 
     private ProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)

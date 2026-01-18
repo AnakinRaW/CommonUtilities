@@ -28,7 +28,8 @@ public abstract class StepRunnerPipelineBaseTestSuite<TRunner> : PipelineTestSui
         bool failFast,
         RunnerBehavior runnerBehavior,
         List<string> callOrder,
-        string? throwOnMethod = null);
+        string? throwOnMethod = null,
+        Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null);
 
     protected StepRunnerPipelineBase<TRunner> CreateStepRunnerPipelineBase(IList<IStep> steps)
     {
@@ -466,6 +467,41 @@ public abstract class StepRunnerPipelineBaseTestSuite<TRunner> : PipelineTestSui
             Assert.Equal([1, 2], executedSteps);
         else
             Assert.Contains(2, executedSteps);
+    }
+
+    #endregion
+
+    #region GetFailedSteps
+
+    [Fact]
+    public async Task GetFailedSteps_OnlyReturnsStepsWithErrors()
+    {
+        var successStep = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+        var failedStep = new TestStep(_ => throw new InvalidOperationException("Test error"), ServiceProvider);
+        var anotherSuccessStep = new TestStep(_ => Task.CompletedTask, ServiceProvider);
+
+        var pipeline = CreateStepRunnerPipelineBase([successStep, failedStep, anotherSuccessStep], false);
+
+        var ex = await Assert.ThrowsAsync<StepFailureException>(
+            () => pipeline.RunAsync(TestContext.Current.CancellationToken));
+
+        await Assert.Single(ex.FailedSteps);
+        Assert.Equal(failedStep, ex.FailedSteps.First());
+    }
+
+    [Fact]
+    public async Task GetFailedSteps_CanBeOverridden_CustomFilteringLogic()
+    {
+        var callOrder = new List<string>();
+
+        var step1 = new TestStep(_ => throw new InvalidOperationException("Error 1"), ServiceProvider);
+        var step2 = new TestStep(_ => throw new ArgumentException("Error 2"), ServiceProvider);
+
+        var pipeline = CreateTrackingPipeline([step1, step2], false, GetRandomRunBehavior(), callOrder,
+            filterErrorStepsFunc: steps => []);
+
+        var ex = await Record.ExceptionAsync(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
+        Assert.Null(ex);
     }
 
     #endregion
