@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class PipelineTest : PipelineTestBase
+public class PipelineTest : PipelineTestSuite
 {
     protected override Pipeline CreatePipeline(IList<IStep> steps)
     {

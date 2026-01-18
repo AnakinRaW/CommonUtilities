@@ -2,7 +2,7 @@
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class AsyncStepRunnerTest : StepRunnerTestBase<AsyncStepRunner>
+public class AsyncStepRunnerTest : StepRunnerTestSuite<AsyncStepRunner>
 {
     public override bool HasSequentialStepExecutionOrder => false;
 

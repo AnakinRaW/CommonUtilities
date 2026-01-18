@@ -1,22 +1,20 @@
-﻿using AnakinRaW.CommonUtilities.Testing;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using AnakinRaW.CommonUtilities.SimplePipeline.Test.TestData;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class TestStepTest : PipelineStepTestBase
+public class PipelineStepTest : PipelineStepTestSuite
 {
     protected override bool StepRespectsCancellationToken => true;
     protected override bool StepAddsExceptionsToErrorProperty => true;
-    protected override bool StepAddsStopRunnerExceptionToErrorProperty => false;
 
     protected override Type GetExpectedExceptionType(Exception thrownException)
     {
-        // TestStep propagates exceptions as-is
         return thrownException.GetType();
     }
 
@@ -30,11 +28,17 @@ public class TestStepTest : PipelineStepTestBase
         return new TestStep(action, ServiceProvider);
     }
 
+    #region Ctor
+
     [Fact]
     public void Ctor_NullArgs_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new TestStep(null, null!));
     }
+
+    #endregion
+
+    #region ToString
 
     [Fact]
     public void ToString_IsTypeName()
@@ -42,265 +46,63 @@ public class TestStepTest : PipelineStepTestBase
         var step = new TestStep(null, ServiceProvider);
         Assert.Equal(step.GetType().Name, step.ToString());
     }
-}
 
-public class PipelineStepTest : TestBaseWithServiceProvider
-{
-    [Fact]
-    public void Ctor_NullArgs_Throws()
+    #endregion
+
+    #region Error
+
+    [Theory]
+    [MemberData(nameof(StepsThatThrowError_TestData))]
+    public async Task Error_Cancel_PropertyIsCorrectlySet(PipelineStep step, bool shouldContainError, bool isCancel)
     {
-        Assert.Throws<ArgumentNullException>(() => new TestStep(null, null!));
-    }
-
-    [Fact]
-    public void Disposed()
-    {
-        var step = new TestStep(null, ServiceProvider);
-
-        step.Dispose();
-        Assert.True(step.IsDisposed);
-    }
-
-    [Fact]
-    public async Task RunAsync_TaskAction()
-    {
-        var ran = false;
-        var step = new TestStep(_ =>
+        try
         {
-            ran = true;
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        await step.RunAsync(CancellationToken.None);
-
-        Assert.True(ran);
-    }
-
-    [Fact]
-    public async Task RunAsync_AwaitedAction()
-    {
-        var ran = false;
-        var step = new TestStep(async _ =>
+            await step.RunAsync(TestContext.Current.CancellationToken);
+        }
+        catch
         {
-            await Task.Yield();
-            ran = true;
-        }, ServiceProvider);
-
-        await step.RunAsync(CancellationToken.None);
-
-        Assert.True(ran);
-    }
-
-    [Fact]
-    public async Task RunAsync_ThrowsException()
-    {
-        var expectedError = new Exception();
-
-        var step = new TestStep(_ => throw expectedError, ServiceProvider);
-
-        await Assert.ThrowsAsync<Exception>(() => step.RunAsync(CancellationToken.None));
-        Assert.Same(expectedError, step.Error);
-    }
-
-    [Fact]
-    public async Task RunAsync_WithCancellation_ThrowsOperationCanceledException()
-    {
-        var step = new TestStep(ct =>
-        {
-            ct.ThrowIfCancellationRequested();
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(() => step.RunAsync(cts.Token));
-        Assert.Null(step.Error);
-    }
-
-    [Fact]
-    public async Task RunAsync_StopRunnerException_IsNotAddedToErrors()
-    {
-        var step = new TestStep(_ => throw new StopRunnerException(), ServiceProvider);
-
-        await Assert.ThrowsAsync<StopRunnerException>(() => step.RunAsync(CancellationToken.None));
-        Assert.Null(step.Error);
-    }
-
-    [Fact]
-    public async Task RunAsync_AggregateException()
-    {
-        var expected = new AggregateException(new Exception("Test"));
-        var step = new TestStep(_ => throw expected, ServiceProvider);
-
-        await Assert.ThrowsAsync<AggregateException>(() => step.RunAsync(CancellationToken.None));
-        Assert.Same(expected, step.Error);
-    }
-
-    [Fact]
-    public async Task RunAsync_AggregateException_OriginatedFromOperationCancelled()
-    {
-        var expected = new Exception("Test");
-        var step = new TestStep(_ => throw new AggregateException(new OperationCanceledException(null, expected)), ServiceProvider);
-
-        await Assert.ThrowsAsync<AggregateException>(() => step.RunAsync(CancellationToken.None));
-        Assert.Same(expected, step.Error);
-    }
-
-    [Fact]
-    public async Task RunAsync_AggregateException_OriginatedFromOperationCancelled_NoInnerException()
-    {
-        var step = new TestStep(_ => throw new AggregateException(new OperationCanceledException()), ServiceProvider);
-
-        await Assert.ThrowsAsync<AggregateException>(() => step.RunAsync(CancellationToken.None));
-        Assert.Null(step.Error);
-    }
-
-    [Fact]
-    public async Task GetAwaiter_AfterCompletion_ReturnsImmediately()
-    {
-        var executed = false;
-        var step = new TestStep(_ =>
-        {
-            executed = true;
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        await step.RunAsync(CancellationToken.None);
+            // Ignore
+        }
         
-        await step;
-        Assert.True(executed);
+        Assert.Equal(shouldContainError, step.Error is not null);
+        
+        Assert.Equal(isCancel, step.IsCancelled);
     }
 
-    [Fact]
-    public async Task GetAwaiter_BeforeStart_WaitsForCompletion()
+    #endregion
+    
+    public static IEnumerable<object[]> StepsThatThrowError_TestData()
     {
-        var tcs = new TaskCompletionSource<bool>();
-        var step = new TestStep(async _ =>
-        {
-            await tcs.Task;
-        }, ServiceProvider);
-
-        var awaiterTask = Task.Run(async () => await step, TestContext.Current.CancellationToken);
-
-        await Task.Delay(50, TestContext.Current.CancellationToken);
-        Assert.False(awaiterTask.IsCompleted);
-
-        var runTask = step.RunAsync(CancellationToken.None);
-
-        await Task.Delay(50, TestContext.Current.CancellationToken);
-        Assert.False(awaiterTask.IsCompleted);
-
-        tcs.SetResult(true);
-        await runTask;
-
-        await awaiterTask;
-        Assert.True(awaiterTask.IsCompleted);
+        foreach (var step in StepsWhichEvaluateToNullErrorProperty())
+            yield return [step.step, false, step.cancel];
+        foreach (var step in CancelledStepsWithErrorProperty())
+            yield return [step, true, true];
+        foreach (var step in FailedSteps())
+            yield return [step, true, false];
     }
 
-    [Fact]
-    public async Task GetAwaiter_DuringExecution_WaitsForCompletion()
+    private static IEnumerable<(ErrorStep step, bool cancel)> StepsWhichEvaluateToNullErrorProperty()
     {
-        var tcs = new TaskCompletionSource<bool>();
-        var step = new TestStep(async _ =>
-        {
-            await tcs.Task;
-        }, ServiceProvider);
-
-        var runTask = step.RunAsync(CancellationToken.None);
-
-        var awaiterTask = Task.Run(async () => await step, TestContext.Current.CancellationToken);
-
-        await Task.Delay(50, TestContext.Current.CancellationToken);
-        Assert.False(awaiterTask.IsCompleted);
-
-        tcs.SetResult(true);
-        await runTask;
-
-        await awaiterTask;
-        Assert.True(awaiterTask.IsCompleted);
+        yield return (new ErrorStep(null), false);
+        yield return (new ErrorStep(new StopRunnerException()), false);
+        yield return (new ErrorStep(new OperationCanceledException()), true);
+        yield return (new ErrorStep(new TaskCanceledException()), true);
+        yield return (new ErrorStep(new AggregateException(new OperationCanceledException())), true);
+        yield return (new ErrorStep(new AggregateException(new TaskCanceledException())), true);
+        yield return (new ErrorStep(new AggregateException(new AggregateException(new OperationCanceledException()))), true); 
+        yield return (new ErrorStep(new AggregateException(new Exception(), new OperationCanceledException())), true);
     }
 
-    [Fact]
-    public async Task GetAwaiter_PropagatesException()
+    private static IEnumerable<ErrorStep> CancelledStepsWithErrorProperty()
     {
-        var expected = new InvalidOperationException("Test error");
-        var step = new TestStep(_ => throw expected, ServiceProvider);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => step.RunAsync(CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await step);
+        yield return new ErrorStep(new OperationCanceledException("Cancel", new Exception("Test")));
+        yield return new ErrorStep(new AggregateException(new OperationCanceledException("Cancel", new Exception("Test"))));
+        yield return new ErrorStep(new AggregateException(new AggregateException(new OperationCanceledException("Cancel", new Exception("Test")))));
     }
 
-    [Fact]
-    public async Task GetAwaiter_MultipleAwaiters_AllComplete()
+    private static IEnumerable<ErrorStep> FailedSteps()
     {
-        var tcs = new TaskCompletionSource<bool>();
-        var step = new TestStep(async _ =>
-        {
-            await tcs.Task;
-        }, ServiceProvider);
-
-        var awaiter1 = Task.Run(async () => await step, TestContext.Current.CancellationToken);
-        var awaiter2 = Task.Run(async () => await step, TestContext.Current.CancellationToken);
-        var awaiter3 = Task.Run(async () => await step, TestContext.Current.CancellationToken);
-
-        var runTask = step.RunAsync(CancellationToken.None);
-
-        await Task.Delay(50, TestContext.Current.CancellationToken);
-        Assert.False(awaiter1.IsCompleted);
-        Assert.False(awaiter2.IsCompleted);
-        Assert.False(awaiter3.IsCompleted);
-
-        tcs.SetResult(true);
-        await runTask;
-
-        await Task.WhenAll(awaiter1, awaiter2, awaiter3);
-        Assert.True(awaiter1.IsCompleted);
-        Assert.True(awaiter2.IsCompleted);
-        Assert.True(awaiter3.IsCompleted);
-    }
-
-    [Fact]
-    public async Task GetAwaiter_WithCancellation_PropagatesCancellation()
-    {
-        var step = new TestStep(ct =>
-        {
-            ct.ThrowIfCancellationRequested();
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(() => step.RunAsync(cts.Token));
-        await Assert.ThrowsAsync<OperationCanceledException>(async () => await step);
-    }
-
-    [Fact]
-    public async Task GetAwaiter_AfterSuccessfulRun_CanBeAwaitedMultipleTimes()
-    {
-        var executionCount = 0;
-        var step = new TestStep(_ =>
-        {
-            Interlocked.Increment(ref executionCount);
-            return Task.CompletedTask;
-        }, ServiceProvider);
-
-        await step.RunAsync(CancellationToken.None);
-        Assert.Equal(1, executionCount);
-
-        await step;
-        await step;
-        await step;
-
-        Assert.Equal(1, executionCount);
-    }
-
-
-    [Fact]
-    public void ToString_IsTypeName()
-    {
-        var step = new TestStep(null, ServiceProvider);
-        Assert.Equal(step.GetType().Name, step.ToString());
+        yield return new ErrorStep(new Exception());
+        yield return new ErrorStep(new AggregateException(new ArgumentException()));
     }
 }

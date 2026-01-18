@@ -10,7 +10,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where T : AsyncStepRunner
+public abstract class StepRunnerTestSuite<T> : TestBaseWithServiceProvider where T : AsyncStepRunner
 {
     /// <summary>
     /// Indicates whether the runner guarantees sequential step execution order.
@@ -1445,7 +1445,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
     #endregion
 
-    #region GetAwaiter Tests
+    #region GetAwaiter / ConfigureAwait
 
     [Fact]
     public async Task GetAwaiter_BeforeRun_WaitsUntilRunnerStartedAndCompleted()
@@ -1463,14 +1463,21 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         FinishAdding(runner);
 
         var awaitTask = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
+        var awaitTaskConfigureAwaitT = Task.Run(async () => await runner.ConfigureAwait(true), TestContext.Current.CancellationToken);
+        var awaitTaskConfigureAwaitF = Task.Run(async () => await runner.ConfigureAwait(false), TestContext.Current.CancellationToken);
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaitTask.IsCompleted, "Awaiter should block until runner starts and completes");
 
         await runner.RunAsync(CancellationToken.None);
 
-        var completed = await WaitForTaskWithTimeout(awaitTask, TimeSpan.FromSeconds(5));
-        Assert.True(completed, "Await task should complete after runner finishes");
+        await awaitTask;
+        await awaitTaskConfigureAwaitT;
+        await awaitTaskConfigureAwaitF;
+
+        Assert.True(awaitTask.IsCompleted);
+        Assert.True(awaitTaskConfigureAwaitT.IsCompleted);
+        Assert.True(awaitTaskConfigureAwaitF.IsCompleted);
         Assert.True(stepExecuted);
     }
 
@@ -1493,17 +1500,27 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         var runTask = runner.RunAsync(CancellationToken.None);
 
         var awaitTask = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
+        var awaitTaskConfigureAwaitT = Task.Run(async () => await runner.ConfigureAwait(true), TestContext.Current.CancellationToken);
+        var awaitTaskConfigureAwaitF = Task.Run(async () => await runner.ConfigureAwait(false), TestContext.Current.CancellationToken);
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaitTask.IsCompleted, "Awaiter should block while runner is executing");
+        Assert.False(awaitTaskConfigureAwaitT.IsCompleted, "Awaiter should block while runner is executing");
+        Assert.False(awaitTaskConfigureAwaitF.IsCompleted, "Awaiter should block while runner is executing");
         Assert.False(stepCompleted);
 
         tcs.SetResult(true);
 
-        var completed = await WaitForTaskWithTimeout(awaitTask, TimeSpan.FromSeconds(5));
-        Assert.True(completed, "Awaiter should complete when step finishes");
-        Assert.True(stepCompleted);
+        await awaitTask;
+        await awaitTaskConfigureAwaitT;
+        await awaitTaskConfigureAwaitF;
 
+        Assert.True(awaitTask.IsCompleted);
+        Assert.True(awaitTaskConfigureAwaitT.IsCompleted);
+        Assert.True(awaitTaskConfigureAwaitF.IsCompleted);
+        
+        Assert.True(stepCompleted);
+        
         await runTask;
     }
 
@@ -1519,11 +1536,16 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         await runner.RunAsync(CancellationToken.None);
 
         var awaiter = runner.GetAwaiter();
-        Assert.True(awaiter.IsCompleted);
+        var awaitConfigureAwaitT = runner.ConfigureAwait(true);
+        var awaitConfigureAwaitF = runner.ConfigureAwait(false);
 
-        var awaitTask = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
-        var completed = await WaitForTaskWithTimeout(awaitTask, TimeSpan.FromSeconds(1));
-        Assert.True(completed, "Awaiter should complete immediately after run");
+        Assert.True(awaiter.IsCompleted);
+        Assert.True(awaitConfigureAwaitT.GetAwaiter().IsCompleted);
+        Assert.True(awaitConfigureAwaitF.GetAwaiter().IsCompleted);
+
+        await runner;
+        await runner.ConfigureAwait(false);
+        await runner.ConfigureAwait(true);
     }
 
     [Fact]
@@ -1536,8 +1558,8 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         FinishAdding(runner);
 
         var awaitTask1 = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
-        var awaitTask2 = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
-        var awaitTask3 = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
+        var awaitTask2 = Task.Run(async () => await runner.ConfigureAwait(true), TestContext.Current.CancellationToken);
+        var awaitTask3 = Task.Run(async () => await runner.ConfigureAwait(false), TestContext.Current.CancellationToken);
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaitTask1.IsCompleted);
@@ -1546,10 +1568,13 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         await runner.RunAsync(CancellationToken.None);
 
-        var allCompleted = await WaitForTaskWithTimeout(
-            Task.WhenAll(awaitTask1, awaitTask2, awaitTask3),
-            TimeSpan.FromSeconds(5));
-        Assert.True(allCompleted, "All awaiters should complete when runner finishes");
+        await awaitTask1;
+        await awaitTask2;
+        await awaitTask3;
+        
+        Assert.True(awaitTask1.IsCompleted);
+        Assert.True(awaitTask2.IsCompleted);
+        Assert.True(awaitTask3.IsCompleted);
     }
 
     [Fact]
@@ -1563,9 +1588,14 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
 
         var runTask = runner.RunAsync(CancellationToken.None);
 
-        var exception = await Record.ExceptionAsync(async () => await runner);
+        var eList = new List<Exception?>
+        {
+            await Record.ExceptionAsync(async () => await runner),
+            await Record.ExceptionAsync(async () => await runner.ConfigureAwait(false)),
+            await Record.ExceptionAsync(async () => await runner.ConfigureAwait(true))
+        };
 
-        Assert.Null(exception);
+        Assert.All(eList, Assert.Null);
         Assert.NotNull(runner.Exception);
 
         await runTask;
@@ -1580,15 +1610,19 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         runner.AddStep(step);
         FinishAdding(runner);
 
-        var awaiterBefore = runner.GetAwaiter();
-        Assert.False(awaiterBefore.IsCompleted);
+        Assert.False(runner.GetAwaiter().IsCompleted);
+        Assert.False(runner.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.False(runner.ConfigureAwait(true).GetAwaiter().IsCompleted);
 
         await runner.RunAsync(CancellationToken.None);
 
-        var awaiterAfter = runner.GetAwaiter();
-        Assert.True(awaiterAfter.IsCompleted);
+        Assert.True(runner.GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(false).GetAwaiter().IsCompleted);
+        Assert.True(runner.ConfigureAwait(true).GetAwaiter().IsCompleted);
 #pragma warning disable xUnit1031
-        awaiterAfter.GetResult();
+        runner.GetAwaiter().GetResult();
+        runner.ConfigureAwait(true).GetAwaiter().GetResult();
+        runner.ConfigureAwait(false).GetAwaiter().GetResult();
 #pragma warning restore xUnit1031
     }
 
@@ -1612,7 +1646,12 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         FinishAdding(runner);
 
         // Start multiple awaiters before cancellation
-        var awaitTask = Task.Run(async () => await runner, TestContext.Current.CancellationToken);
+        var awaiterTasks = new[]
+        {
+            Task.Run(async () => await runner, TestContext.Current.CancellationToken),
+            Task.Run(async () => await runner, TestContext.Current.CancellationToken),
+            Task.Run(async () => await runner, TestContext.Current.CancellationToken),
+        };
 
         var runTask = runner.RunAsync(cts.Token);
 
@@ -1622,12 +1661,55 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
         cts.Cancel();
         canCancel.Set();
 
-        // All awaiters should complete without throwing
-        var exception = await Record.ExceptionAsync(() => awaitTask);
+        var allAwaitersTask = Task.WhenAll(awaiterTasks);
+        var exception = await Record.ExceptionAsync(() => allAwaitersTask);
 
         Assert.Null(exception);
+    }
 
-        await runTask;
+    [Fact]
+    public void AwaiterAndAwaitableEquality()
+    {
+        ConfigureAwaitTestExtensions.AwaiterAndAwaitableEquality(
+            () =>
+            {
+                var stepRunner = CreateStepRunner();
+                return stepRunner;
+            },
+            step => step.GetAwaiter(),
+            (step, ca) => step.ConfigureAwait(ca));
+
+
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    [InlineData(null)]
+    public void OnCompleted_CompletesInAnotherSynchronizationContext(bool? continueOnCapturedContext)
+    {
+        var executeCount = 0;
+        var step = new TestStep((_ =>
+        {
+            Interlocked.Increment(ref executeCount);
+            return Task.CompletedTask;
+        }), ServiceProvider);
+
+        ConfigureAwaitTestExtensions.TestOnCompletedCompletesInAnotherSynchronizationContext(
+            continueOnCapturedContext,
+            () => {
+                var stepRunner = CreateStepRunner();
+                stepRunner.AddStep(step);
+                stepRunner.AddStep(step);
+                stepRunner.AddStep(step);
+                FinishAdding(stepRunner);
+                return stepRunner;
+            },
+            runner => runner.GetAwaiter(),
+            (runner, ca) => runner.ConfigureAwait(ca),
+            runner => runner.RunAsync(CancellationToken.None));
+
+        Assert.Equal(3, executeCount);
     }
 
     #endregion
@@ -2081,8 +2163,7 @@ public abstract class StepRunnerTestBase<T> : TestBaseWithServiceProvider where 
     }
 
     #endregion
-
-
+    
     // TODO: Remove
     private static async Task<bool> WaitForTaskWithTimeout(Task task, TimeSpan timeout)
     {

@@ -11,8 +11,20 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline;
 public interface IStep : IDisposable
 {
     /// <summary>
-    /// The exception, if any, that happened while running this step.
+    /// Gets a value indicating whether the step has been cancelled.
     /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the step was cancelled; otherwise, <see langword="false"/>.
+    /// </value>
+    public bool IsCancelled { get; }
+
+    /// <summary>
+    /// Gets the exception that occurred during the execution of the step, if any.
+    /// </summary>
+    /// <value>
+    /// An <see cref="Exception"/> representing the error that occurred during the step's execution, 
+    /// or <see langword="null"/> if no error occurred.
+    /// </value>
     Exception? Error { get; }
 
     /// <summary>

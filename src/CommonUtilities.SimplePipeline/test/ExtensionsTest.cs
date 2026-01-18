@@ -2,118 +2,167 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Testing.Extensions;
+using System.Reflection;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test;
 
 public class ExtensionsTest : TestBaseWithServiceProvider
-{
-    [Fact]
-    public void IsExceptionType()
+{ 
+    public static IEnumerable<object?[]> ExceptionSearchTestCases()
     {
-        var i = new InvalidOperationException();
-
-        Assert.True(i.IsExceptionType<Exception>());
-        Assert.False(i.IsExceptionType<IOException>());
-
-        var io = new IOException();
-        Assert.True(io.IsExceptionType<Exception>());
-        Assert.True(io.IsExceptionType<IOException>());
-
-        var a = new AggregateException(new List<Exception> { i, io });
-        Assert.True(a.IsExceptionType<AggregateException>());
-        Assert.True(a.IsExceptionType<InvalidOperationException>());
-        Assert.True(a.IsExceptionType<IOException>());
-
-        var n = new NullReferenceException();
-        var da = new AggregateException(a, n);
-        Assert.True(da.IsExceptionType<AggregateException>());
-        Assert.True(da.IsExceptionType<InvalidOperationException>());
-        Assert.True(da.IsExceptionType<IOException>());
-        Assert.True(da.IsExceptionType<NullReferenceException>());
-    }
-
-    [Fact]
-    public void ThrowStepFailureExceptionForFailedSteps_DoesNotThrowIfEmpty()
-    {
-        IEnumerable<IStep> steps = [];
-        var exception = Record.Exception(() => steps.ThrowStepFailureExceptionForFailedSteps());
-        Assert.Null(exception);
-    }
-
-    [Fact]
-    public void ThrowStepFailureExceptionForFailedSteps_DoesNotThrowIfNoStepFailed()
-    {
-        var step1 = new ErrorStep { Error = null };
-        var step2 = new ErrorStep { Error = new OperationCanceledException() };
-        var step3 = new ErrorStep { Error = new AggregateException(new OperationCanceledException()) };
-        var step4 = new ErrorStep { Error = new AggregateException(new Exception(), new OperationCanceledException()) };
-
-        IEnumerable<IStep> steps = [step1, step2, step3, step4];
-        var exception = Record.Exception(() => steps.ThrowStepFailureExceptionForFailedSteps());
-        Assert.Null(exception);
-    }
-
-    private static IEnumerable<ErrorStep> GetNonFailedSteps()
-    {
-        yield return new ErrorStep { Error = null };
-        yield return new ErrorStep { Error = new OperationCanceledException() };
-        yield return new ErrorStep { Error = new TaskCanceledException() };
-        yield return new ErrorStep { Error = new AggregateException(new OperationCanceledException()) };
-        yield return new ErrorStep { Error = new AggregateException(new TaskCanceledException()) };
-        yield return new ErrorStep { Error = new AggregateException(new AggregateException(new OperationCanceledException())) };
-        yield return new ErrorStep { Error = new AggregateException(new Exception(), new OperationCanceledException()) };
-    }
-
-    private static IEnumerable<ErrorStep> GetFailedSteps()
-    {
-        yield return new ErrorStep { Error = new Exception() };
-        yield return new ErrorStep { Error = new AggregateException(new ArgumentException()) };
-    }
-    
-    [Fact]
-    public void ThrowStepFailureExceptionForFailedSteps_ThrowsIfOneStepFailed()
-    {
-        var exception = Assert.Throws<StepFailureException>(() => 
-            GetNonFailedSteps().Append(GetFailedSteps().First())
-            .ThrowStepFailureExceptionForFailedSteps());
-        Assert.Single(exception.FailedSteps);
-    }
-
-    [Fact]
-    public void ThrowStepFailureExceptionForFailedSteps_ThrowsIfAllStepsFailed()
-    {
-        var failed = GetFailedSteps().ToList();
-        var exception = Assert.Throws<StepFailureException>(() => failed.ThrowStepFailureExceptionForFailedSteps());
-        Assert.EqualUnordered(failed, exception.FailedSteps.ToList());
-    }
-
-    [Fact]
-    public void ThrowStepFailureExceptionForFailedSteps_ThrowsIfManyStepsFailed()
-    {
-        var failed = GetFailedSteps().ToList();
-        var exception = Assert.Throws<StepFailureException>(() => failed.Concat(GetNonFailedSteps()).ThrowStepFailureExceptionForFailedSteps());
-        Assert.All(exception.FailedSteps, step =>
+        // Direct match - same type
         {
-            Assert.Contains(step, failed);
-        });
-    }
-
-    private class ErrorStep : IStep
-    {
-        public Exception? Error { get; init; }
-
-        public void Dispose()
+            var ex = new InvalidOperationException("test");
+            yield return [ex, typeof(InvalidOperationException), ex];
+        }
         {
+            var ex = new IOException("test");
+            yield return [ex, typeof(IOException), ex];
         }
 
-        public Task RunAsync(CancellationToken token) => throw new NotImplementedException();
+        // Direct match - base type
+        {
+            var ex = new InvalidOperationException("test");
+            yield return [ex, typeof(Exception), ex];
+        }
+        {
+            var ex = new IOException("test");
+            yield return [ex, typeof(Exception), ex];
+        }
 
-        public TaskAwaiter GetAwaiter() => throw new NotImplementedException();
+        // No match
+        yield return [new InvalidOperationException("test"), typeof(IOException), null];
+        yield return [new IOException("test"), typeof(InvalidOperationException), null];
+        yield return [new InvalidOperationException("test"), typeof(NullReferenceException), null];
+
+        // Simple AggregateException
+        {
+            var invalidOp = new InvalidOperationException("test");
+            var ioEx = new IOException("test");
+            var agg = new AggregateException(invalidOp, ioEx);
+            yield return [agg, typeof(AggregateException), agg];
+            yield return [agg, typeof(InvalidOperationException), invalidOp];
+            yield return [agg, typeof(IOException), ioEx];
+            yield return [agg, typeof(NullReferenceException), null];
+        }
+
+        // Nested AggregateException
+        {
+            var invalidOp = new InvalidOperationException("test");
+            var ioEx = new IOException("test");
+            var nullRef = new NullReferenceException("test");
+            var innerAgg = new AggregateException(invalidOp, ioEx);
+            var outerAgg = new AggregateException(innerAgg, nullRef);
+            yield return [outerAgg, typeof(AggregateException), outerAgg];
+            yield return [outerAgg, typeof(InvalidOperationException), invalidOp];
+            yield return [outerAgg, typeof(IOException), ioEx];
+            yield return [outerAgg, typeof(NullReferenceException), nullRef];
+            yield return [outerAgg, typeof(ArgumentException), null];
+        }
+
+        // A(A(OCE)) - OCE without inner exception
+        {
+            var oce = new OperationCanceledException("test");
+            yield return [new AggregateException(new AggregateException(oce)), typeof(OperationCanceledException), oce];
+        }
+
+        // A(A(OCE(E))) - OCE with inner exception
+        {
+            var oce = new OperationCanceledException("test", new TimeoutException("test"));
+            var agg = new AggregateException(new AggregateException(oce));
+            yield return [agg, typeof(OperationCanceledException), oce];
+            yield return [agg, typeof(TimeoutException), null]; // Not found via InnerExceptions!
+        }
+
+        // Deeply nested
+        {
+            var oce = new OperationCanceledException("test", new TimeoutException("test"));
+            var agg = new AggregateException(
+                new AggregateException(
+                    new AggregateException(
+                        new AggregateException(oce))));
+            yield return [agg, typeof(OperationCanceledException), oce];
+            yield return [agg, typeof(TimeoutException), null]; // Not found via InnerExceptions!
+            yield return [agg, typeof(ArgumentException), null];
+        }
+    }
+
+    public static IEnumerable<object?[]> OceInnerExceptionTestCases()
+    {
+        // Direct OCE without inner
+        yield return [new OperationCanceledException("test"), null];
+
+        // Direct OCE with inner
+        {
+            var timeout = new TimeoutException("test");
+            yield return [new OperationCanceledException("test", timeout), timeout];
+        }
+
+        // A(A(OCE)) - no inner
+        yield return [new AggregateException(new AggregateException(new OperationCanceledException("test"))), null];
+
+        // A(A(OCE(E))) - with inner
+        {
+            var timeout = new TimeoutException("test");
+            yield return [new AggregateException(new AggregateException(new OperationCanceledException("test", timeout))), timeout];
+        }
+
+        // Deeply nested with inner
+        {
+            var timeout = new TimeoutException("test");
+            yield return [new AggregateException(
+                new AggregateException(
+                    new AggregateException(
+                        new AggregateException(
+                            new OperationCanceledException("test", timeout))))), timeout];
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ExceptionSearchTestCases))]
+    public void IsExceptionType_ReturnsExpectedResult(
+        Exception source,
+        Type searchType,
+        Exception? expectedFound)
+    {
+        var method = typeof(Extensions)
+            .GetMethod(nameof(Extensions.IsExceptionType), BindingFlags.Static | BindingFlags.NonPublic)!
+            .MakeGenericMethod(searchType);
+
+        var result = (bool)method.Invoke(null, [source])!;
+
+        Assert.Equal(expectedFound is not null, result);
+    }
+
+    [Theory]
+    [MemberData(nameof(ExceptionSearchTestCases))]
+    public void FindException_ReturnsExpectedResult(Exception source, Type searchType, Exception? expectedFound)
+    {
+        var method = typeof(Extensions)
+            .GetMethod(nameof(Extensions.FindException), BindingFlags.Static | BindingFlags.NonPublic)!
+            .MakeGenericMethod(searchType);
+
+        var result = (Exception?)method.Invoke(null, [source]);
+
+        Assert.Same(expectedFound, result);
+    }
+
+    [Theory]
+    [MemberData(nameof(OceInnerExceptionTestCases))]
+    public void FindException_OperationCanceledException_ReturnsCorrectInnerException(Exception source, Exception? expectedInner)
+    {
+        var found = source.FindException<OperationCanceledException>();
+        Assert.Same(expectedInner, found?.InnerException);
+    }
+
+    [Fact]
+    public void FindException_ReturnsFirstMatch_WhenMultipleExist()
+    {
+        var io1 = new IOException("First");
+        var io2 = new IOException("Second");
+        var aggregate = new AggregateException(io1, io2);
+        var found = aggregate.FindException<IOException>();
+        Assert.Same(io1, found);
     }
 }

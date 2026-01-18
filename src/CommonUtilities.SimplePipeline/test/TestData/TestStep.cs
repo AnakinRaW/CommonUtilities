@@ -1,5 +1,6 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Progress;
 using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,16 @@ public class TestStep : PipelineStep
             // Ignore
         }
         return step;
+    }
+}
+
+public class ErrorStep(Exception? exceptionToThrow) : PipelineStep(new ServiceCollection().BuildServiceProvider())
+{
+    protected override Task RunCoreAsync(CancellationToken token)
+    {
+        if (exceptionToThrow is not null)
+            throw exceptionToThrow;
+        return Task.CompletedTask;
     }
 }
 

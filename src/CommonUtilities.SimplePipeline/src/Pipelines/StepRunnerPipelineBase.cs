@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -117,8 +119,28 @@ public abstract class StepRunnerPipelineBase<TStepRunner> : Pipeline where TStep
             StepRunner.Error -= OnRunnerExecutionError!;
         }
         OnRunnerExecuted();
-        StepRunner.ExecutedSteps.ThrowStepFailureExceptionForFailedSteps();
+
+        var failedSteps = GetFailedSteps(StepRunner.ExecutedSteps).ToList();
+        if (failedSteps.Count > 0)
+            throw new StepFailureException(failedSteps);
         OnExecuteCompleted();
+    }
+
+    /// <summary>
+    /// Retrieves the steps that have failed during execution.
+    /// </summary>
+    /// <param name="steps">The collection of steps to evaluate for failures.</param>
+    /// <returns>
+    /// A collection of steps that encountered errors during execution. 
+    /// Each step in the returned collection has a non-null <see cref="IStep.Error"/> property.
+    /// </returns>
+    /// <remarks>
+    /// This method filters the provided steps to identify those that have an associated error.
+    /// Derived classes can override this method to customize the logic for determining failed steps.
+    /// </remarks>
+    protected virtual IEnumerable<IStep> GetFailedSteps(IEnumerable<IStep> steps)
+    {
+        return steps.Where(step => step is { Error: not null });
     }
 
     /// <summary>

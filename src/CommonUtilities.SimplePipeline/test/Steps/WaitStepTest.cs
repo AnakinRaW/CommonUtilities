@@ -8,11 +8,10 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class WaitStepTest : PipelineStepTestBase
+public class WaitStepTest : PipelineStepTestSuite
 { 
     protected override bool StepRespectsCancellationToken => false; // WaitStep ignores cancellation!
     protected override bool StepAddsExceptionsToErrorProperty => false; // Transforms to StopRunnerException
-    protected override bool StepAddsStopRunnerExceptionToErrorProperty => false;
 
     protected override Type GetExpectedExceptionType(Exception thrownException)
     {
@@ -48,7 +47,7 @@ public class WaitStepTest : PipelineStepTestBase
     {
         var runner = new AsyncStepRunner(1, ServiceProvider);
         var step = new WaitStep(runner, ServiceProvider);
-        Assert.Equal("Waiting for other steps", step.ToString());
+        Assert.Equal("Waiting for other step runner", step.ToString());
     }
 
     [Fact]

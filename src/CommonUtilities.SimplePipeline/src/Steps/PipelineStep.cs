@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Steps;
 public abstract class PipelineStep : DisposableObject, IStep
 {
     private readonly TaskCompletionSource<Task> _completionSource = new();
+    private Task? _cachedAwaitableTask;
 
     /// <summary>
     /// Returns the service provider of this step.
@@ -26,18 +26,28 @@ public abstract class PipelineStep : DisposableObject, IStep
     protected readonly ILogger? Logger;
 
     /// <summary>
-    /// Gets the exception that occurred during the execution of the step,
-    /// or <see langword="null"/> if the step completed successfully.
+    ///  Gets the exception that occurred during the execution of the step, if any.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// If the step is cancelled by an <see cref="OperationCanceledException"/>
     /// (which may also be wrapped inside an <see cref="AggregateException"/>),
     /// this property contains the underlying cause of the cancellation when available,
     /// otherwise it may be <see langword="null"/>.
+    /// </para>
+    /// <para>
+    /// If the step throws a <see cref="StopRunnerException"/>, this property is always <see langword="null"/>.
+    /// This is because a <see cref="StopRunnerException"/> does not indicate a failure of the step itself.
+    /// </para>
+    /// <para>
     /// For all other failures, this property contains the exception that caused
     /// the step to fail.
+    /// </para>
     /// </remarks>
-    public Exception? Error { get; internal set; }
+    public Exception? Error { get; private set; }
+
+    /// <inheritdoc/>
+    public bool IsCancelled { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PipelineStep"/> class.
@@ -61,12 +71,20 @@ public abstract class PipelineStep : DisposableObject, IStep
     /// <inheritdoc />
     public TaskAwaiter GetAwaiter()
     {
-        var tcsTask = _completionSource.Task;
-        return tcsTask is { IsCompleted: true, Status: TaskStatus.RanToCompletion } 
-            ? tcsTask.Result.GetAwaiter() 
-            : GetAwaitableTask().GetAwaiter();
+        return GetStepTask().GetAwaiter();
     }
-    
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="continueOnCapturedContext"></param>
+    /// <returns></returns>
+    public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
+    {
+        return GetStepTask().ConfigureAwait(continueOnCapturedContext);
+    }
+
+
     /// <summary>
     /// Returns a string that represents the current <see cref="PipelineStep"/> instance.
     /// </summary>
@@ -84,10 +102,23 @@ public abstract class PipelineStep : DisposableObject, IStep
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
     protected abstract Task RunCoreAsync(CancellationToken token);
 
-    private async Task GetAwaitableTask()
+    private async Task CreateAwaitableTask()
     {
         var task = await _completionSource.Task.ConfigureAwait(false);
         await task.ConfigureAwait(false);
+    }
+
+    private Task GetStepTask()
+    {
+        var tcsTask = _completionSource.Task;
+        if (tcsTask is { IsCompleted: true, Status: TaskStatus.RanToCompletion })
+            return tcsTask.Result;
+
+        if (_cachedAwaitableTask is not null)
+            return _cachedAwaitableTask;
+
+        var newTask = CreateAwaitableTask();
+        return Interlocked.CompareExchange(ref _cachedAwaitableTask, newTask, null) ?? newTask;
     }
 
     private async Task ExecuteStepAsync(CancellationToken token)
@@ -101,6 +132,7 @@ public abstract class PipelineStep : DisposableObject, IStep
         catch (OperationCanceledException ex)
         {
             Error = ex.InnerException;
+            IsCancelled = true;
             throw;
         }
         catch (StopRunnerException)
@@ -109,13 +141,17 @@ public abstract class PipelineStep : DisposableObject, IStep
         }
         catch (AggregateException e)
         {
-            if (!e.IsExceptionType<OperationCanceledException>())
+            if (e.IsExceptionType<OperationCanceledException>())
+            {
+                Error = e.FindException<OperationCanceledException>()?.InnerException;
+                IsCancelled = true;
+            }
+            else
             {
                 Error = e;
                 LogFaultException(e);
             }
-            else
-                Error = e.InnerExceptions.FirstOrDefault(p => p.IsExceptionType<OperationCanceledException>())?.InnerException;
+
             throw;
         }
         catch (Exception e)

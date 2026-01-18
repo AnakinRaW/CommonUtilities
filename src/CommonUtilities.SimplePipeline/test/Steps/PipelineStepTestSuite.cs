@@ -1,8 +1,8 @@
-﻿using System;
+﻿using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
+using AnakinRaW.CommonUtilities.Testing;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.SimplePipeline.Steps;
-using AnakinRaW.CommonUtilities.Testing;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
@@ -11,7 +11,7 @@ namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 /// Abstract base class for testing PipelineStep implementations.
 /// Subclasses MUST define expected behavior via abstract properties.
 /// </summary>
-public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
+public abstract class PipelineStepTestSuite : TestBaseWithServiceProvider
 {
     /// <summary>
     /// Factory method to create a step for basic testing.
@@ -32,11 +32,6 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
     /// Defines whether exceptions thrown in RunCoreAsync are added to the Error property.
     /// </summary>
     protected abstract bool StepAddsExceptionsToErrorProperty { get; }
-
-    /// <summary>
-    /// Defines whether StopRunnerException is added to the Error property.
-    /// </summary>
-    protected abstract bool StepAddsStopRunnerExceptionToErrorProperty { get; }
 
     /// <summary>
     /// Defines whether the Step throws exceptions at all
@@ -140,12 +135,13 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
             await Task.Delay(50, TestContext.Current.CancellationToken);
 
             Assert.False(runTask.IsCompleted); // Step ignores cancellation
+            Assert.False(step.IsCancelled);
             tcs.SetResult(true);
             await runTask;
         }
         else
         {
-            var step2 = CreateStepWithAction(ct =>
+            var step = CreateStepWithAction(ct =>
             {
                 ct.ThrowIfCancellationRequested();
                 return Task.CompletedTask;
@@ -154,8 +150,9 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
             var cts2 = new CancellationTokenSource();
             cts2.Cancel();
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => step2.RunAsync(cts2.Token));
-            Assert.Null(step2.Error);
+            await Assert.ThrowsAsync<OperationCanceledException>(() => step.RunAsync(cts2.Token));
+            Assert.Null(step.Error);
+            Assert.True(step.IsCancelled);
         }
     }
 
@@ -170,10 +167,7 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
         var expectedType = GetExpectedExceptionType(new StopRunnerException())!;
         await Assert.ThrowsAsync(expectedType, () => step.RunAsync(CancellationToken.None));
 
-        if (StepAddsStopRunnerExceptionToErrorProperty)
-            Assert.NotNull(step.Error);
-        else
-            Assert.Null(step.Error);
+        Assert.Null(step.Error);
     }
 
     [Fact]
@@ -246,7 +240,7 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
 
     #endregion
 
-    #region GetAwaiter
+    #region GetAwaiter / ConfigureAwait
 
     [Fact]
     public async Task GetAwaiter_AfterCompletion_ReturnsImmediately()
@@ -261,6 +255,9 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
         await step.RunAsync(CancellationToken.None);
 
         await step;
+        await step.ConfigureAwait(false);
+        await step.ConfigureAwait(true);
+        
         Assert.True(executed);
     }
 
@@ -274,6 +271,8 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
         });
 
         var awaiterTask = Task.Run(async () => await step, TestContext.Current.CancellationToken);
+        var configuredAwaitedT = Task.Run(async () => await step.ConfigureAwait(true), TestContext.Current.CancellationToken);
+        var configuredAwaitedF = Task.Run(async () => await step.ConfigureAwait(false), TestContext.Current.CancellationToken);
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaiterTask.IsCompleted);
@@ -282,26 +281,32 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaiterTask.IsCompleted);
+        Assert.False(configuredAwaitedT.IsCompleted);
+        Assert.False(configuredAwaitedF.IsCompleted);
 
         tcs.SetResult(true);
         await runTask;
 
         await awaiterTask;
+        await configuredAwaitedT;
+        await configuredAwaitedF;
+        
         Assert.True(awaiterTask.IsCompleted);
+        Assert.True(configuredAwaitedT.IsCompleted);
+        Assert.True(configuredAwaitedF.IsCompleted);
     }
 
     [Fact]
     public async Task GetAwaiter_DuringExecution_WaitsForCompletion()
     {
         var tcs = new TaskCompletionSource<bool>();
-        var step = CreateStepWithAction(async _ =>
-        {
-            await tcs.Task;
-        });
+        var step = CreateStepWithAction(async _ => { await tcs.Task; });
 
         var runTask = step.RunAsync(CancellationToken.None);
 
         var awaiterTask = Task.Run(async () => await step, TestContext.Current.CancellationToken);
+        var configuredAwaitedT = Task.Run(async () => await step.ConfigureAwait(true), TestContext.Current.CancellationToken);
+        var configuredAwaitedF = Task.Run(async () => await step.ConfigureAwait(false), TestContext.Current.CancellationToken);
 
         await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(awaiterTask.IsCompleted);
@@ -310,7 +315,12 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
         await runTask;
 
         await awaiterTask;
+        await configuredAwaitedT;
+        await configuredAwaitedF;
+
         Assert.True(awaiterTask.IsCompleted);
+        Assert.True(configuredAwaitedT.IsCompleted);
+        Assert.True(configuredAwaitedF.IsCompleted);
     }
 
     [Fact]
@@ -358,6 +368,12 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
         await step;
         await step;
         await step;
+        await step.ConfigureAwait(false);
+        await step.ConfigureAwait(false);
+        await step.ConfigureAwait(false);
+        await step.ConfigureAwait(true);
+        await step.ConfigureAwait(true);
+        await step.ConfigureAwait(true);
 
         Assert.Equal(1, executionCount);
     }
@@ -375,6 +391,8 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
 
         await Assert.ThrowsAsync(expectedType, () => step.RunAsync(CancellationToken.None));
         await Assert.ThrowsAsync(expectedType, async () => await step);
+        await Assert.ThrowsAsync(expectedType, async () => await step.ConfigureAwait(false));
+        await Assert.ThrowsAsync(expectedType, async () => await step.ConfigureAwait(true));
     }
 
     [Fact]
@@ -394,6 +412,31 @@ public abstract class PipelineStepTestBase : TestBaseWithServiceProvider
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => step.RunAsync(cts.Token));
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await step);
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await step.ConfigureAwait(false));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await step.ConfigureAwait(true));
+    }
+
+    [Fact]
+    public void AwaiterAndAwaitableEquality()
+    {
+        ConfigureAwaitTestExtensions.AwaiterAndAwaitableEquality(
+            () => CreateStepWithAction(_ => Task.CompletedTask),
+            step => step.GetAwaiter(),
+            (step, ca) => step.ConfigureAwait(ca));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    [InlineData(null)]
+    public void OnCompleted_CompletesInAnotherSynchronizationContext(bool? continueOnCapturedContext)
+    {
+        ConfigureAwaitTestExtensions.TestOnCompletedCompletesInAnotherSynchronizationContext(
+            continueOnCapturedContext,
+            () => CreateStepWithAction(_ => Task.CompletedTask),
+            step => step.GetAwaiter(),
+            (step, ca) => step.ConfigureAwait(ca),
+            step => step.RunAsync(CancellationToken.None));
     }
 
     #endregion

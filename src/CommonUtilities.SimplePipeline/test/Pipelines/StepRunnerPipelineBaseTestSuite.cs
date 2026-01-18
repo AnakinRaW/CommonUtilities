@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class StepRunnerPipelineBaseTestBase<TRunner> : PipelineTestBase where TRunner : class, IStepRunner
+public abstract class StepRunnerPipelineBaseTestSuite<TRunner> : PipelineTestSuite where TRunner : class, IStepRunner
 {
     protected virtual bool RunnerSupportsSequentialRuns => true;
 

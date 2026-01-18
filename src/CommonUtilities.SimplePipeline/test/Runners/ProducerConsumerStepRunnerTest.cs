@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class ProducerConsumerStepRunnerTest : StepRunnerTestBase<ProducerConsumerStepRunner>
+public class ProducerConsumerStepRunnerTest : StepRunnerTestSuite<ProducerConsumerStepRunner>
 {
     public override bool HasSequentialStepExecutionOrder => false;
 

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestBase<IStepRunner>
+public abstract class StepRunnerPipelineTestBase : StepRunnerPipelineBaseTestSuite<IStepRunner>
 {
     protected abstract StepRunnerPipeline CreateStepRunnerPipeline(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior);
 

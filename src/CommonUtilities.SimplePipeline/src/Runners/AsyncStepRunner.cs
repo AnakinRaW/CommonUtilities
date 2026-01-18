@@ -31,6 +31,8 @@ public class AsyncStepRunner : IStepRunner
     private readonly ConcurrentBag<IStep> _executedSteps = [];
     private readonly ConcurrentBag<Exception> _exceptions = [];
     private readonly TaskCompletionSource<Task> _completionSource = new();
+    
+    private Task? _cachedAwaitableTask;
 
     /// <inheritdoc />
     public AggregateException? Exception => _exceptions.IsEmpty ? null : new AggregateException(_exceptions);
@@ -102,13 +104,37 @@ public class AsyncStepRunner : IStepRunner
     /// <inheritdoc/>
     public TaskAwaiter GetAwaiter()
     {
-        var task = _completionSource.Task;
-        return task.IsCompleted 
-            ? task.Result.GetAwaiter()
-            : GetAwaitableTask().GetAwaiter();
+        return GetRunnerTask().GetAwaiter();
     }
 
-    private async Task GetAwaitableTask()
+    /// <summary>
+    /// Configures an awaiter used to await this runner.
+    /// </summary>
+    /// <param name="continueOnCapturedContext">
+    /// <see langword="true"/> to attempt to marshal the continuation back to the original context captured;
+    /// otherwise, <see langword="false"/>.
+    /// </param>
+    /// <returns>An object used to await this runner.</returns>
+    public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
+    {
+        return GetRunnerTask().ConfigureAwait(continueOnCapturedContext);
+    }
+
+    private Task GetRunnerTask()
+    {
+        var tcsTask = _completionSource.Task;
+        if (tcsTask is { IsCompleted: true, Status: TaskStatus.RanToCompletion })
+            return tcsTask.Result;
+
+        if (_cachedAwaitableTask is not null)
+            return _cachedAwaitableTask;
+
+        var newTask = CreateAwaitableTask();
+        return Interlocked.CompareExchange(ref _cachedAwaitableTask, newTask, null) ?? newTask;
+    }
+
+
+    private async Task CreateAwaitableTask()
     {
         var task = await _completionSource.Task.ConfigureAwait(false);
         await task.ConfigureAwait(false);

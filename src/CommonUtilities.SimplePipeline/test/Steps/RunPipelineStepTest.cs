@@ -11,13 +11,11 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Steps;
 
-public class RunPipelineStepTest : PipelineStepTestBase
+public class RunPipelineStepTest : PipelineStepTestSuite
 {
     protected override bool StepRespectsCancellationToken => true;
 
     protected override bool StepAddsExceptionsToErrorProperty => true;
-
-    protected override bool StepAddsStopRunnerExceptionToErrorProperty => false;
 
     protected override PipelineStep CreateStep()
     {

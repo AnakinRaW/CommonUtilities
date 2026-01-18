@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestBase<ProducerConsumerStepRunner>
+public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<ProducerConsumerStepRunner>
 {
     protected override StepRunnerPipelineBase<ProducerConsumerStepRunner> CreateStepRunnerPipelineBase(IList<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
     {

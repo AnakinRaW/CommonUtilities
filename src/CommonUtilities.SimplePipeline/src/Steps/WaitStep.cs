@@ -26,7 +26,7 @@ public sealed class WaitStep : PipelineStep
 
     /// <inheritdoc/>
     [ExcludeFromCodeCoverage]
-    public override string ToString() => "Waiting for other steps";
+    public override string ToString() => "Waiting for other step runner";
 
     /// <summary>
     /// Waits for the instance's parallel stepRunner.
@@ -38,7 +38,7 @@ public sealed class WaitStep : PipelineStep
         await _stepRunner;
         if (_stepRunner.Exception is not null)
         {
-            Logger?.LogTrace("The awaited step runner has exceptions. Stopping all subsequent steps.");
+            Logger?.LogTrace("The other step runner finished with failed steps. Stopping current runner.");
             throw new StopRunnerException();
         }
     }

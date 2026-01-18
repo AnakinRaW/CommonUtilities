@@ -25,7 +25,6 @@ public static class AwaitExtensions
 #if !NET
         async
 #endif
-
         Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
     {
         if (process == null)

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Pipelines;
 
-public abstract class PipelineTestBase : TestBaseWithServiceProvider
+public abstract class PipelineTestSuite : TestBaseWithServiceProvider
 {
     protected abstract Pipeline CreatePipeline(IList<IStep> steps);
 

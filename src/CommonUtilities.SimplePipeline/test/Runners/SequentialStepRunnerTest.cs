@@ -4,7 +4,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
+public class SequentialStepRunnerTest : StepRunnerTestSuite<SequentialStepRunner>
 {
     public override bool HasSequentialStepExecutionOrder => true;
 
