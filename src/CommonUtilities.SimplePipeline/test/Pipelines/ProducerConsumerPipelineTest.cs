@@ -30,7 +30,7 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<Prod
         string? throwOnMethod = null, Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc = null)
     {
         return new TrackingProducerConsumerPipeline(ServiceProvider, steps.ToAsyncEnumerable(),
-            GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod);
+            GetWorkerCount(runnerBehavior), failFast, callOrder, throwOnMethod, filterErrorStepsFunc);
     }
 
     private ProducerConsumerPipeline CreateConsumerPipeline(IAsyncEnumerable<IStep> steps, bool failFast, RunnerBehavior runnerBehavior)
@@ -697,6 +697,7 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<Prod
     private class TrackingProducerConsumerPipeline : ProducerConsumerPipeline
     {
         private readonly IAsyncEnumerable<IStep> _steps;
+        private readonly Func<IEnumerable<IStep>, IEnumerable<IStep>>? _filterErrorStepsFunc;
         private readonly TrackingPipelineHelper _helper;
 
         public TrackingProducerConsumerPipeline(
@@ -705,10 +706,12 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<Prod
             int workerCount,
             bool failFast,
             List<string> callOrder,
-            string? throwOnMethod)
+            string? throwOnMethod,
+            Func<IEnumerable<IStep>, IEnumerable<IStep>>? filterErrorStepsFunc)
             : base(workerCount, serviceProvider)
         {
             _steps = steps;
+            _filterErrorStepsFunc = filterErrorStepsFunc;
             _helper = new TrackingPipelineHelper(callOrder, throwOnMethod);
             FailFast = failFast;
         }
@@ -721,5 +724,9 @@ public class ProducerConsumerPipelineTest : StepRunnerPipelineBaseTestSuite<Prod
         protected override void OnExecuteStarted() => _helper.OnExecuteStarted();
         protected override void OnRunnerExecuted() => _helper.OnRunnerExecuted();
         protected override void OnExecuteCompleted() => _helper.OnExecuteCompleted();
+        protected override IEnumerable<IStep> GetFailedSteps(IEnumerable<IStep> steps)
+        {
+            return _filterErrorStepsFunc is null ? base.GetFailedSteps(steps) : _filterErrorStepsFunc(steps);
+        }
     }
 }

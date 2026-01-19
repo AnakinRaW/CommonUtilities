@@ -65,7 +65,7 @@ public abstract class PipelineStep : DisposableObject, IStep
     {
         var task = ExecuteStepAsync(token);
         _completionSource.TrySetResult(task);
-        return task;
+        return GetStepTask();
     }
 
     /// <inheritdoc />

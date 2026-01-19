@@ -3,7 +3,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -485,7 +484,9 @@ public abstract class StepRunnerPipelineBaseTestSuite<TRunner> : PipelineTestSui
         var ex = await Assert.ThrowsAsync<StepFailureException>(
             () => pipeline.RunAsync(TestContext.Current.CancellationToken));
 
-        await Assert.Single(ex.FailedSteps);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        Assert.Single(ex.FailedSteps);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         Assert.Equal(failedStep, ex.FailedSteps.First());
     }
 
@@ -498,7 +499,7 @@ public abstract class StepRunnerPipelineBaseTestSuite<TRunner> : PipelineTestSui
         var step2 = new TestStep(_ => throw new ArgumentException("Error 2"), ServiceProvider);
 
         var pipeline = CreateTrackingPipeline([step1, step2], false, GetRandomRunBehavior(), callOrder,
-            filterErrorStepsFunc: steps => []);
+            filterErrorStepsFunc: _ => []);
 
         var ex = await Record.ExceptionAsync(async () => await pipeline.RunAsync(TestContext.Current.CancellationToken));
         Assert.Null(ex);
