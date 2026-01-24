@@ -38,7 +38,7 @@ public static class WindowsPathExtensions
         {
             if (!directoryInfo.Exists)
                 throw new DirectoryNotFoundException($"Unable to find {directoryInfo.FullName}");
-            isInRoleWithAccess = TestAccessRightsOnWindows(directoryInfo, accessRights);
+            isInRoleWithAccess = directoryInfo.TestAccessRightsOnWindows(accessRights);
         }
         catch (UnauthorizedAccessException)
         {

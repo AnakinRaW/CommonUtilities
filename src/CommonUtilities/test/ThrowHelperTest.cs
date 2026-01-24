@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Extensions;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Test;
@@ -22,29 +22,31 @@ public class ThrowHelperTest
         ThrowHelper.ThrowIfNullOrEmpty("abc", "something");
     }
 
+    // ReSharper disable AccessToModifiedClosure
     [Fact]
     public static void ThrowIfNullOrEmpty_UsesArgumentExpression_ParameterNameMatches()
     {
-        string someString = null;
+        string? someString = null;
         AssertExtensions.Throws<ArgumentNullException>(nameof(someString), () => ThrowHelper.ThrowIfNullOrEmpty(someString));
 
         someString = "";
-        AssertExtensions.Throws<ArgumentException>(nameof(someString), () => ThrowHelper.ThrowIfNullOrEmpty(someString));
+        AssertExtensions.Throws<ArgumentException>(nameof(someString), () => ThrowHelper.ThrowIfNullOrEmpty(someString!));
 
         someString = "abc";
         ThrowHelper.ThrowIfNullOrEmpty(someString);
     }
+    // ReSharper restore AccessToModifiedClosure
 
 
     [Fact]
     public static void ThrowIfCollectionNullOrEmpty_ThrowsForInvalidInput()
     {
         AssertExtensions.Throws<ArgumentNullException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty(null, null));
-        AssertExtensions.Throws<ArgumentNullException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<int>)null, null));
-        AssertExtensions.Throws<ArgumentNullException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<string>)null, null));
+        AssertExtensions.Throws<ArgumentNullException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<int>)null!, null));
+        AssertExtensions.Throws<ArgumentNullException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<string>)null!, null));
         AssertExtensions.Throws<ArgumentNullException>("something", () => ThrowHelper.ThrowIfCollectionNullOrEmpty(null, "something"));
-        AssertExtensions.Throws<ArgumentNullException>("something", () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<int>)null, "something"));
-        AssertExtensions.Throws<ArgumentNullException>("something", () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<string>)null, "something"));
+        AssertExtensions.Throws<ArgumentNullException>("something", () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<int>)null!, "something"));
+        AssertExtensions.Throws<ArgumentNullException>("something", () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<string>)null!, "something"));
 
         AssertExtensions.Throws<ArgumentException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList)new List<int>(), null));
         AssertExtensions.Throws<ArgumentException>(null, () => ThrowHelper.ThrowIfCollectionNullOrEmpty((IList<int>)new List<int>(), null));

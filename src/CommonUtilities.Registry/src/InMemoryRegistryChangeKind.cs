@@ -4,5 +4,5 @@ internal enum InMemoryRegistryChangeKind
 {
     TreeCreate,
     TreeDelete,
-    Value,
+    Value
 }

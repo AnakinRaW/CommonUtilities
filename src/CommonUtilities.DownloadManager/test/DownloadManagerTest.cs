@@ -15,7 +15,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class DownloadManagerTest : CommonTestBase
+public class DownloadManagerTest : TestBaseWithFileSystem
 {
     private const string Destination = "file.txt";
 
@@ -464,7 +464,7 @@ public class DownloadManagerTest : CommonTestBase
 
     private class ThrowingValidator : IDownloadValidator
     {
-        public Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
+        public Task<bool> ValidateAsync(Stream stream, long downloadedBytes, CancellationToken token = default)
         {
             throw new Exception("Test");
         }

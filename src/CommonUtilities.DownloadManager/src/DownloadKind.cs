@@ -14,5 +14,5 @@ public enum DownloadKind
     /// <summary>
     /// The provider supports downloading files from the Internet.
     /// </summary>
-    Internet,
+    Internet
 }

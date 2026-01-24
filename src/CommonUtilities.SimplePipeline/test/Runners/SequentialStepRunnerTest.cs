@@ -1,18 +1,25 @@
 ﻿using AnakinRaW.CommonUtilities.SimplePipeline.Runners;
 using System;
-using System.Threading.Tasks;
-using System.Threading;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.SimplePipeline.Test.Runners;
 
-public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
+public class SequentialStepRunnerTest : StepRunnerTestSuite<SequentialStepRunner>
 {
-    public override bool PreservesStepExecutionOrder => true;
+    public override bool HasSequentialStepExecutionOrder => true;
 
-    protected override SequentialStepRunner CreateStepRunner(bool deterministic = false)
+    public override bool SupportsSequentialExecutionOrder => true;
+
+    protected override SequentialStepRunner CreateStepRunner(bool? sequential = null)
     {
+        if (sequential is false)
+            throw new InvalidOperationException();
         return new SequentialStepRunner(ServiceProvider);
+    }
+
+    protected override SequentialStepRunner CreateStepRunner(int workerCount)
+    {
+        throw new NotSupportedException();
     }
 
     [Fact]
@@ -22,30 +29,9 @@ public class SequentialStepRunnerTest : StepRunnerTestBase<SequentialStepRunner>
     }
 
     [Fact]
-    public async Task RunAsync_ErrorSetsCancellation()
+    public void Ctor_WorkerCountIsOne()
     {
-        var runner = CreateStepRunner();
-
-        var errorCounter = 0;
-        runner.Error += (_, e) =>
-        {
-            errorCounter++;
-            if (e.Step?.Error?.Message == "Test")
-                e.Cancel = true;
-        };
-
-        var step1 = new TestStep(_ => throw new Exception("Test"), ServiceProvider);
-        var ran2 = false;
-        var step2 = new TestStep(_ => { ran2 = true; }, ServiceProvider);
-
-        runner.AddStep(step1);
-        runner.AddStep(step2);
-
-        var runnerTask = runner.RunAsync(CancellationToken.None);
-
-        await runnerTask;
-
-        Assert.Equal(2, errorCounter);
-        Assert.False(ran2);
+        var runner = new SequentialStepRunner(ServiceProvider);
+        Assert.Equal(1, runner.WorkerCount);
     }
 }

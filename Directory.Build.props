@@ -1,16 +1,20 @@
 <Project>
 	<PropertyGroup>
 		<RepoRootPath>$(MSBuildThisFileDirectory)</RepoRootPath>
-		<LangVersion>preview</LangVersion>
-		<ImplicitUsings>disable</ImplicitUsings>
 		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
 		<EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
 		<GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
 		<PackageOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\</PackageOutputPath>
 	</PropertyGroup>
 	<PropertyGroup>
-		<Product>.NET Common Utilities</Product>
-		<Copyright>Copyright © AnakinRaW 2025</Copyright>
+		<LangVersion>preview</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	</PropertyGroup>
+	<PropertyGroup>
+		<Product>AnakinRaW Common Utilities</Product>
+		<Copyright>Copyright © AnakinRaW 2026</Copyright>
 		<Authors>AnakinRaW</Authors>
 		<Owners>AnakinRaW</Owners>
 		<PackageProjectUrl>https://github.com/AnakinRaW/CommonUtilities</PackageProjectUrl>
@@ -19,8 +23,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="SauceControl.InheritDoc" Version="2.0.2" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">

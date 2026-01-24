@@ -135,7 +135,7 @@ public static class WindowsFileSystemExtensions
             rebootRequired = false;
             return success;
         }
-        rebootRequired = DeleteAfterReboot(file);
+        rebootRequired = file.DeleteAfterReboot();
         return false;
     }
 
@@ -173,7 +173,7 @@ public static class WindowsFileSystemExtensions
             return success;
         }
 
-        rebootRequired = DeleteAfterReboot(directory);
+        rebootRequired = directory.DeleteAfterReboot();
         return false;
     }
 }

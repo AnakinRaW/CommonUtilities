@@ -29,7 +29,7 @@ public sealed class DownloadManager : IDownloadManager
     /// <summary>
     /// Initializes a new instance of the <see cref="DownloadManager"/> class.
     /// </summary>
-    /// <param name="serviceProvider"></param>
+    /// <param name="serviceProvider">The service provider.</param>
     public DownloadManager(IServiceProvider serviceProvider)
         : this(DownloadManagerConfiguration.Default, serviceProvider)
     {
@@ -172,7 +172,7 @@ public sealed class DownloadManager : IDownloadManager
                         bool validationSuccess;
                         try
                         {
-                            validationSuccess = await validator.Validate(outputStream, summary.DownloadedSize, cancellationToken)
+                            validationSuccess = await validator.ValidateAsync(outputStream, summary.DownloadedSize, cancellationToken)
                                 .ConfigureAwait(false);
                         }
                         catch (Exception e)

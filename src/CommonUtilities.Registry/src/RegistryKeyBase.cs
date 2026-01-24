@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
+#if NETSTANDARD2_0
 using System.Linq;
+#endif
 
 namespace AnakinRaW.CommonUtilities.Registry;
 
@@ -67,7 +69,7 @@ public abstract class RegistryKeyBase : IRegistryKey
             var nonNullableType = Nullable.GetUnderlyingType(type) ?? type;
 
             if (nonNullableType.IsEnum)
-                return (T)Enum.Parse(nonNullableType, result.ToString(), true);
+                return (T)Enum.Parse(nonNullableType, result.ToString()!, true);
 
             return (T)Convert.ChangeType(result, nonNullableType, CultureInfo.InvariantCulture);
         }

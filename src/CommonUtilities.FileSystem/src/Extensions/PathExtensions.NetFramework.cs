@@ -184,7 +184,7 @@ public static partial class PathExtensions
     {
         if (path == null)
             throw new ArgumentNullException(nameof(path));
-        return IsPathFullyQualified(_, path.AsSpan());
+        return _.IsPathFullyQualified(path.AsSpan());
     }
 
     /// <summary>

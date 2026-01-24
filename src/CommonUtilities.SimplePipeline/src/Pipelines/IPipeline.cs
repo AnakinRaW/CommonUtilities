@@ -5,26 +5,24 @@ using System.Threading.Tasks;
 namespace AnakinRaW.CommonUtilities.SimplePipeline;
 
 /// <summary>
-/// Represents an execution pipeline can run multiple <see cref="IStep"/> instanes.
+/// Represents an execution pipeline that can be prepared and run.
 /// </summary>
 public interface IPipeline : IDisposable
-{ 
+{
     /// <summary>
     /// Prepares the pipeline for execution.
     /// </summary>
-    /// <remarks>
-    /// Preparation can only be done once per instance.
-    /// </remarks>
-    /// <returns>A task that completes when the preparation is completed.</returns>
-    Task PrepareAsync();
-    
+    /// <param name="token">Token to cancel the preparation.</param>
+    /// <exception cref="OperationCanceledException">Cancellation was requested.</exception>
+    /// <exception cref="ObjectDisposedException">The pipeline was disposed.</exception>
+    Task PrepareAsync(CancellationToken token = default);
+
     /// <summary>
-    /// Runs pipeline synchronously.
+    /// Runs the pipeline asynchronously.
     /// </summary>
-    /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
-    /// <returns>A task that represents the operation completion.</returns>
-    /// <exception cref="OperationCanceledException">The pipeline was cancelled was requested for cancellation.</exception>
-    /// <exception cref="StepFailureException">The pipeline may throw this exception if one or many steps failed.</exception>
+    /// <param name="token">Token to cancel the execution.</param>
+    /// <exception cref="OperationCanceledException">Cancellation was requested.</exception>
+    /// <exception cref="ObjectDisposedException">The pipeline was disposed.</exception>
     Task RunAsync(CancellationToken token = default);
 
     /// <summary>

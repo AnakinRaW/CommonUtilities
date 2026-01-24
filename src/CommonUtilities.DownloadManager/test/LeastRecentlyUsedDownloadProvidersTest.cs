@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AnakinRaW.CommonUtilities.DownloadManager.Test;
 
-public class LeastRecentlyUsedDownloadProvidersTest : CommonTestBase
+public class LeastRecentlyUsedDownloadProvidersTest : TestBaseWithFileSystem
 {
     private readonly LeastRecentlyUsedDownloadProviders _provider = new();
 

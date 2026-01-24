@@ -37,7 +37,7 @@ public sealed class HashDownloadValidator : IDownloadValidator
     }
 
     /// <inheritdoc />
-    public async Task<bool> Validate(Stream stream, long downloadedBytes, CancellationToken token = default)
+    public async Task<bool> ValidateAsync(Stream stream, long downloadedBytes, CancellationToken token = default)
     {
         if (stream == null) 
             throw new ArgumentNullException(nameof(stream));

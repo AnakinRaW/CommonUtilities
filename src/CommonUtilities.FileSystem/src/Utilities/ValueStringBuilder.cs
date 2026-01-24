@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace AnakinRaW.CommonUtilities.FileSystem.Utilities;
 
 // Copied from https://github.com/dotnet/runtime
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
 internal ref struct ValueStringBuilder
 {
     private char[]? _arrayToReturnToPool;
@@ -69,8 +71,8 @@ internal ref struct ValueStringBuilder
     {
         if (terminate)
         {
-            EnsureCapacity(Length + 1);
-            _chars[Length] = '\0';
+            EnsureCapacity(_pos + 1);
+            _chars[_pos] = '\0';
         }
         return ref MemoryMarshal.GetReference(_chars);
     }
@@ -83,6 +85,11 @@ internal ref struct ValueStringBuilder
             return ref _chars[index];
         }
     }
+
+    // ToString() clears the builder, so we need a side-effect free debugger display.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
+    private string DebuggerDisplay => AsSpan().ToString();
 
     public override string ToString()
     {
@@ -102,8 +109,8 @@ internal ref struct ValueStringBuilder
     {
         if (terminate)
         {
-            EnsureCapacity(Length + 1);
-            _chars[Length] = '\0';
+            EnsureCapacity(_pos + 1);
+            _chars[_pos] = '\0';
         }
         return _chars.Slice(0, _pos);
     }

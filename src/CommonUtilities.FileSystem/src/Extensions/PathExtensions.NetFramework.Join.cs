@@ -110,11 +110,11 @@ public static partial class PathExtensions
 	public static string Join(this IPath _, string? path1, string? path2, string? path3)
     {
         if (string.IsNullOrEmpty(path1))
-            return Join(_, path2, path3);
+            return _.Join(path2, path3);
         if (string.IsNullOrEmpty(path2))
-            return Join(_, path1, path3);
+            return _.Join(path1, path3);
         if (string.IsNullOrEmpty(path3))
-            return Join(_, path1, path2);
+            return _.Join(path1, path2);
         return JoinInternal(path1.AsSpan(), path2.AsSpan(), path3.AsSpan());
 	}
 
@@ -148,11 +148,11 @@ public static partial class PathExtensions
 	public static string Join(this IPath _, ReadOnlySpan<char> path1, ReadOnlySpan<char> path2, ReadOnlySpan<char> path3)
     {
         if (path1.Length == 0)
-            return Join(_, path2, path3);
+            return _.Join(path2, path3);
         if (path2.Length == 0) 
-            return Join(_, path1, path3);
+            return _.Join(path1, path3);
         if (path3.Length == 0)
-            return Join(_, path1, path2);
+            return _.Join(path1, path2);
         return JoinInternal(path1, path2, path3);
 	}
 
@@ -187,13 +187,13 @@ public static partial class PathExtensions
 	public static string Join(this IPath _, string? path1, string? path2, string? path3, string? path4)
     {
         if (string.IsNullOrEmpty(path1))
-            return Join(_, path2, path3, path4);
+            return _.Join(path2, path3, path4);
         if (string.IsNullOrEmpty(path2))
-            return Join(_, path1, path3, path4);
+            return _.Join(path1, path3, path4);
         if (string.IsNullOrEmpty(path3))
-            return Join(_, path1, path2, path4);
+            return _.Join(path1, path2, path4);
         if (string.IsNullOrEmpty(path4))
-            return Join(_, path1, path2, path3);
+            return _.Join(path1, path2, path3);
         return JoinInternal(path1.AsSpan(), path2.AsSpan(), path3.AsSpan(), path4.AsSpan());
 	}
 
@@ -228,13 +228,13 @@ public static partial class PathExtensions
 	public static string Join(this IPath _, ReadOnlySpan<char> path1, ReadOnlySpan<char> path2, ReadOnlySpan<char> path3, ReadOnlySpan<char> path4)
     {
         if (path1.Length == 0) 
-            return Join(_, path2, path3, path4);
+            return _.Join(path2, path3, path4);
         if (path2.Length == 0) 
-            return Join(_, path1, path3, path4);
+            return _.Join(path1, path3, path4);
         if (path3.Length == 0)
-            return Join(_, path1, path2, path4);
+            return _.Join(path1, path2, path4);
         if (path4.Length == 0)
-            return Join(_, path1, path2, path3);
+            return _.Join(path1, path2, path3);
         return JoinInternal(path1, path2, path3, path4);
 	}
 
@@ -266,7 +266,7 @@ public static partial class PathExtensions
 	public static string Join(this IPath _, params string?[] paths)
     {
         ThrowHelper.ThrowIfNull(paths);
-        return Join(_, (ReadOnlySpan<string?>)paths);
+        return _.Join((ReadOnlySpan<string?>)paths);
 	}
 
 	/// <summary>
@@ -342,11 +342,11 @@ public static partial class PathExtensions
             return true;
 
         if (path1.Length == 0)
-            return TryJoin(_, path2, path3, destination, out charsWritten);
+            return _.TryJoin(path2, path3, destination, out charsWritten);
         if (path2.Length == 0)
-            return TryJoin(_, path1, path3, destination, out charsWritten);
+            return _.TryJoin(path1, path3, destination, out charsWritten);
         if (path3.Length == 0)
-            return TryJoin(_, path1, path2, destination, out charsWritten);
+            return _.TryJoin(path1, path2, destination, out charsWritten);
 
         var neededSeparators = HasTrailingDirectorySeparator(path1) || HasLeadingDirectorySeparator(path2) ? 0 : 1;
         var needsSecondSeparator = !(HasTrailingDirectorySeparator(path2) || HasLeadingDirectorySeparator(path3));
@@ -357,7 +357,7 @@ public static partial class PathExtensions
         if (destination.Length < charsNeeded)
             return false;
 
-        var result = TryJoin(_, path1, path2, destination, out charsWritten);
+        var result = _.TryJoin(path1, path2, destination, out charsWritten);
         Debug.Assert(result, "should never fail joining first two paths");
 
         if (needsSecondSeparator)

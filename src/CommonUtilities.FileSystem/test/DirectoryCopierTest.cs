@@ -30,15 +30,15 @@ public class DirectoryCopierTest
     public async Task MoveDirectoryAsync_CopyDirectoryAsync_ThrowsArgumentNullExceptionsAsync()
     {
         var copier = new DirectoryCopier(_fileSystem);
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.MoveDirectoryAsync(null!, "path"));
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.MoveDirectoryAsync("source", null!));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.MoveDirectoryAsync("source", "path", null, null, 0));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.MoveDirectoryAsync("source", "path", null, null, -1));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.MoveDirectoryAsync(null!, "path", cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.MoveDirectoryAsync("source", null!, cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.MoveDirectoryAsync("source", "path", null, null, 0, cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.MoveDirectoryAsync("source", "path", null, null, -1, cancellationToken: TestContext.Current.CancellationToken));
 
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.CopyDirectoryAsync(null!, "path"));
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.CopyDirectoryAsync("source", null!));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.CopyDirectoryAsync("source", "path", null, null, 0));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.CopyDirectoryAsync("source", "path", null, null, -1));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.CopyDirectoryAsync(null!, "path", cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await copier.CopyDirectoryAsync("source", null!, cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.CopyDirectoryAsync("source", "path", null, null, 0, cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await copier.CopyDirectoryAsync("source", "path", null, null, -1, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class DirectoryCopierTest
         // https://github.com/Testably/Testably.Abstractions/issues/549
         var fsStream = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
-        await copier.CopyDirectoryAsync("test", "other", progress, Exclude2);
+        await copier.CopyDirectoryAsync("test", "other", progress, Exclude2, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(1.0, progressValue);
 
         Assert.True(_fileSystem.File.Exists("other/1.txt"));
@@ -207,7 +207,7 @@ public class DirectoryCopierTest
         });
 
         
-        var delSuc = await copier.MoveDirectoryAsync("test", "other", progress);
+        var delSuc = await copier.MoveDirectoryAsync("test", "other", progress, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(1.0, progressValue);
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));

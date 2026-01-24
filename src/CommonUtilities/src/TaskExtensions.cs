@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-#if !NET6_0_OR_GREATER
+#if !NE10_0_OR_GREATER
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -20,7 +20,7 @@ public static class TaskExtensions
     {
     }
 
-#if !NET6_0_OR_GREATER
+#if !NE10_0_OR_GREATER
 
     /// <summary>
     /// Gets a <see cref="Task{TResult}"/> that will complete when this <see cref="Task{TResult}"/> completes

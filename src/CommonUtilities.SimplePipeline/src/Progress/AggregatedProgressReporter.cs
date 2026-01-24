@@ -110,15 +110,14 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObjec
         {
             if (!_progressSteps.Add(step))
                 continue;
-            step.Progress += OnStepProgress;
+            step.Progress += OnStepProgress!;
             TotalSize += step.Size;
         }
     }
 
     private void OnStepProgress(object sender, ProgressEventArgs<TInfo> e)
     {
-        if (sender is not TStep step)
-            throw new InvalidCastException($"Cannot cast '{sender.GetType()}' to {typeof(TStep)}");
+        var step = (TStep)sender;
         if (!_progressSteps.Contains(step))
             return;
 
@@ -134,7 +133,7 @@ public abstract class AggregatedProgressReporter<TStep, TInfo> : DisposableObjec
     protected override void DisposeResources()
     {
         foreach (var step in _progressSteps) 
-            step.Progress -= OnStepProgress;
+            step.Progress -= OnStepProgress!;
         _progressSteps.Clear();
     }
 }

@@ -68,7 +68,7 @@ public sealed class WebClientDownloader : DownloadProviderBase
                     try
                     {
                         summary.DownloadedSize = await StreamUtilities.CopyStreamWithProgressAsync(
-                            responseStream,
+                            responseStream!,
                             totalStreamLength, 
                             outputStream,
                             progress,

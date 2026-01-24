@@ -85,7 +85,6 @@ internal abstract class HashAlgorithmProviderBase : IHashAlgorithmProvider
         }
     }
 
-
     protected int ComputeHashWithHashAlgorithmLegacy(Stream source, Span<byte> destination)
     {
         using var algorithm = CreateHashAlgorithm();

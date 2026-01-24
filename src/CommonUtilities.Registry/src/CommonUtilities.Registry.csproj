@@ -1,15 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<Title>CommonUtilities.Registry</Title>
+		<PackageId>AnakinRaW.CommonUtilities.Registry</PackageId>
 		<Description>Platform independent abstraction layer for the Windows Registry.</Description>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<IsPackable>true</IsPackable>
+		<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
 		<RootNamespace>AnakinRaW.CommonUtilities.Registry</RootNamespace>
 		<AssemblyName>AnakinRaW.CommonUtilities.Registry</AssemblyName>
-		<Nullable>enable</Nullable>
-		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -21,12 +23,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="$(TargetFramework) == 'netstandard2.0'" />
+		<PackageReference Include="System.Memory" Version="4.6.3" Condition="$(TargetFramework) == 'netstandard2.0'" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Nullable" Version="1.3.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-		<PackageReference Include="System.Memory" Version="4.6.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.102" />
 	</ItemGroup>
 
 </Project>

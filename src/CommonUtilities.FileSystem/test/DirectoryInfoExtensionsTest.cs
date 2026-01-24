@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using AnakinRaW.CommonUtilities.Testing;
+using AnakinRaW.CommonUtilities.Testing.Attributes;
 using Testably.Abstractions.Testing;
 using Xunit;
 
@@ -199,7 +199,7 @@ public class DirectoryInfoExtensionsTest
         _fileSystem.Initialize();
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
-            await dirToMove.MoveToAsync("test1", null, DirectoryOverwriteOption.NoOverwrite));
+            await dirToMove.MoveToAsync("test1", null, DirectoryOverwriteOption.NoOverwrite, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class DirectoryInfoExtensionsTest
             .WithSubdirectory("other");
 
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
-        await Assert.ThrowsAsync<IOException>(async () => await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.NoOverwrite));
+        await Assert.ThrowsAsync<IOException>(async () => await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.NoOverwrite, cancellationToken: TestContext.Current.CancellationToken));
     }
 
 
@@ -228,7 +228,7 @@ public class DirectoryInfoExtensionsTest
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
 
-        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
@@ -252,7 +252,7 @@ public class DirectoryInfoExtensionsTest
         var dirToMove = _fileSystem.DirectoryInfo.New("test");
 
 
-        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.MergeOverwrite);
+        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.MergeOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(delSuc);
         Assert.False(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
@@ -289,7 +289,7 @@ public class DirectoryInfoExtensionsTest
         {
             progressValue = d;
         });
-        var delSuc = await dirToMove.MoveToAsync("other", progress, DirectoryOverwriteOption.CleanOverwrite);
+        var delSuc = await dirToMove.MoveToAsync("other", progress, DirectoryOverwriteOption.CleanOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         
         Assert.True(delSuc);
         Assert.Equal(1.0, progressValue);
@@ -307,7 +307,7 @@ public class DirectoryInfoExtensionsTest
 
         var fs = _fileSystem.FileStream.New("test/1.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        var delSuc = await dirToMove.MoveToAsync("other", null, DirectoryOverwriteOption.CleanOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(delSuc);
 
         fs.Dispose();
@@ -395,7 +395,7 @@ public class DirectoryInfoExtensionsTest
     public async Task CopyAsync_ThrowsDirectoryNotFound()
     {
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
-        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await dirToCopy.CopyAsync("test1", null, DirectoryOverwriteOption.NoOverwrite));
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await dirToCopy.CopyAsync("test1", null, DirectoryOverwriteOption.NoOverwrite, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -408,7 +408,7 @@ public class DirectoryInfoExtensionsTest
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
-        await Assert.ThrowsAsync<IOException>(async () => await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.NoOverwrite));
+        await Assert.ThrowsAsync<IOException>(async () => await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.NoOverwrite, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -423,7 +423,7 @@ public class DirectoryInfoExtensionsTest
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
-        await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.CleanOverwrite);
+        await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.CleanOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
         Assert.Equal(3, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
@@ -445,7 +445,7 @@ public class DirectoryInfoExtensionsTest
 
         var dirToCopy = _fileSystem.DirectoryInfo.New("test");
 
-        await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.MergeOverwrite);
+        await dirToCopy.CopyAsync("other", null, DirectoryOverwriteOption.MergeOverwrite, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(_fileSystem.Directory.Exists("test"));
         Assert.True(_fileSystem.Directory.Exists("other"));
         Assert.Equal(5, _fileSystem.DirectoryInfo.New("other").GetFiles("*", SearchOption.AllDirectories).Length);
