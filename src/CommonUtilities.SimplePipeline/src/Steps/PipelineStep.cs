@@ -91,7 +91,7 @@ public abstract class PipelineStep : DisposableObject, IStep
         return GetType().Name;
     }
 
-    /// <summary>0
+    /// <summary>
     /// Executes this step. 
     /// </summary>
     /// <param name="token">Provided <see cref="CancellationToken"/> to allow cancellation.</param>
