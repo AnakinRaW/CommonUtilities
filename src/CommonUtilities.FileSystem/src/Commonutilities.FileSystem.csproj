@@ -27,7 +27,7 @@
 		<PackageReference Include="Testably.Abstractions" Version="10.0.0" />
 		<PackageReference Include="System.Memory" Version="4.6.3" Condition="$(TargetFramework) == 'netstandard2.0'" />
 		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="$(TargetFramework) == 'netstandard2.0' OR $(TargetFramework) == 'netstandard2.1'" />
-		<PackageReference Include="Testably.Abstractions.AccessControl" Version="5.0.3" />
+		<PackageReference Include="Testably.Abstractions.AccessControl" Version="5.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
