@@ -32,8 +32,8 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
 		<PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
 		<PackageReference Include="xunit.v3.assert" Version="3.2.2" />
-		<PackageReference Include="Testably.Abstractions" Version="10.1.0" />
-		<PackageReference Include="Testably.Abstractions.Testing" Version="5.3.1" />
+		<PackageReference Include="Testably.Abstractions" Version="10.2.0" />
+		<PackageReference Include="Testably.Abstractions.Testing" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
