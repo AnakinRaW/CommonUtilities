@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Xunit;
 
 namespace AnakinRaW.CommonUtilities.Registry.Test;
@@ -9,6 +11,8 @@ public abstract partial class RegistryTestsBase : IDisposable
 {
     private const string CurrentUserKeyName = "HKEY_CURRENT_USER";
     private const char MarkerChar = '\uffff';
+
+    private static int s_keyCount;
 
 
     public abstract bool IsCaseSensitive { get; }
@@ -206,7 +210,10 @@ public abstract partial class RegistryTestsBase : IDisposable
 
     private string CreateUniqueKeyName()
     {
-        return "commonutulitiestest_" + GetType().Name;
+        // Must be unique per test instance — xUnit v3 runs tests within the same class
+        // in parallel, and the test fixture writes to a real HKCU subtree.
+        var counter = Interlocked.Increment(ref s_keyCount);
+        return "commonutulitiestest_" + GetType().Name + "_" + Process.GetCurrentProcess().Id + "_" + counter;
     }
     private static object[] InsertMarkerChar(string expected, string format)
     {
