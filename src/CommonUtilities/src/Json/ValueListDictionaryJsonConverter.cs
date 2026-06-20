@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -9,22 +8,27 @@ using AnakinRaW.CommonUtilities.Collections;
 namespace AnakinRaW.CommonUtilities.Json;
 
 /// <summary>
-/// Serializes any value-list-dictionary as a JSON object where each key maps to a JSON array of its
-/// associated values, and reads the same shape back.
+/// Converts a value-list-dictionary to and from a JSON object whose property names are the dictionary's keys
+/// and whose values are JSON arrays of the values associated with each key.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Supports the mutable (<see cref="ValueListDictionary{TKey,TValue}"/>,
-/// <see cref="FrugalValueListDictionary{TKey,TValue}"/>), read-only
-/// (<see cref="ReadOnlyValueListDictionary{TKey,TValue}"/>,
-/// <see cref="ReadOnlyFrugalValueListDictionary{TKey,TValue}"/>) and frugal variants, as well as their
-/// corresponding interfaces.
+/// This <see cref="JsonConverterFactory"/> supports the mutable
+/// <see cref="ValueListDictionary{TKey,TValue}"/> and <see cref="FrugalValueListDictionary{TKey,TValue}"/>
+/// types, the read-only <see cref="ReadOnlyValueListDictionary{TKey,TValue}"/> and
+/// <see cref="ReadOnlyFrugalValueListDictionary{TKey,TValue}"/> types, and each of their corresponding
+/// interfaces. Deserializing one of the interfaces produces an instance of the matching concrete type.
 /// </para>
 /// <para>
-/// String keys honor <see cref="JsonSerializerOptions.DictionaryKeyPolicy"/> on write, matching the
-/// behavior of the runtime's built-in dictionary converter. Non-string keys are converted using the
-/// invariant culture. The key equality comparer of a dictionary is part of its runtime state and
-/// cannot be represented in JSON; deserialized dictionaries therefore always use the default comparer.
+/// Keys use the <see cref="JsonConverter{T}"/> that the active <see cref="JsonSerializerOptions"/> resolves
+/// for the key type, with <see cref="JsonSerializerOptions.DictionaryKeyPolicy"/> applied on write. Supported
+/// key types include <see cref="string"/>, the integral and floating-point primitives, <see cref="bool"/>,
+/// <see cref="Guid"/>, and enumerations.
+/// </para>
+/// <para>
+/// A deserialized dictionary uses the default key comparer. A value array that is empty or
+/// <see langword="null"/> yields no entry for its key. If a property name appears more than once, the last
+/// occurrence replaces any earlier value array.
 /// </para>
 /// </remarks>
 public sealed class ValueListDictionaryJsonConverter : JsonConverterFactory
@@ -97,7 +101,13 @@ public sealed class ValueListDictionaryJsonConverter : JsonConverterFactory
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException($"Expected start of object but got '{reader.TokenType}'.");
 
+            var keyConverter = (JsonConverter<TKey>)options.GetConverter(typeof(TKey));
+
             var entries = new List<KeyValuePair<TKey, List<TValue>>>();
+            // Maps each key to its slot in 'entries' so a repeated property name overwrites its value
+            // (last one wins) at the original position, matching the built-in dictionary converter. The
+            // default comparer is used here because that is the comparer the rebuilt dictionary will use.
+            var indexByKey = new Dictionary<TKey, int>();
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
@@ -106,15 +116,20 @@ public sealed class ValueListDictionaryJsonConverter : JsonConverterFactory
                 if (reader.TokenType != JsonTokenType.PropertyName)
                     throw new JsonException($"Expected property name but got '{reader.TokenType}'.");
 
-                var key = ParseKey(reader.GetString()
-                                   ?? throw new JsonException("Property name must not be null."));
+                var key = keyConverter.ReadAsPropertyName(ref reader, typeof(TKey), options);
 
                 reader.Read();
                 if (reader.TokenType is not (JsonTokenType.StartArray or JsonTokenType.Null))
                     throw new JsonException($"Expected start of array for key '{key}' but got '{reader.TokenType}'.");
 
                 var values = JsonSerializer.Deserialize<List<TValue>>(ref reader, options) ?? [];
-                entries.Add(new KeyValuePair<TKey, List<TValue>>(key, values));
+                if (indexByKey.TryGetValue(key, out var existingIndex))
+                    entries[existingIndex] = new KeyValuePair<TKey, List<TValue>>(key, values);
+                else
+                {
+                    indexByKey[key] = entries.Count;
+                    entries.Add(new KeyValuePair<TKey, List<TValue>>(key, values));
+                }
             }
 
             throw new JsonException("Unexpected end of JSON while reading object.");
@@ -162,35 +177,14 @@ public sealed class ValueListDictionaryJsonConverter : JsonConverterFactory
         public override void Write(Utf8JsonWriter writer, TDictionary value, JsonSerializerOptions options)
         {
             var dictionary = (IReadOnlyValueListDictionary<TKey, TValue>)value!;
+            var keyConverter = (JsonConverter<TKey>)options.GetConverter(typeof(TKey));
             writer.WriteStartObject();
             foreach (var key in dictionary.Keys)
             {
-                writer.WritePropertyName(ConvertKey(key, options));
+                keyConverter.WriteAsPropertyName(writer, key, options);
                 JsonSerializer.Serialize(writer, dictionary.GetValues(key), options);
             }
             writer.WriteEndObject();
-        }
-
-        private static string ConvertKey(TKey key, JsonSerializerOptions options)
-        {
-            if (key is string s)
-                return options.DictionaryKeyPolicy?.ConvertName(s) ?? s;
-            return Convert.ToString(key, CultureInfo.InvariantCulture)
-                   ?? throw new NotSupportedException($"Unable to convert key of type '{typeof(TKey)}' to a JSON property name.");
-        }
-
-        private static TKey ParseKey(string propertyName)
-        {
-            if (typeof(TKey) == typeof(string))
-                return (TKey)(object)propertyName;
-            try
-            {
-                return (TKey)Convert.ChangeType(propertyName, typeof(TKey), CultureInfo.InvariantCulture);
-            }
-            catch (Exception e) when (e is InvalidCastException or FormatException or OverflowException)
-            {
-                throw new JsonException($"Unable to convert JSON property name '{propertyName}' to a key of type '{typeof(TKey)}'.", e);
-            }
         }
     }
 
