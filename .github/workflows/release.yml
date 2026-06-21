@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup .NET
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup .NET
@@ -51,7 +51,7 @@ jobs:
           path: packages
       - name: Push packages
         run: dotnet nuget push "packages/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-      - uses: dotnet/nbgv@v0.5.1
+      - uses: dotnet/nbgv@v0.5.2
         id: nbgv
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
